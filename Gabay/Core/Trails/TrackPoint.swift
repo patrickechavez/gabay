@@ -75,6 +75,15 @@ extension Array where Element == TrackPoint {
         return total
     }
 
+    // Metres from a position to the start of the trail, for "how far away am
+    // I" without moving the camera to answer it.
+    func distanceFromStart(to coordinate: CLLocationCoordinate2D) -> Double? {
+        guard let start = first else { return nil }
+
+        return CLLocation(latitude: start.latitude, longitude: start.longitude)
+            .distance(from: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude))
+    }
+
     // Seconds between the first and last fix, nil for a route with no times.
     var duration: TimeInterval? {
         guard let first = first?.time, let last = last?.time else { return nil }

@@ -4,6 +4,7 @@
 //  Created by John Patrick Echavez on 9/11/26.
 //
 
+import CoreLocation
 import SwiftUI
 
 // The trail on a map, and nothing else.
@@ -15,10 +16,15 @@ struct TrailDetailView: View {
 
     @State private var points: [TrackPoint] = []
     @State private var isFollowing = false
+    @State private var position: CLLocationCoordinate2D?
 
     var body: some View {
-        TrailMapView(points: points, isFollowing: $isFollowing)
-            .ignoresSafeArea()
+        ZStack(alignment: .bottom) {
+            TrailMapView(points: points, isFollowing: $isFollowing, position: $position)
+                .ignoresSafeArea()
+
+            distanceToStart
+        }
             .task { points = await load() }
             .navigationTitle(trail.name)
             .navigationBarTitleDisplayMode(.inline)
@@ -33,6 +39,26 @@ struct TrailDetailView: View {
                                              comment: "Keeps the map centred on the walker"))
                 }
             }
+    }
+
+    // Answers "am I near this" in a line of text, so the map never has to zoom
+    // out to somewhere neither useful nor readable.
+    @ViewBuilder
+    private var distanceToStart: some View {
+        if let position, let metres = points.distanceFromStart(to: position) {
+            Text("\(formatted(metres)) to the start",
+                 comment: "How far the walker is from the beginning of the trail")
+                .font(Theme.Font.caption)
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.vertical, Theme.Spacing.sm)
+                .background(.regularMaterial, in: Capsule())
+                .padding(.bottom, Theme.Spacing.xl)
+        }
+    }
+
+    private func formatted(_ metres: Double) -> String {
+        Measurement(value: metres, unit: UnitLength.meters)
+            .formatted(.measurement(width: .abbreviated, usage: .road))
     }
 }
 
