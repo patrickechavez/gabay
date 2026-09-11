@@ -7,14 +7,14 @@
 import Foundation
 
 // What the list knows: enough to decide whether to go, without opening the file.
-struct Trail: Identifiable, Equatable, Sendable {
+struct Trail: Identifiable, Hashable, Sendable {
 
     enum Difficulty: String, Codable, Sendable, CaseIterable {
         case easy, moderate, hard
     }
 
     // Where the trail came from.
-    enum Source: Equatable, Sendable {
+    enum Source: Hashable, Sendable {
         case catalog
         case imported
     }

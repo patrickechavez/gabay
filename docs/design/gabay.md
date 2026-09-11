@@ -217,8 +217,12 @@ tag on the ones that need fetching. There is no downloads screen and no manage
 storage screen: downloading is a consequence of opening a trail, not a chore of
 its own.
 
-Importing a GPX sits at the bottom of this list, through `.fileImporter`. An
-imported trail joins the same list and is indistinguishable afterwards.
+Importing a GPX is a `+` in the navigation bar, through `.fileImporter`, and
+the empty list offers the same button in the middle of the screen. An imported
+trail joins the same list and is indistinguishable afterwards.
+
+The catalog is cached on disk beside the trails, so the list is there before
+the network is, and a 304 or a failed refresh leaves it standing.
 
 ### Trail detail
 
