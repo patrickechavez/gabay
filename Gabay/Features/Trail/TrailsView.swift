@@ -89,10 +89,13 @@ struct TrailsView: View {
             }
             .navigationTitle(Text("Trails", comment: "Title of the trail list"))
             .toolbar {
-                // Only once there is a list. An empty screen offers the import
-                // as its own button, and two of them says it twice.
-                if !viewModel.trails.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
+                // The item is always here and its contents come and go. A
+                // toolbar item that appears and disappears is rebuilt, and a
+                // rebuilt one swallows the tap that arrives with it.
+                ToolbarItem(placement: .topBarTrailing) {
+                    // Only once there is a list. An empty screen offers the
+                    // import as its own button, and two of them says it twice.
+                    if !viewModel.trails.isEmpty {
                         Button {
                             isImporting = true
                         } label: {

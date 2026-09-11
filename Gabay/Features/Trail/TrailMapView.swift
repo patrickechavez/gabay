@@ -134,14 +134,11 @@ struct TrailMapView: UIViewRepresentable {
             return renderer
         }
 
-        // Panning by hand means the walker wants to look around, so stop
-        // dragging the map back under them.
-        func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
-            guard mapView.userTrackingMode == .none, isFollowing else { return }
-            isFollowing = false
-        }
-
+        // The only place following turns off by itself. MapKit drops tracking
+        // when the walker pans by hand and reports it here, so nothing else
+        // needs to guess at it from region changes.
         func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) {
+            guard isFollowing != (mode != .none) else { return }
             isFollowing = mode != .none
         }
 

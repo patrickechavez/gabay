@@ -23,6 +23,9 @@
     "%@ far" : {
       "comment" : "How long a trail is, shown under its name"
     },
+    "%@ to the start" : {
+      "comment" : "How far the walker is from the beginning of the trail"
+    },
     "%@ up" : {
       "comment" : "How much a trail climbs, shown under its name"
     },
