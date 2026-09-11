@@ -43,7 +43,7 @@ struct TrailDetailView: View {
         VStack(spacing: Theme.Spacing.md) {
             HStack(spacing: Theme.Spacing.xl) {
                 stat(trail.formattedDistance, Text("distance", comment: "Label under the trail length"))
-                stat(trail.formattedAscent, Text("climb", comment: "Label under the metres of ascent"))
+                stat(trail.formattedAscent ?? "–", Text("climb", comment: "Label under the metres of ascent"))
                 stat(duration, Text("approx", comment: "Label under the estimated walking time"))
             }
 

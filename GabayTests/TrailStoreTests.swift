@@ -40,6 +40,17 @@ struct TrailStoreTests {
         #expect(trail.ascent == 40)
     }
 
+    // A route drawn on a map carries no heights, which is not the same as flat.
+    @Test func reportsNoAscentForAFileWithoutElevation() throws {
+        let (store, _) = makeStore()
+
+        let trail = try store.importFile(at: try fixture("route-no-elevation"))
+
+        #expect(trail.ascent == nil)
+        #expect(trail.formattedAscent == nil)
+        #expect(trail.distance > 0)
+    }
+
     @Test func keepsAnImportedFileForTheNextLaunch() throws {
         let (store, directory) = makeStore()
         _ = try store.importFile(at: try fixture("osmena"))

@@ -133,17 +133,32 @@ struct TrailsView: View {
     }
 
     private func row(_ trail: Trail) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(trail.name)
                 .font(Theme.Font.body)
 
-            Text(verbatim: [trail.region, trail.formattedDistance, trail.formattedAscent]
-                .filter { !$0.isEmpty }
-                .joined(separator: " · "))
-                .font(Theme.Font.caption)
-                .foregroundStyle(Theme.Color.secondaryText)
+            // Distance and climb are both in metres on a short trail, so they
+            // need naming or the row reads as two of the same number.
+            HStack(spacing: Theme.Spacing.md) {
+                Text("\(trail.formattedDistance) far",
+                     comment: "How long a trail is, shown under its name")
+
+                if let ascent = trail.formattedAscent {
+                    Text("\(ascent) up",
+                         comment: "How much a trail climbs, shown under its name")
+                } else {
+                    Text("no elevation",
+                         comment: "Shown when a trail's file carries no heights")
+                }
+
+                if !trail.region.isEmpty {
+                    Text(trail.region)
+                }
+            }
+            .font(Theme.Font.caption)
+            .foregroundStyle(Theme.Color.secondaryText)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
     }
 
     private var empty: some View {

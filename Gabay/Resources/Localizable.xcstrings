@@ -20,6 +20,12 @@
         }
       }
     },
+    "%@ far" : {
+      "comment" : "How long a trail is, shown under its name"
+    },
+    "%@ up" : {
+      "comment" : "How much a trail climbs, shown under its name"
+    },
     "917 123 4567" : {
       "comment" : "Placeholder for the phone number field"
     },
@@ -181,6 +187,9 @@
           }
         }
       }
+    },
+    "Delete" : {
+      "comment" : "Removes an imported trail from the phone"
     },
     "distance" : {
       "comment" : "Label under the trail length"

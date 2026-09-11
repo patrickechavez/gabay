@@ -29,7 +29,8 @@ struct Trail: Identifiable, Equatable, Sendable {
 
     let distance: Double
 
-    let ascent: Double
+    // Absent when the file carries no elevation, which is different from flat.
+    let ascent: Double?
 
     let difficulty: Difficulty
 
@@ -44,8 +45,10 @@ struct Trail: Identifiable, Equatable, Sendable {
             .formatted(.measurement(width: .abbreviated, usage: .road))
     }
 
-    var formattedAscent: String {
-        Measurement(value: ascent, unit: UnitLength.meters)
+    var formattedAscent: String? {
+        guard let ascent else { return nil }
+
+        return Measurement(value: ascent, unit: UnitLength.meters)
             .formatted(.measurement(
                 width: .abbreviated,
                 usage: .asProvided,
@@ -56,7 +59,7 @@ struct Trail: Identifiable, Equatable, Sendable {
     // Naismith's rule: 4km an hour on the flat, plus an hour for every 600
     // metres climbed. Rough, and every hiker knows it is rough.
     var estimatedDuration: TimeInterval {
-        distance / 4000 * 3600 + ascent / 600 * 3600
+        distance / 4000 * 3600 + (ascent ?? 0) / 600 * 3600
     }
 }
 
@@ -80,13 +83,14 @@ extension Trail {
     // measured rather than read.
     init(imported document: GPXDocument, id: String, fallbackName: String) {
         let points = document.points
+        let hasElevation = points.contains { $0.elevation != nil }
 
         self.init(
             id: id,
             name: document.name ?? document.tracks.first?.name ?? fallbackName,
             region: "",
             distance: points.distance,
-            ascent: points.ascent(),
+            ascent: hasElevation ? points.ascent() : nil,
             difficulty: .moderate,
             source: .imported,
             isOnDevice: true
