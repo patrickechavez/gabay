@@ -14,8 +14,6 @@ PRODUCT_BUNDLE_IDENTIFIER = com.patrick.Gabay.staging
 // Name under the Home Screen icon
 APP_DISPLAY_NAME = Staging
 
-// Deep links: gabay-staging://items/5
-APP_URL_SCHEME = gabay-staging
 
 
 // API — same numbers as Production so QA tests what users will get

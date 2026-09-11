@@ -16,8 +16,6 @@ PRODUCT_BUNDLE_IDENTIFIER = com.patrick.Gabay
 // Name under the Home Screen icon
 APP_DISPLAY_NAME = Gabay
 
-// Deep links: gabay://items/5
-APP_URL_SCHEME = gabay
 
 
 // Trail catalog

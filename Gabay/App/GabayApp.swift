@@ -11,26 +11,17 @@ import os
 struct GabayApp: App {
 
     @State private var dependencies: AppDependencies
-    @State private var navigator: AppNavigator
 
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        let dependencies = AppDependencies.live()
-        _dependencies = State(wrappedValue: dependencies)
-        _navigator = State(
-            wrappedValue: AppNavigator(parser: dependencies.deepLinks)
-        )
+        _dependencies = State(wrappedValue: AppDependencies.live())
     }
 
     var body: some Scene {
         WindowGroup {
             RootView(dependencies: dependencies)
-                .environment(navigator)
                 .environmentRibbon()
-                .onOpenURL { url in
-                    navigator.open(url, isAuthenticated: true)
-                }
                 .onChange(of: scenePhase) { _, phase in
                     handle(phase)
                 }

@@ -17,8 +17,6 @@ enum AppConfig {
         return url
     }()
 
-    static let urlScheme: String = string("APP_URL_SCHEME") ?? "gabay"
-
     static let isEnvironmentBannerEnabled: Bool = bool("ENV_BANNER_ENABLED")
 
     private static func string(_ key: String) -> String? {
