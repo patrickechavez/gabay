@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Hand drawn" xmlns="http://www.topografix.com/GPX/1/1">
+  <name>Planned loop</name>
+  <rte>
+    <name>Budlaan loop</name>
+    <rtept lat="10.400000" lon="123.900000"/>
+    <rtept lat="10.401000" lon="123.900000"/>
+    <rtept lat="10.402000" lon="123.900000"/>
+  </rte>
+</gpx>
