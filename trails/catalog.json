@@ -1,5 +1,134 @@
 {
   "version": 1,
   "updated": "2026-09-11",
-  "trails": []
+  "trails": [
+    {
+      "id": "budlaan-falls-holiday-pool",
+      "name": "Budlaan Falls to Holiday Pool",
+      "region": "Cebu",
+      "distanceM": 6975,
+      "ascentM": 501,
+      "difficulty": "moderate",
+      "revision": 1,
+      "gpx": "budlaan-falls-holiday-pool.gpx",
+      "bounds": {
+        "north": 10.4008,
+        "south": 10.37878,
+        "east": 123.88635,
+        "west": 123.8662
+      }
+    },
+    {
+      "id": "budlaan-kang-irag",
+      "name": "Budlaan to Kang-Irag",
+      "region": "Cebu",
+      "distanceM": 5040,
+      "ascentM": 388,
+      "difficulty": "moderate",
+      "revision": 1,
+      "gpx": "budlaan-kang-irag.gpx",
+      "bounds": {
+        "north": 10.4008,
+        "south": 10.38261,
+        "east": 123.88657,
+        "west": 123.87139
+      }
+    },
+    {
+      "id": "lake-lhuillier-bonita",
+      "name": "Lake Lhuillier via Bonita Trail",
+      "region": "Cebu",
+      "distanceM": 7519,
+      "ascentM": 279,
+      "difficulty": "moderate",
+      "revision": 1,
+      "gpx": "lake-lhuillier-bonita.gpx",
+      "bounds": {
+        "north": 10.39828,
+        "south": 10.36931,
+        "east": 123.91781,
+        "west": 123.90055
+      }
+    },
+    {
+      "id": "rcpi-towers-starbuks",
+      "name": "RCPI Towers to Starbuks",
+      "region": "Cebu",
+      "distanceM": 18463,
+      "ascentM": 754,
+      "difficulty": "hard",
+      "revision": 1,
+      "gpx": "rcpi-towers-starbuks.gpx",
+      "bounds": {
+        "north": 10.36425,
+        "south": 10.30892,
+        "east": 123.87586,
+        "west": 123.83891
+      }
+    },
+    {
+      "id": "six-towers-starbuks",
+      "name": "Six Towers to Starbuks",
+      "region": "Cebu",
+      "distanceM": 14470,
+      "ascentM": 658,
+      "difficulty": "hard",
+      "revision": 1,
+      "gpx": "six-towers-starbuks.gpx",
+      "bounds": {
+        "north": 10.35456,
+        "south": 10.30871,
+        "east": 123.87591,
+        "west": 123.84223
+      }
+    },
+    {
+      "id": "spartan-trail",
+      "name": "Spartan Trail",
+      "region": "Cebu",
+      "distanceM": 16406,
+      "ascentM": 828,
+      "difficulty": "hard",
+      "revision": 1,
+      "gpx": "spartan-trail.gpx",
+      "bounds": {
+        "north": 10.33797,
+        "south": 10.3089,
+        "east": 123.87597,
+        "west": 123.84186
+      }
+    },
+    {
+      "id": "starbuks",
+      "name": "Starbuks",
+      "region": "Cebu",
+      "distanceM": 5575,
+      "ascentM": 312,
+      "difficulty": "moderate",
+      "revision": 1,
+      "gpx": "starbuks.gpx",
+      "bounds": {
+        "north": 10.31824,
+        "south": 10.30887,
+        "east": 123.87581,
+        "west": 123.86004
+      }
+    },
+    {
+      "id": "starbuks-buhisan-dam",
+      "name": "Starbuks to Buhisan Dam",
+      "region": "Cebu",
+      "distanceM": 6430,
+      "ascentM": 395,
+      "difficulty": "moderate",
+      "revision": 1,
+      "gpx": "starbuks-buhisan-dam.gpx",
+      "bounds": {
+        "north": 10.32094,
+        "south": 10.30898,
+        "east": 123.87467,
+        "west": 123.84605
+      }
+    }
+  ]
 }
