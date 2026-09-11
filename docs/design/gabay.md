@@ -143,11 +143,45 @@ tracks, routes and waypoints, and it is written against fixture files including
 malformed ones, because a file picker will eventually be handed something
 strange.
 
-**Imported trails** are copied into Documents and read back from there. They
-are files, so the file system is the database.
+**Imported trails** are copied into Application Support and read back from
+there. They are files, so the file system is the database. Once imported, a
+user's own file is indistinguishable from one of ours.
 
-**Recorded activities** go in SwiftData, which is the one thing worth querying:
-by date, by trail, by distance.
+### Where things live on disk
+
+```
+Application Support/
+├── Trails/        downloaded and imported GPX
+├── Activities/    one GPX per recorded walk
+└── Packs/         region packs, when the map exists
+```
+
+Not `Caches`. iOS empties that folder whenever storage runs low, without
+warning. A recorded walk disappearing because the phone was full is the kind of
+bug that loses a user permanently.
+
+All three are excluded from iCloud backup: they are large and replaceable, and
+a backup full of map tiles helps nobody. Activities are the arguable exception,
+and they leave through the share sheet instead.
+
+### Recorded activities
+
+Every walk is written as a real GPX file, one per activity, in the same format
+the app reads. Beside it, a SwiftData row holds only the summary: name, date,
+type, distance, moving time, ascent, and which file it belongs to.
+
+That split does three jobs. The history list is a cheap query over small rows,
+so it opens instantly with hundreds of walks behind it. Export is a file copy
+rather than a conversion, because the GPX already exists. And the durable
+artifact is a standard file, readable by anything, so a lost database is an
+inconvenience rather than a loss.
+
+Storing every point as a database row was the alternative: thousands of rows
+per activity, and a conversion on every share.
+
+The file is written as the walk happens, not at the end. A crash or a battery
+death partway through leaves a shorter walk rather than nothing, which is the
+same reasoning that makes the parser keep what it read from a truncated file.
 
 ## Location
 
