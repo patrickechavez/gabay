@@ -7,19 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2DFCD23C302F3424006F0921 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 2DFCD23B302F3424006F0921 /* FirebaseAnalytics */; };
-		2DFCD23E302F3424006F0921 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 2DFCD23D302F3424006F0921 /* FirebaseCrashlytics */; };
-		2DFCD240302F3424006F0921 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 2DFCD23F302F3424006F0921 /* FirebaseMessaging */; };
-/* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		81883EABFDE7958411CAB122 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2D1CA874301A21BA00C6EFD2 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 2D1CA87B301A21BA00C6EFD2;
-			remoteInfo = Gabay;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -35,7 +22,6 @@
 		2DFCD243302F3B0C006F0921 /* Exceptions for "Gabay" folder in "Gabay" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Firebase/Development/GoogleService-Info.plist",
 			);
 			target = 2D1CA87B301A21BA00C6EFD2 /* Gabay */;
 		};
@@ -69,9 +55,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DFCD240302F3424006F0921 /* FirebaseMessaging in Frameworks */,
-				2DFCD23C302F3424006F0921 /* FirebaseAnalytics in Frameworks */,
-				2DFCD23E302F3424006F0921 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,8 +122,6 @@
 				2D1CA878301A21BA00C6EFD2 /* Sources */,
 				2D1CA879301A21BA00C6EFD2 /* Frameworks */,
 				2D1CA87A301A21BA00C6EFD2 /* Resources */,
-				2DFCD242302F3A41006F0921 /* Copy GoogleService-Info.plist */,
-				2DFCD400302F9A00006F0921 /* Upload Crashlytics dSYM */,
 			);
 			buildRules = (
 			);
@@ -151,11 +132,6 @@
 				2D1CA87E301A21BA00C6EFD2 /* Gabay */,
 			);
 			name = Gabay;
-			packageProductDependencies = (
-				2DFCD23B302F3424006F0921 /* FirebaseAnalytics */,
-				2DFCD23D302F3424006F0921 /* FirebaseCrashlytics */,
-				2DFCD23F302F3424006F0921 /* FirebaseMessaging */,
-			);
 			productName = Gabay;
 			productReference = 2D1CA87C301A21BA00C6EFD2 /* Gabay.app */;
 			productType = "com.apple.product-type.application";
@@ -189,7 +165,6 @@
 			mainGroup = 2D1CA873301A21BA00C6EFD2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				2DFCD23A302F3424006F0921 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				2DB884B2304834340098899D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -221,48 +196,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2DFCD242302F3A41006F0921 /* Copy GoogleService-Info.plist */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Gabay/Firebase/$(CONFIGURATION)/GoogleService-Info.plist",
-			);
-			name = "Copy GoogleService-Info.plist";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\n\ncase \"${CONFIGURATION}\" in\n  Development) ENV=\"Development\" ;;\n  Staging)     ENV=\"Staging\" ;;\n  Production)  ENV=\"Production\" ;;\n  *)\n    echo \"error: Unknown configuration ${CONFIGURATION}\"\n    exit 1\n    ;;\nesac\n\nSRC=\"${SRCROOT}/Gabay/Firebase/${ENV}/GoogleService-Info.plist\"\nDST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\n\nif [ ! -f \"${SRC}\" ]; then\n  echo \"warning: No Firebase plist at ${SRC} - building without Firebase.\"\n  exit 0\nfi\n\nPLIST_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c \"Print :BUNDLE_ID\" \"${SRC}\")\nif [ \"${PLIST_BUNDLE_ID}\" != \"${PRODUCT_BUNDLE_IDENTIFIER}\" ]; then\n  echo \"error: Plist BUNDLE_ID (${PLIST_BUNDLE_ID}) != build bundle ID (${PRODUCT_BUNDLE_IDENTIFIER})\"\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"${DST}\")\"\ncp -v \"${SRC}\" \"${DST}\"\n";
-		};
-		2DFCD400302F9A00006F0921 /* Upload Crashlytics dSYM */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
-				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
-			);
-			name = "Upload Crashlytics dSYM";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Uploads debug symbols so Crashlytics can turn addresses into file and\n# line numbers. Must run after \"Copy GoogleService-Info.plist\" — the\n# Firebase script reads that plist from the bundle to pick the project.\n#\n# Development builds use DWARF with symbols inside the binary, so there is\n# no dSYM to send and nothing to do.\n\nif [ \"${DEBUG_INFORMATION_FORMAT}\" != \"dwarf-with-dsym\" ]; then\n  echo \"note: ${CONFIGURATION} produces no dSYM — skipping Crashlytics upload\"\n  exit 0\nfi\n\nPLIST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist\"\nif [ ! -f \"${PLIST}\" ]; then\n  echo \"note: No Firebase plist in the bundle - skipping Crashlytics upload\"\n  exit 0\nfi\n\nRUN=\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n\nif [ ! -f \"${RUN}\" ]; then\n  echo \"warning: Crashlytics run script not found at ${RUN} — skipping upload\"\n  exit 0\nfi\n\n\"${RUN}\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -686,14 +619,6 @@
 				minimumVersion = 0.65.1;
 			};
 		};
-		2DFCD23A302F3424006F0921 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.17.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -701,21 +626,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2DB884B2304834340098899D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
-		};
-		2DFCD23B302F3424006F0921 /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2DFCD23A302F3424006F0921 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		2DFCD23D302F3424006F0921 /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2DFCD23A302F3424006F0921 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
-		2DFCD23F302F3424006F0921 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2DFCD23A302F3424006F0921 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

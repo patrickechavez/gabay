@@ -46,9 +46,10 @@ final class AppDependencies {
     }
 
     static func live(tokenStore: any TokenStore = KeychainTokenStore()) -> AppDependencies {
-        // No plist, or no Firebase at all — the no-op adapters take over.
-        let (analytics, crashes) = FirebaseBootstrap.start()
-            ?? (NoopAnalyticsTracker(), NoopCrashReporter())
+        // Nothing is reported anywhere. The seams stay so a screen can record a
+        // breadcrumb without knowing that nobody is listening.
+        let analytics = NoopAnalyticsTracker()
+        let crashes = NoopCrashReporter()
 
         Observability.install(analytics: analytics, crashes: crashes)
 
