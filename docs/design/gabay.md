@@ -47,51 +47,77 @@ map data for offline use, and a map that is only offline by accident of caching
 is not a map you take into the backcountry.
 
 Tiles are the harder half. Public tile servers, including OpenStreetMap's own
-and OpenTopoMap, forbid bulk downloading, so their tiles cannot be shipped
-inside an app. A free tier API key is worse: it is a network dependency wearing
-a disguise.
+and OpenTopoMap, forbid bulk downloading, so their tiles cannot be served to an
+app. A free tier API key is worse: it is a network dependency wearing a
+disguise, and the free tier is a bill waiting for the app to become popular.
 
-So the app bundles its own tiles, built from OpenStreetMap data, with contour
+So the app carries its own tiles, built from OpenStreetMap data, with contour
 lines derived from open elevation data. A hiking map without contours is a road
 map with a green background.
 
-**Extent.** One contiguous region: the day hike belt around Metro Manila,
-covering Rizal, Batangas and Quezon. Roughly fifty megabytes with contours.
-Everything inside that boundary has a map, so an imported trail anywhere in the
-region works without special handling. A second region is a later release, not
-a re-architecture.
+### Bundled overview, downloaded detail
+
+The app ships with a nationwide overview: the whole Philippines at low zoom
+only, coastlines, provinces, major roads and place names. A few megabytes. Its
+job is that the app is never blank. It installs, it opens, you see the country
+and where the trails are, with no connection and nothing downloaded yet.
+
+Detail comes as **region packs**, one file each, published in the same catalog
+as the trails and fetched the same way. Cebu is the first, because that is
+where the first trails are. Roughly twenty to forty megabytes with contours,
+unmeasured until one is built.
+
+The user never has to think in regions. A trail knows which pack it needs, so
+the trail screen says "needs the Cebu map, 24 MB" and offers to fetch it. The
+map arrives as a consequence of choosing a trail.
+
+This is the shape Strava and AllTrails use, without the part that costs money.
+They stream tiles from a hosted provider and charge for offline downloads,
+which is why offline sits behind their subscriptions. Region packs are static
+files on a CDN: no tile server, no per request billing, no free tier to
+outgrow.
+
+Bundling the country instead was considered and rejected. The Philippines at
+hiking detail is hundreds of megabytes, nobody installs that, and a hiker in
+Cebu would be carrying Luzon. Bundling one region was the earlier plan, and it
+breaks the moment coverage is meant to grow, because every new province would
+be an App Store release.
+
+The cost of this choice, stated plainly: the first run needs a connection
+before the app is genuinely useful. The overview softens that rather than
+solving it.
+
+### Imported trails outside a downloaded pack
+
+The route still draws, over the overview map, and the screen says there is no
+detailed map for that area. Coarse, but not broken, and honest about which it
+is.
 
 **Attribution.** OpenStreetMap data is ODbL. The credit goes on the map screen
 and in the About screen, not buried in a settings list.
 
-### The risk this design turns on
+### Building a pack
 
-MapLibre does not open a local tile archive by itself. Reading a PMTiles or
-MBTiles file straight from the app bundle needs a custom source, and whether
-the current approaches work on iOS without running a local server is unproven
-here.
-
-That is step one of the build: a throwaway spike that renders one bundled tile
-file on screen with the device in aeroplane mode. Nothing else starts until it
-does.
-
-If it resists, the fallback is `MKTileOverlay` with `canReplaceMapContent`,
-pointed at local raster tiles. Apple renders it, it is provably offline, and it
-costs styling and storage rather than capability.
+Clip OpenStreetMap data to the region, generate contours from open elevation
+data, write a PMTiles file, publish it beside the trails. Manual the first
+time, scripted after that, and eventually a job that rebuilds a region on
+request. This is tooling work on a Mac, not app code, and it is the last
+unknown in the map plan.
 
 ## Data
 
-**The trail library** is published separately from the app, in its own public
-repository served over GitHub Pages. A `catalog.json` lists every trail with
-its name, region, distance, ascent, difficulty, bounding box, revision and the
-URL of its GPX file.
+**The catalog** is published separately from the app, in its own public
+repository served over GitHub Pages. `catalog.json` lists two things: trails,
+each with its name, region, distance, ascent, difficulty, bounding box,
+revision and GPX URL, and region packs, each with its name, bounds, size and
+file URL.
 
-Adding a trail is therefore a commit, not a release: drop in the GPX, add its
-block to the catalog, push. The app picks it up on the next launch that has a
-connection.
+Adding a trail, or a whole province, is therefore a commit rather than a
+release: drop in the file, add its block to the catalog, push. The app picks it
+up on the next launch that has a connection.
 
-A seed catalog and its GPX files ship inside the app, so a fresh install on a
-phone that has never had signal still has trails to walk.
+A seed catalog ships inside the app with the nationwide overview, so a fresh
+install always has something to show and something to download.
 
 Three rules keep the refresh from eroding the offline promise:
 
@@ -104,10 +130,13 @@ Three rules keep the refresh from eroding the offline promise:
   the catalog stays on the phone of anyone who already has it. They downloaded
   it, and they might be standing on it.
 
-**Coverage.** Tiles cover Rizal, Batangas and Quezon. A trail published outside
-that box still downloads and still draws its route line, but the detail screen
-says plainly that there is no map underneath. Better learned in the car park
-than at the trailhead.
+**Coverage.** A trail names the region pack it needs. If that pack is not on
+the phone, the trail screen says so and offers to fetch it, with the size
+stated. Better learned in the car park than at the trailhead.
+
+**Downloads on disk.** Region packs and GPX files both land in Application
+Support, excluded from iCloud backup: they are large, they are replaceable, and
+backing up a province of map tiles helps nobody.
 
 **GPX parsing** uses `XMLParser` from Foundation. No dependency. It handles
 tracks, routes and waypoints, and it is written against fixture files including
@@ -212,13 +241,14 @@ The activity store, so recording can be tested without touching a database.
 Each slice is usable on its own. The first three already make the app worth
 carrying up a mountain.
 
-1. Spike the offline tiles
-2. GPX parsing, the bundled seed library, list and detail with elevation profile
-3. Map, route, position, follow mode
-4. Off route, where am I, battery warning
-5. Catalog refresh from the trail repository
-6. Custom import
-7. Recording, history, and export as GPX
+1. Spike the offline tiles, done
+2. Build the Cebu pack and the nationwide overview
+3. GPX parsing, the seed library, list and detail with elevation profile
+4. Map, route, position, follow mode
+5. Catalog refresh, and downloading a region pack from the trail screen
+6. Off route, where am I, battery warning
+7. Custom import
+8. Recording, history, and export as GPX
 
 ## Repositories
 
@@ -237,7 +267,7 @@ Two, with different lifecycles.
 - Apple Watch
 - Trail conditions, comments, or anything else that needs a server
 
-## Spike result: bundled tiles
+## Spike result: local tiles
 
 Answered on 11 September 2026, on the `spike/offline-tiles` branch.
 
@@ -262,9 +292,13 @@ proves the pixels came from the bundle rather than from the network.
 
 So the plan in this document holds, and `MKTileOverlay` stays unused.
 
+The spike proved the bundle case. A downloaded pack sits in Application Support
+rather than the bundle, so the source URL becomes a file path rather than
+`asset://`. That variant is unproven and is the first thing to check when the
+Cebu pack exists.
+
 The dependency is `maplibre-gl-native-distribution`, BSD licensed, added
 through SPM. It is the only third-party code in the app.
 
-Still to do, and a separate job: producing the real extract for Rizal,
-Batangas and Quezon with contour lines, rather than a sample of an Italian
-city.
+Still to do, and a separate job: producing the nationwide overview and the
+Cebu pack with contour lines, rather than a sample of an Italian city.
