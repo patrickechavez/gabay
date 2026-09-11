@@ -26,19 +26,7 @@ enum SampleData {
         expiresAt: Date().addingTimeInterval(3600)
     )
 
-    static let items: [Item] = (1...12).map { index in
-        Item(
-            id: UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index))!,
-            title: "Sample Item \(index)",
-            description: "A description for sample item \(index). Long enough to wrap onto a second line.",
-            price: Double(index) * 9.99,
-            thumbnail: nil
-        )
-    }
 
-    static func page(_ items: [Item] = Self.items, offset: Int = 0, total: Int? = nil) -> Page<Item> {
-        Page(items: items, total: total ?? items.count, offset: offset, limit: 20)
-    }
 }
 
 final class MockAuthRepository: AuthRepository, @unchecked Sendable {
@@ -114,66 +102,6 @@ final class MockUserRepository: UserRepository, @unchecked Sendable {
     }
 }
 
-final class MockItemRepository: ItemRepository, @unchecked Sendable {
-
-    var pages: [Page<Item>] = [SampleData.page()]
-    var error: APIError?
-
-    var delay: Duration = .zero
-
-    private(set) var requests: [PageRequest] = []
-
-    init(items: [Item] = SampleData.items) {
-        self.pages = [SampleData.page(items)]
-    }
-
-    func items(_ request: PageRequest) async throws -> Page<Item> {
-        requests.append(request)
-
-        if delay > .zero { try await Task.sleep(for: delay) }
-        if let error { throw error }
-
-        let index = requests.count - 1
-        return pages.indices.contains(index) ? pages[index] : Page(items: [], total: 0, offset: request.offset)
-    }
-
-    func search(_ term: String, page: PageRequest) async throws -> Page<Item> {
-        if let error { throw error }
-        let matches = (pages.first?.items ?? []).filter {
-            $0.title.localizedCaseInsensitiveContains(term)
-        }
-        return SampleData.page(matches)
-    }
-
-    func item(id: UUID) async throws -> Item {
-        if delay > .zero { try await Task.sleep(for: delay) }
-        if let error { throw error }
-        guard let item = pages.flatMap(\.items).first(where: { $0.id == id }) else {
-            throw APIError.notFound()
-        }
-        return item
-    }
-
-    func create(_ draft: ItemDraft) async throws -> Item {
-        if let error { throw error }
-        return Item(
-            id: UUID(uuidString: "00000000-0000-0000-0000-000000000999")!,
-            title: draft.title,
-            description: draft.description,
-            price: draft.price,
-            thumbnail: nil
-        )
-    }
-
-    func update(id: UUID, draft: ItemDraft) async throws -> Item {
-        if let error { throw error }
-        return Item(id: id, title: draft.title, description: draft.description, price: draft.price, thumbnail: nil)
-    }
-
-    func delete(id: UUID) async throws {
-        if let error { throw error }
-    }
-}
 
 actor MockImageLoader: ImageLoading {
 

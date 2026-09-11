@@ -17,7 +17,6 @@ final class AppDependencies {
 
     private let auth: any AuthRepository
     private let users: any UserRepository
-    private let items: any ItemRepository
     private let imageLoader: any ImageLoading
     private let tokenStore: any TokenStore
 
@@ -25,7 +24,6 @@ final class AppDependencies {
         session: SessionManager,
         auth: any AuthRepository,
         users: any UserRepository,
-        items: any ItemRepository,
         imageLoader: any ImageLoading,
         tokenStore: any TokenStore,
         deepLinks: DeepLinkParser,
@@ -36,7 +34,6 @@ final class AppDependencies {
         self.session = session
         self.auth = auth
         self.users = users
-        self.items = items
         self.imageLoader = imageLoader
         self.tokenStore = tokenStore
         self.deepLinks = deepLinks
@@ -97,7 +94,6 @@ final class AppDependencies {
             session: sessionManager,
             auth: LiveAuthRepository(api: api),
             users: users,
-            items: LiveItemRepository(api: api),
             imageLoader: ImageLoader.shared,
             tokenStore: tokenStore,
             deepLinks: DeepLinkParser(),
@@ -137,28 +133,6 @@ final class AppDependencies {
 
     func makeResetPasswordViewModel(token: String) -> ResetPasswordViewModel {
         ResetPasswordViewModel(token: token, auth: auth)
-    }
-
-    func makeHomeViewModel() -> HomeViewModel {
-        HomeViewModel(repository: items)
-    }
-
-    func makeItemDetailViewModel(item: Item) -> ItemDetailViewModel {
-        ItemDetailViewModel(item: item, repository: items)
-    }
-
-    func makeItemDetailViewModel(id: UUID) -> ItemDetailViewModel {
-        ItemDetailViewModel(itemID: id, repository: items)
-    }
-
-    func makeProfileViewModel() -> ProfileViewModel {
-        ProfileViewModel(
-            repository: users,
-            auth: auth,
-            session: session,
-            tokenStore: tokenStore,
-            imageLoader: imageLoader
-        )
     }
 
 }
