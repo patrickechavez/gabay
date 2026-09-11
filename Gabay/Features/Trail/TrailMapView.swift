@@ -29,6 +29,10 @@ struct TrailMapView: UIViewRepresentable {
         let view = RouteMapView()
         view.delegate = context.coordinator
         view.showsUserLocation = true
+        view.register(
+            WalkerAnnotationView.self,
+            forAnnotationViewWithReuseIdentifier: WalkerAnnotationView.reuseIdentifier
+        )
 
         // The dot takes the app tint, which would make the walker the same
         // colour as the route. Blue for you, magenta for the trail.
@@ -74,7 +78,7 @@ struct TrailMapView: UIViewRepresentable {
         view.frame(route: route.boundingMapRect)
     }
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
+    final class Coordinator: NSObject, MKMapViewDelegate, CLLocationManagerDelegate {
 
         var points: [TrackPoint]
 
@@ -86,6 +90,10 @@ struct TrailMapView: UIViewRepresentable {
         // never delivers its answer.
         private let locations = CLLocationManager()
 
+        // Held so the cone can be turned as the compass moves. The manager
+        // stops on its own when the coordinator goes.
+        private weak var walker: WalkerAnnotationView?
+
         init(
             points: [TrackPoint],
             isFollowing: Binding<Bool>,
@@ -94,6 +102,15 @@ struct TrailMapView: UIViewRepresentable {
             self.points = points
             _isFollowing = isFollowing
             _position = position
+            super.init()
+
+            locations.delegate = self
+            locations.startUpdatingHeading()
+        }
+
+        func locationManager(_ manager: CLLocationManager, didUpdateHeading heading: CLHeading) {
+            // True north where the phone knows it, magnetic where it does not.
+            walker?.heading = heading.trueHeading >= 0 ? heading.trueHeading : heading.magneticHeading
         }
 
         // The map shows the dot, but nothing shows it until somebody asks.
@@ -130,6 +147,25 @@ struct TrailMapView: UIViewRepresentable {
 
         func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
             position = userLocation.location?.coordinate
+        }
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: any MKAnnotation) -> MKAnnotationView? {
+            guard annotation is MKUserLocation else { return nil }
+
+            let view = mapView.dequeueReusableAnnotationView(
+                withIdentifier: WalkerAnnotationView.reuseIdentifier,
+                for: annotation
+            ) as? WalkerAnnotationView
+
+            view?.mapHeading = mapView.camera.heading
+            walker = view
+            return view
+        }
+
+        // The cone points at the world, so it turns with the map as well as
+        // with the walker.
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            walker?.mapHeading = mapView.camera.heading
         }
 
     }
