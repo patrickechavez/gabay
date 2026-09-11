@@ -17,3 +17,8 @@ xcuserdata/
 
 # Local config
 *.local.xcconfig
+
+# Generated map packs. Large, reproducible, and published beside the trails
+# rather than committed here. See docs/design/gabay.md.
+Tiles/build/
+*.pmtiles
