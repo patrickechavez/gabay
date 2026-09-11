@@ -89,14 +89,18 @@ struct TrailsView: View {
             }
             .navigationTitle(Text("Trails", comment: "Title of the trail list"))
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isImporting = true
-                    } label: {
-                        Image(systemName: "plus")
+                // Only once there is a list. An empty screen offers the import
+                // as its own button, and two of them says it twice.
+                if !viewModel.trails.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            isImporting = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                        .accessibilityLabel(Text("Import a GPX file",
+                                                 comment: "Adds a trail from the user's own files"))
                     }
-                    .accessibilityLabel(Text("Import a GPX file",
-                                             comment: "Adds a trail from the user's own files"))
                 }
             }
             .fileImporter(

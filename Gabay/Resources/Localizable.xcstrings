@@ -377,6 +377,9 @@
         }
       }
     },
+    "no elevation" : {
+      "comment" : "Shown when a trail's file carries no heights"
+    },
     "No elevation in this file" : {
       "comment" : "Shown when a GPX has no elevation to draw"
     },
