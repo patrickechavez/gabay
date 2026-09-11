@@ -102,11 +102,10 @@ data is ODbL.
 
 ## Data
 
-**The catalog** is published separately from the app, in its own public
-repository served over GitHub Pages. `catalog.json` lists two things: trails,
-each with its name, region, distance, ascent, difficulty, bounding box,
-revision and GPX URL, and region packs, each with its name, bounds, size and
-file URL.
+**The catalog** is published from this repository, under a `trails/` folder
+served over GitHub Pages. `catalog.json` lists two things: trails, each with
+its name, region, distance, ascent, difficulty, bounding box, revision and GPX
+URL, and region packs, each with its name, bounds, size and file URL.
 
 Adding a trail, or a whole province, is therefore a commit rather than a
 release: drop in the file, add its block to the catalog, push. The app picks it
@@ -358,14 +357,14 @@ with your position on the line. Only the offline half of it is deferred, to the
 end, because that half needs tooling and hosting that the rest of the app does
 not.
 
-## Repositories
+## Repository
 
-Two, with different lifecycles.
+One, holding both the app and the trails it serves.
 
 - **The app.** Released through the App Store, changes rarely.
-- **The trails.** GPX files and `catalog.json`, served over GitHub Pages,
-  changes whenever a trail is walked. Public, so the files are useful to
-  somebody even if they never install the app.
+- **The trails.** GPX files and `catalog.json` under `trails/`, served over
+  GitHub Pages, changing whenever a trail is walked. A commit publishes a
+  trail without shipping a release.
 
 ## Not in this version
 

@@ -19,7 +19,7 @@ APP_DISPLAY_NAME = Staging
 // API — same numbers as Production so QA tests what users will get
 
 // "//" is a comment here, so escape the double slash as /$()/
-CATALOG_URL = https:/$()/patrickechavez.github.io/gabay-trails
+CATALOG_URL = https:/$()/patrickechavez.github.io/gabay/trails
 
 // Seconds before a request gives up
 
