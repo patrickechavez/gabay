@@ -53,5 +53,12 @@
 	<string>$(CERT_PINNING_ENABLED)</string>
 	<key>PINNED_PUBLIC_KEY_HASHES</key>
 	<string>$(PINNED_PUBLIC_KEY_HASHES)</string>
+	<!-- Tracking has to survive the screen locking, or a recorded route turns
+	     into a straight line across the valley. Not a key Xcode will generate,
+	     so it lives here rather than in a build setting. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
