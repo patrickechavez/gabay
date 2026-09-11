@@ -4,41 +4,35 @@
 <dict>
 	<!-- Values come from Config/<Environment>.xcconfig via $(...) substitution.
 	     Every value must be a string. AppConfig reads them as String first,
-	     then parses. An <integer> or <true/> here would read back as nil. -->
+	     then parses. An <integer> or <true/> here would read back as nil.
 
-	<!-- Where the trail catalog and its GPX files are published -->
-	<key>CATALOG_URL</key>
-	<string>$(CATALOG_URL)</string>
+	     Xcode rewrites this file whenever target settings change in the UI,
+	     and strips these comments when it does. Check the diff afterwards. -->
 
-	<!-- Corner ribbon naming the environment. Never shown in Production,
-	     which compiles the ribbon out whatever this says. -->
-	<key>ENV_BANNER_ENABLED</key>
-	<string>$(ENV_BANNER_ENABLED)</string>
-
-	<!-- Deep links. APP_URL_SCHEME differs per environment so the three apps
-	     can sit on one device without fighting over the same scheme. -->
+	<!-- Deep links. The scheme differs per environment so all three apps can
+	     sit on one device without fighting over it. -->
 	<key>APP_URL_SCHEME</key>
 	<string>$(APP_URL_SCHEME)</string>
-
-	<!-- Registers the scheme with iOS. Without this the app never receives
-	     gabay://... links, no matter what the code does. -->
+	<key>CATALOG_URL</key>
+	<string>$(CATALOG_URL)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleURLName</key>
-			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(APP_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
-
+	<key>ENV_BANNER_ENABLED</key>
+	<string>$(ENV_BANNER_ENABLED)</string>
 	<!-- Tracking has to survive the screen locking, or a recorded route turns
-	     into a straight line across the valley. Not a key Xcode will generate,
-	     so it lives here rather than in a build setting. -->
+	     into a straight line across the valley. Not a key Xcode generates, so
+	     it lives here rather than in a build setting. -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
