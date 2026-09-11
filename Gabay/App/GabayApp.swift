@@ -68,18 +68,7 @@ struct GabayApp: App {
                 .environmentRibbon()
 
                 .onOpenURL { url in
-                    navigator.open(url, isAuthenticated: dependencies.session.state == .authenticated)
-                }
-
-                .onChange(of: dependencies.session.state) { _, state in
-                    switch state {
-                    case .authenticated:
-                        navigator.resumePendingLink()
-                    case .unauthenticated:
-                        navigator.reset()
-                    case .bootstrapping:
-                        break
-                    }
+                    navigator.open(url, isAuthenticated: true)
                 }
                 .onChange(of: scenePhase, initial: true) { previous, phase in
                     updateShield(from: previous, to: phase)

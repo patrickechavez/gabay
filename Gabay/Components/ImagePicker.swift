@@ -44,34 +44,3 @@ struct ImagePicker<Label: View>: View {
     }
 }
 
-struct AvatarView: View {
-
-    let user: User?
-    var size: CGFloat = Theme.Size.avatarMedium
-
-    var body: some View {
-        CachedAsyncImage(url: user?.avatarURL) { image in
-            image.resizable().scaledToFill()
-        } placeholder: {
-            ZStack {
-                Theme.Color.placeholder
-                if let initials = user?.initials, !initials.isEmpty {
-                    Text(initials)
-
-                        .font(.system(size: size * 0.36, weight: .semibold))
-                        .foregroundStyle(Theme.Color.secondaryText)
-                } else {
-                    Image(systemName: "person.fill")
-                        .font(.system(size: size * 0.4))
-                        .foregroundStyle(Theme.Color.secondaryText)
-                }
-            }
-        }
-        .frame(width: size, height: size)
-        .clipShape(Circle())
-        .accessibilityLabel(
-            user.map { Text("Profile photo for \($0.fullName)") }
-                ?? Text("Profile photo", comment: "Accessibility label for a placeholder avatar")
-        )
-    }
-}
