@@ -35,6 +35,18 @@ final class TrailsViewModel {
         trails = await Task.detached { (try? store.trails()) ?? [] }.value
     }
 
+    // A trail somebody imported is theirs to throw away again.
+    func remove(_ trail: Trail) {
+        guard let index = trails.firstIndex(where: { $0.id == trail.id }) else { return }
+
+        do {
+            try store.remove(trail)
+            trails.remove(at: index)
+        } catch {
+            failure = .unavailable
+        }
+    }
+
     func points(of trail: Trail) async -> [TrackPoint] {
         let store = self.store
         return await Task.detached { (try? store.points(of: trail)) ?? [] }.value
@@ -104,6 +116,17 @@ struct TrailsView: View {
                 TrailDetailView(trail: trail) { await viewModel.points(of: trail) }
             } label: {
                 row(trail)
+            }
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    viewModel.remove(trail)
+                } label: {
+                    Label {
+                        Text("Delete", comment: "Removes an imported trail from the phone")
+                    } icon: {
+                        Image(systemName: "trash")
+                    }
+                }
             }
         }
         .listStyle(.plain)

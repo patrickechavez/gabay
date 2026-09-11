@@ -7,6 +7,9 @@
 import SwiftUI
 
 // Names the environment in the corner, the way Flutter's debug banner does.
+//
+// Bottom leading rather than top trailing: the top right corner belongs to the
+// navigation bar, and a ribbon there covers whatever button is in it.
 struct EnvironmentRibbon: View {
 
     let label: String
@@ -24,18 +27,18 @@ struct EnvironmentRibbon: View {
             .padding(.vertical, Theme.Spacing.xs)
             .background(color)
             .rotationEffect(.degrees(45))
-            .offset(x: 35, y: 30)
+            .offset(x: -35, y: 30)
     }
 }
 
 extension View {
 
-    /// Top-right ribbon naming the environment; compiled out of Production.
+    /// Bottom-left ribbon naming the environment; compiled out of Production.
     func environmentRibbon() -> some View {
         #if PRODUCTION
         self
         #else
-        overlay(alignment: .topTrailing) {
+        overlay(alignment: .bottomLeading) {
             if AppConfig.isEnvironmentBannerEnabled, let label = AppEnvironment.current.label {
                 EnvironmentRibbon(label: label, color: AppEnvironment.current.ribbonColor)
                     .allowsHitTesting(false)
