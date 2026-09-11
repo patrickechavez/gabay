@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@" : {
+
+    },
     "%@ far" : {
       "comment" : "How long a trail is, shown under its name"
     },
@@ -33,6 +36,9 @@
           }
         }
       }
+    },
+    "Afternoon walk" : {
+      "comment" : "Default name for a walk recorded in the afternoon"
     },
     "Cancelled." : {
       "comment" : "A request was cancelled",
@@ -106,6 +112,9 @@
         }
       }
     },
+    "Climb" : {
+      "comment" : "Label for how much a walk climbed"
+    },
     "Confirm password" : {
       "comment" : "Label for the password confirmation field",
       "extractionState" : "manual",
@@ -117,6 +126,12 @@
           }
         }
       }
+    },
+    "Could not save" : {
+      "comment" : "Title when a finished walk could not be kept"
+    },
+    "Could not start" : {
+      "comment" : "Title when a recording could not begin"
     },
     "Create Account" : {
       "comment" : "Primary button on the registration screen",
@@ -155,7 +170,19 @@
       }
     },
     "Delete" : {
-      "comment" : "Removes a trail from the phone"
+      "comment" : "Confirms deleting a saved walk\nRemoves a saved walk from the phone\nRemoves a trail from the phone"
+    },
+    "Delete this walk?" : {
+      "comment" : "Title of the confirmation before deleting a walk"
+    },
+    "Delete walk" : {
+      "comment" : "Removes a saved walk and its file"
+    },
+    "Discard" : {
+      "comment" : "Throws away a walk that was just recorded"
+    },
+    "Distance" : {
+      "comment" : "Label for how far a walk went"
     },
     "Download failed" : {
       "comment" : "Title when a trail could not be fetched"
@@ -208,6 +235,15 @@
         }
       }
     },
+    "Evening walk" : {
+      "comment" : "Default name for a walk recorded in the evening"
+    },
+    "Finish" : {
+      "comment" : "Ends a recording and opens the summary"
+    },
+    "Finished" : {
+      "comment" : "Title of the summary shown after a walk"
+    },
     "First name" : {
       "comment" : "Placeholder for the first name field",
       "extractionState" : "manual",
@@ -246,6 +282,12 @@
           }
         }
       }
+    },
+    "Hike" : {
+
+    },
+    "History" : {
+      "comment" : "Title of the saved walks tab"
     },
     "If an account exists for that address, we've sent a link to reset your password." : {
       "comment" : "Confirmation shown after requesting a password reset",
@@ -313,6 +355,12 @@
         }
       }
     },
+    "Morning walk" : {
+      "comment" : "Default name for a walk recorded in the morning"
+    },
+    "Name" : {
+      "comment" : "Label for the activity name field"
+    },
     "name@example.com" : {
       "comment" : "Placeholder for the email field",
       "extractionState" : "manual",
@@ -337,6 +385,9 @@
         }
       }
     },
+    "Night walk" : {
+      "comment" : "Default name for a walk recorded at night"
+    },
     "no elevation" : {
       "comment" : "Shown when a trail's file carries no heights"
     },
@@ -346,11 +397,17 @@
     "No trails yet" : {
       "comment" : "Shown when nothing has been downloaded or imported"
     },
+    "No walks yet" : {
+      "comment" : "Shown when nothing has been recorded"
+    },
     "Not available" : {
 
     },
     "Not downloaded yet" : {
       "comment" : "Marks a trail that is still only in the catalogue"
+    },
+    "of %@" : {
+      "comment" : "The trail's full length, beside how far the walker has come"
     },
     "OK" : {
       "comment" : "Alert dismiss button",
@@ -363,6 +420,9 @@
           }
         }
       }
+    },
+    "Pace" : {
+      "comment" : "Label for a walk's average pace"
     },
     "Password" : {
       "comment" : "Label for the password field",
@@ -387,6 +447,9 @@
           }
         }
       }
+    },
+    "Pause" : {
+      "comment" : "Pauses the recording"
     },
     "Please check the highlighted fields." : {
       "comment" : "Error shown when form validation fails server-side",
@@ -424,6 +487,12 @@
         }
       }
     },
+    "Record" : {
+      "comment" : "Title of the recording tab"
+    },
+    "Recovered walk" : {
+      "comment" : "Name for a walk the app was interrupted during"
+    },
     "Reset Password" : {
       "comment" : "Title of the forgot-password screen",
       "extractionState" : "manual",
@@ -435,6 +504,15 @@
           }
         }
       }
+    },
+    "Resume" : {
+      "comment" : "Continues a paused recording"
+    },
+    "Run" : {
+
+    },
+    "Save" : {
+      "comment" : "Keeps a walk that was just recorded"
     },
     "Search" : {
       "comment" : "Placeholder for a search field",
@@ -571,6 +649,9 @@
         }
       }
     },
+    "Start" : {
+      "comment" : "Begins recording a walk"
+    },
     "Starting up" : {
       "comment" : "Accessibility label for the launch screen",
       "extractionState" : "manual",
@@ -601,6 +682,9 @@
     "That trail is not where the catalogue said it was." : {
 
     },
+    "The GPX file goes with it." : {
+      "comment" : "What is lost when a saved walk is deleted"
+    },
     "The request took too long. Please try again." : {
       "comment" : "Error shown when a network request times out",
       "extractionState" : "manual",
@@ -628,6 +712,12 @@
     "The trail did not finish downloading." : {
 
     },
+    "The walk is still on your phone. Try again." : {
+      "comment" : "Reassurance when saving a walk failed"
+    },
+    "There was no room to write the walk. Free up some space." : {
+      "comment" : "Shown when the app could not open a file for a new walk"
+    },
     "This version of the app is no longer supported. Please update." : {
       "comment" : "Error shown when the app build is too old for the API",
       "extractionState" : "manual",
@@ -652,6 +742,9 @@
         }
       }
     },
+    "Time" : {
+      "comment" : "Label for how long a walk took"
+    },
     "Too many attempts. Please wait a moment and try again." : {
       "comment" : "Error shown when rate limited",
       "extractionState" : "manual",
@@ -663,6 +756,9 @@
           }
         }
       }
+    },
+    "Track where you go, with no trail to follow." : {
+      "comment" : "What the Record tab is for"
     },
     "Trails" : {
       "comment" : "Title of the trail list"
@@ -684,6 +780,9 @@
     },
     "Try again in a moment." : {
       "comment" : "Shown when a download failed for any other reason"
+    },
+    "Type" : {
+      "comment" : "Label for the activity type picker"
     },
     "Update Now" : {
       "comment" : "Button that opens the App Store listing",
@@ -720,6 +819,12 @@
           }
         }
       }
+    },
+    "Walk" : {
+
+    },
+    "Walks you record are saved here, and can be shared as a GPX file." : {
+      "comment" : "What the history tab will hold"
     },
     "We couldn't find what you were looking for." : {
       "comment" : "Error shown when a resource does not exist",
