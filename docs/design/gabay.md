@@ -206,8 +206,9 @@ told.
 
 ## Screens
 
-Three tabs: **Trails**, **Record**, **History**. The map arrives later and
-changes none of this, because every screen below works without one.
+Three tabs: **Trails**, **Record**, **History**. The offline basemap arrives
+later and changes none of this: the route line and the position are drawn by
+the app, so every screen below already works without a connection.
 
 ### Trails
 
@@ -226,32 +227,48 @@ the network is, and a 304 or a failed refresh leaves it standing.
 
 ### Trail detail
 
-Name, the three numbers that decide whether you are going, distance, ascent and
-a rough time, then the elevation profile drawn from the GPX itself. No network
-and no map needed: the file already carries every point's elevation.
+The map, full bleed: the route in magenta over a white casing, your position,
+the heading cone, and a line saying how far the start is. The stats panel that
+used to sit here was removed deliberately; the numbers are already in the list
+row, and on this screen the line is the point.
 
-Then the activity type, walk, run or hike, and Start.
+A floating **Start** sits above the bottom edge, where the stats bar appears
+once recording begins, so the screen grows rather than changes.
 
 ### Record
 
-The same Start without a trail. Nothing to follow, just track where you go.
-Activity type, a line saying whether the GPS has a fix yet, and a way back to
-the trail list for anyone who opened the wrong tab.
+The same Start without a trail. Nothing to follow, just track where you go. A
+line says whether the GPS has a fix yet, and that is the whole tab. It exists
+so a plain walk is one tap from anywhere rather than buried behind a trail.
 
 ### Recording
 
 One screen for both cases, because they differ by one element.
 
-With a trail: distance is the hero, shown as "2.4 of 6.2" with a thin progress
-bar, because on a trail the only question is how much further. Without a trail
-there is no fraction to show, so the bar goes and it reads "3.8 km".
+The map fills it, drawing the trail if there is one, the track growing behind
+you, your dot and the cone. Following the line is why the app exists, so the
+line is never hidden behind numbers.
 
-Underneath: moving time, ascent, pace, and battery. Battery is on this screen
-deliberately. The app holds the GPS open for hours in places where a flat phone
-is a real problem, and showing the number is a small honesty.
+The bar across the bottom reads "2.4 of 6.2 km" with a thin progress bar on a
+trail, because there the only question is how much further. Without a trail
+there is no fraction, so the bar goes and it reads "3.8 km". Underneath:
+elapsed time, ascent, and battery.
+
+Battery is there deliberately. The app holds the GPS open for hours in places
+where a flat phone is a real problem, and showing the number is a small
+honesty. The screen is allowed to sleep; recording does not depend on it being
+awake.
 
 Type is larger than a normal app throughout. This is read while moving and out
 of breath.
+
+**Stopping takes two taps.** The bar shows Pause while recording, and Resume
+and Finish once paused. A single Stop is too easy to catch in a pocket, and a
+walk cannot be un-ended.
+
+"2.4 of 6.2" is distance walked against the trail's total length, not progress
+projected onto the line. Honest and cheap. Projecting onto the polyline is
+better and can come later.
 
 **Where am I** is a button here, not a screen: coordinates in a form that can
 be read aloud over a radio or typed into a message if a single bar appears.
@@ -260,18 +277,22 @@ costs almost nothing to build.
 
 ### Finished
 
-What you actually walked: distance, moving time, ascent, and the profile of the
-walk rather than the profile of the trail. Save, or export.
+An editable name, prefilled with the trail's name or the time of day. The type,
+walk, run or hike, chosen here rather than before starting, so nothing stands
+between a cold trailhead and Start. Then what was actually walked: distance,
+elapsed time, ascent and pace, over a small preview of the route.
 
-A recording with no trail has no name. It is saved as its type and date,
-"Run, 8 September", and can be renamed. The app cannot do better: naming it
-"Budlaan" would need offline geocoding, which is map data the phone may not
-have.
+Discard throws it away. Save keeps it.
+
+A recording with no trail is named for its type and time, "Morning walk", and
+can be renamed here or later. The app cannot do better: naming it "Budlaan"
+would need offline geocoding, which is map data the phone may not have.
 
 ### History
 
-Every saved walk with its date, type, distance and moving time. Tapping one
-shows the same summary as Finished.
+Every saved walk with its date, type, distance and time, newest first. Tapping
+one opens the track on the map with the numbers beneath it, a share button in
+the toolbar, and Delete at the bottom.
 
 ### Export
 
@@ -284,20 +305,32 @@ something unlabelled.
 The About screen says it plainly: Gabay uploads nothing, your activity is a
 file on your phone, take it wherever you like.
 
+### How a walk is written
+
+Points are appended to the GPX as they arrive, not held in memory until the
+end. A crash or a flat battery therefore leaves a file without its closing
+tags, and the parser already keeps what it read from a truncated file. On the
+next launch an unfinished file becomes a saved walk rather than a prompt, and
+it can be deleted like any other.
+
+Fixes worse than thirty metres are dropped rather than drawn, and
+`pausesLocationUpdatesAutomatically` stays off so iOS never decides on the
+walker's behalf that they have stopped.
+
 ### What the activity type actually does
 
-It is not only a label. It is stamped on the export, and it sets how often the
-app asks for a position. Trail running wants a fix every second for pace to
-mean anything; hiking does not, and fewer fixes over a six hour day is real
-battery. The choice is remembered, so the second time you open the app you are
-already on the one you use.
+It is a label and an export stamp, so a run arrives at Strava as a run. It does
+not change how often the app asks for a position, because it is chosen after
+the walk rather than before it. Varying the sampling rate by type was the
+alternative, and it costs the one thing worth protecting: a start button with
+nothing in front of it.
 
 ### Later, when the map exists
 
-The map becomes a fourth thing on the recording screen, not a fourth tab: the
-route drawn in magenta over a white casing, your position, follow mode. Off
-route warning with a banner and a haptic at roughly fifty metres from the line,
-debounced hard enough that a GPS wobble under tree cover does not cry wolf.
+The recording screen gains nothing structurally; the basemap underneath it
+simply survives losing signal. Off route warning with a banner and a haptic at
+roughly fifty metres from the line, debounced hard enough that a GPS wobble
+under tree cover does not cry wolf.
 
 ## Look
 
@@ -350,7 +383,7 @@ carrying up a mountain.
 3. The map: route drawn on MapKit, current position, follow
 4. Recording, both ways in, with the summary screen
 5. History, saving, and export as GPX
-6. Custom import, and where am I
+6. Where am I
 7. Catalog refresh, and downloading trails that are not yet on the phone
 8. The Cebu pack and the nationwide overview, built on CI rather than a laptop
 9. Swap MapKit for MapLibre and the packs, so the basemap survives losing
