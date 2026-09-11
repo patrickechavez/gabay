@@ -1,20 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<gpx creator="StravaGPX" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<?xml version='1.0' encoding='UTF-8'?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" creator="StravaGPX" version="1.1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
  <metadata>
   <name>Budlaan Falls to Holiday Pool</name>
   <author>
    <name>John Patrick Echavez</name>
-   <link href="https://www.strava.com/athletes/127986198"/>
+   <link href="https://www.strava.com/athletes/127986198" />
   </author>
   <copyright author="OpenStreetMap contributors">
    <year>2020</year>
    <license>https://www.openstreetmap.org/copyright</license>
   </copyright>
-  <link href="https://www.strava.com/routes/3533428188609823312"/>
+  <link href="https://www.strava.com/routes/3533428188609823312" />
  </metadata>
  <trk>
   <name>Budlaan Falls to Holiday Pool</name>
-  <link href="https://www.strava.com/routes/3533428188609823312"/>
+  <link href="https://www.strava.com/routes/3533428188609823312" />
   <type>hiking</type>
   <trkseg>
    <trkpt lat="10.383750000000001" lon="123.88635000000001">
@@ -71,9 +71,6 @@
    <trkpt lat="10.383650000000001" lon="123.88270000000001">
     <ele>233.65</ele>
    </trkpt>
-   <trkpt lat="10.383560000000001" lon="123.88233000000001">
-    <ele>230.70000000000002</ele>
-   </trkpt>
    <trkpt lat="10.383560000000001" lon="123.88232">
     <ele>230.67000000000002</ele>
    </trkpt>
@@ -109,9 +106,6 @@
    </trkpt>
    <trkpt lat="10.38626" lon="123.88226000000002">
     <ele>268.24</ele>
-   </trkpt>
-   <trkpt lat="10.386280000000001" lon="123.88224000000001">
-    <ele>268.56</ele>
    </trkpt>
    <trkpt lat="10.38643" lon="123.88207000000001">
     <ele>271.22</ele>
@@ -317,9 +311,6 @@
    <trkpt lat="10.394120000000001" lon="123.87735">
     <ele>408.07000000000005</ele>
    </trkpt>
-   <trkpt lat="10.394400000000001" lon="123.87752">
-    <ele>410.79</ele>
-   </trkpt>
    <trkpt lat="10.39441" lon="123.87753000000001">
     <ele>410.92</ele>
    </trkpt>
@@ -331,9 +322,6 @@
    </trkpt>
    <trkpt lat="10.39512" lon="123.87664000000001">
     <ele>423.46000000000004</ele>
-   </trkpt>
-   <trkpt lat="10.395375000245465" lon="123.87619500047019">
-    <ele>424.17</ele>
    </trkpt>
    <trkpt lat="10.39563" lon="123.87575000000001">
     <ele>425.94000000000005</ele>
@@ -371,9 +359,6 @@
    <trkpt lat="10.397440000000001" lon="123.87307000000001">
     <ele>477.12000000000006</ele>
    </trkpt>
-   <trkpt lat="10.397820000000001" lon="123.87271000000001">
-    <ele>494.28000000000003</ele>
-   </trkpt>
    <trkpt lat="10.397950000000002" lon="123.8726">
     <ele>499.41</ele>
    </trkpt>
@@ -389,9 +374,6 @@
    <trkpt lat="10.399780000000002" lon="123.87226000000001">
     <ele>549.1600000000001</ele>
    </trkpt>
-   <trkpt lat="10.399840000000001" lon="123.87219">
-    <ele>549.79</ele>
-   </trkpt>
    <trkpt lat="10.399920000000002" lon="123.87212000000001">
     <ele>550.6600000000001</ele>
    </trkpt>
@@ -403,12 +385,6 @@
    </trkpt>
    <trkpt lat="10.4008" lon="123.87179">
     <ele>567.2</ele>
-   </trkpt>
-   <trkpt lat="10.400720000000002" lon="123.87179">
-    <ele>565.7</ele>
-   </trkpt>
-   <trkpt lat="10.4007" lon="123.87179">
-    <ele>565.5400000000001</ele>
    </trkpt>
    <trkpt lat="10.400310000000001" lon="123.87180000000001">
     <ele>559.0</ele>
@@ -428,14 +404,8 @@
    <trkpt lat="10.399410000000001" lon="123.86980000000001">
     <ele>560.1700000000001</ele>
    </trkpt>
-   <trkpt lat="10.39907" lon="123.86963000000002">
-    <ele>557.32</ele>
-   </trkpt>
    <trkpt lat="10.398470000000001" lon="123.86931000000001">
     <ele>554.0</ele>
-   </trkpt>
-   <trkpt lat="10.39808" lon="123.86929">
-    <ele>552.96</ele>
    </trkpt>
    <trkpt lat="10.39774" lon="123.86926000000001">
     <ele>546.62</ele>
@@ -451,12 +421,6 @@
    </trkpt>
    <trkpt lat="10.39708" lon="123.86833000000001">
     <ele>530.64</ele>
-   </trkpt>
-   <trkpt lat="10.397010000000002" lon="123.86818000000001">
-    <ele>530.25</ele>
-   </trkpt>
-   <trkpt lat="10.39699" lon="123.86814000000001">
-    <ele>530.2</ele>
    </trkpt>
    <trkpt lat="10.39685" lon="123.86784000000002">
     <ele>529.05</ele>
@@ -512,9 +476,6 @@
    <trkpt lat="10.39484" lon="123.86721000000001">
     <ele>506.46000000000004</ele>
    </trkpt>
-   <trkpt lat="10.394810000000001" lon="123.86730000000001">
-    <ele>504.37000000000006</ele>
-   </trkpt>
    <trkpt lat="10.394810000000001" lon="123.86734000000001">
     <ele>503.53000000000003</ele>
    </trkpt>
@@ -523,9 +484,6 @@
    </trkpt>
    <trkpt lat="10.39447" lon="123.86766000000001">
     <ele>492.18000000000006</ele>
-   </trkpt>
-   <trkpt lat="10.394340000000001" lon="123.86771000000002">
-    <ele>489.62000000000006</ele>
    </trkpt>
    <trkpt lat="10.39417" lon="123.86778000000001">
     <ele>488.28000000000003</ele>
@@ -620,9 +578,6 @@
    <trkpt lat="10.385240000000001" lon="123.86849000000001">
     <ele>383.71999999999997</ele>
    </trkpt>
-   <trkpt lat="10.384785000229963" lon="123.86811499946447">
-    <ele>372.46</ele>
-   </trkpt>
    <trkpt lat="10.38433" lon="123.86774000000001">
     <ele>366.66</ele>
    </trkpt>
@@ -631,9 +586,6 @@
    </trkpt>
    <trkpt lat="10.383650000000001" lon="123.86815000000001">
     <ele>358.93</ele>
-   </trkpt>
-   <trkpt lat="10.38320000018251" lon="123.86802999987005">
-    <ele>360.05</ele>
    </trkpt>
    <trkpt lat="10.382750000000001" lon="123.86791000000001">
     <ele>373.46</ele>

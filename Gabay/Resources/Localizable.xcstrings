@@ -155,7 +155,10 @@
       }
     },
     "Delete" : {
-      "comment" : "Removes an imported trail from the phone"
+      "comment" : "Removes a trail from the phone"
+    },
+    "Download failed" : {
+      "comment" : "Title when a trail could not be fetched"
     },
     "Edit Profile" : {
       "comment" : "Title of the placeholder edit-profile screen",
@@ -345,6 +348,9 @@
     },
     "Not available" : {
 
+    },
+    "Not downloaded yet" : {
+      "comment" : "Marks a trail that is still only in the catalogue"
     },
     "OK" : {
       "comment" : "Alert dismiss button",
@@ -662,7 +668,7 @@
       "comment" : "Title of the trail list"
     },
     "Trails already on your phone still work." : {
-
+      "comment" : "Shown when a download failed for want of a connection"
     },
     "Try Again" : {
       "comment" : "Button that retries a failed network request",
@@ -677,7 +683,7 @@
       }
     },
     "Try again in a moment." : {
-
+      "comment" : "Shown when a download failed for any other reason"
     },
     "Update Now" : {
       "comment" : "Button that opens the App Store listing",
