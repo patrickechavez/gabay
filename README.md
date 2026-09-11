@@ -1,297 +1,130 @@
 # Gabay
 
-A production-ready SwiftUI app template. MVVM + Repository, Swift 6 strict concurrency, a complete auth lifecycle, and one third-party dependency — Firebase, kept behind protocol seams so the rest of the app never touches it.
+An iPhone app that shows you a trail on a map and shows where you are on it. Free, no account, no subscription.
 
-- iOS 17+ · Swift 6 · Xcode 26
+Gabay is Filipino for guide.
 
-## Getting started
+- iOS 17+ · Swift 6 · Xcode 26 · no third-party dependencies
 
-Clone, rename, and you have a running app in under ten minutes.
+## Why this exists
 
-### 1. Clone and rename
+Hiring a guide prices people out of hiking their own mountains. The trails are public, the maps are public, and the phone in your pocket already has a GPS receiver that works without a cell tower.
 
-Three commands. Substitute your own values.
+The software is where it stops being free.
+
+AllTrails and Strava both charge for the one thing a hiker on an unfamiliar trail actually needs: loading a route somebody else made and following it. Recording your own activity is free on both. Uploading a finished walk is free on Strava. Following a line up a mountain you have never climbed is not.
+
+So the gap is narrow and specific: **follow a GPX you did not create, without paying.** Nobody serves it because there is no business in it.
+
+Gabay fills it from the other end. The trails are curated and given away, the app follows them, and your walk stays on your phone as a file you can take anywhere, including to Strava.
+
+If you hike a handful of times a year, a subscription is poor value for the one screen you need. This is that screen.
+
+## What it does
+
+- Lists trails published in this repository, with distance, climb and region
+- Downloads one when you open it, and keeps it on the phone
+- Draws the route on the map with your position and which way you are facing
+- Tells you how far you are from the start
+- Imports any GPX file you already have, from Files, an email, or AirDrop
+- Deletes anything you no longer want
+
+No sign up, no analytics, no server. Where you walk is not information this app sends anywhere.
+
+## What it does not do yet
+
+**The map goes grey with no signal.** MapKit downloads its basemap from Apple's servers and offers no way to keep it, so on a ridge with no bars the terrain disappears.
+
+What survives is the part that matters most: the route line and your position are drawn from data already on the phone, so the screen becomes a magenta line on grey with a dot on it. The question a lost hiker asks is "am I still on the trail", and a line with a dot on it answers that. What is lost is context.
+
+Two sentences, and the app must not blur them: **the route works offline, the map does not.**
+
+A real offline basemap is the planned upgrade. See [the spec](docs/design/gabay.md).
+
+## The trails
+
+Trails live in [`trails/`](trails) and are served over GitHub Pages. The app reads `catalog.json` on launch, shows what it lists, and fetches a GPX only when somebody taps one.
+
+```
+https://patrickechavez.github.io/gabay/trails/catalog.json
+```
+
+Adding a trail is a commit, not an App Store release. Upload the `.gpx` into `trails/`, add its block to `catalog.json`, and every phone picks it up on its next launch with a connection. The format is documented in [`trails/README.md`](trails/README.md).
+
+Three rules keep the refresh from eroding the offline promise:
+
+- **Silent.** It never blocks a screen, never spins, never raises an error.
+- **Cheap.** The app sends the ETag it holds and does nothing on a 304.
+- **Additive.** Nothing is ever deleted from under you. A trail dropped from the catalogue stays on the phone of anyone who already has it.
+
+The files are public on purpose. They are useful to somebody even if they never install this app.
+
+## Bringing your own GPX
+
+Tap `+` and pick a file. Anything with a `<trk>` or a `<rte>` works, including exports from Strava, Garmin, Komoot, Wikiloc and Gaia. The app measures it rather than trusting what the file claims, and once imported it is indistinguishable from a published trail.
+
+Parsing is `XMLParser` from Foundation. No dependency, and it keeps whatever it read from a truncated file rather than refusing the lot.
+
+## Where things live on the phone
+
+```
+Application Support/
+├── catalog.json   the last catalogue seen, so the list is there before the network is
+└── Trails/        one GPX per trail, downloaded and imported alike
+```
+
+Not `Caches`, which iOS empties without warning when storage runs low. The file system is the database: if the file is there, the trail is there.
+
+## Building
+
+Nothing to configure. Clone, open, run.
 
 ```bash
-git clone <this-repo> MyApp
-cd MyApp
-Scripts/rename.sh MyApp com.acmecorp "My App"
+xcodebuild -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
-The three arguments to the script:
-
-| | | |
-|---|---|---|
-| `MyApp` | required | The app name. Becomes the target, the source folder, and a Swift type, so it takes letters and digits only, starting with a letter — no spaces or hyphens. |
-| `com.acmecorp` | required | Your bundle prefix. Lowercase reverse-DNS, at least two components. |
-| `"My App"` | optional | The home screen name, quoted because it can contain spaces. Leave it off when it matches the app name — `Scripts/rename.sh Runly com.acmecorp` gives an app called Runly. |
-
-This renames the project, target, schemes, source folder, app entry point, and every file header, and rewrites the bundle IDs, display names, and deep link scheme. It needs a clean working tree, so `git checkout . && git clean -fd` undoes any run.
-
-### 2. Start your own history
-
-```bash
-rm -rf .git && git init && git add -A && git commit -m "Initial commit"
-```
-
-### 3. Finish the setup
-
-The app builds and runs as-is. Three things the script can't do for you.
-
-- **Your API** — set `API_BASE_URL` in each of the three `Config/*.xcconfig`
-- **App icon and colours** — all ship empty. See [Branding](#branding)
-- **Firebase** — *optional*. Without a `GoogleService-Info.plist` the app builds fine and analytics and crash reporting are off. See [Firebase](#firebase) to turn it on, or to remove it.
-
-```bash
-xcodebuild -scheme Development -destination 'platform=iOS Simulator,name=iPhone 16' build
-```
-
-## Removing the sample
-
-`Item` is a worked example, not something to build on. Keep it while you write your first real feature — it's the only place pagination, `LoadState`, and the repository pattern are shown working end to end — then delete it.
-
-```
-Features/Dashboard/HomeView/          the list screen
-Features/Dashboard/ItemDetailView/    the detail screen
-Data/ItemRepository.swift
-Models/Models.swift                   the Item and ItemDraft types
-Core/Testing/Mocks.swift              SampleData.items and MockItemRepository
-```
-
-Then remove `makeHomeViewModel`, `makeItemDetailViewModel` (both overloads), and the `items` property from `AppDependencies`, and drop `.itemDetail` from `HomeRoute`. The compiler finds anything you miss.
-
-## What's inside
-
-- **Networking** — one send path with verb helpers, typed errors, server-message parsing, interceptors, retry with backoff
-- **Auth** — access + refresh tokens, single-flight refresh, 401 to refresh to retry to sign-out, Keychain storage
-- **Navigation** — typed routes, deep links, universal links, deferred links, force-update and maintenance gates
-- **UI** — design system, unified `LoadState`, empty / error / skeleton states, accessibility identifiers, localization via String Catalog
-- **Images** — bounded two-tier cache with LRU eviction and in-flight de-duplication
-- **Connectivity** — `NWPathMonitor` behind an offline banner, so a failing screen reads as a connection problem
-- **Observability** — analytics and crash reporting behind protocols, with Firebase adapters; non-fatals recorded with no per-feature wiring
-- **Build** — three environments, privacy manifest, one-command rename
-
-The service gates are driven by HTTP status, not by a version endpoint. A `426` blocks the app behind "Update Required" and a `503` behind "Back Soon", both routed through `SessionEventBus`. `APIConfig.isForceUpdateEnabled` and the `VersionCheck` model belong to a client-side version-comparison approach that isn't built — delete them, or wire them to a version endpoint if you prefer that shape.
-
-Scaffolded but **not** wired — push notifications, see below.
-
-## Architecture
-
-```
-View (SwiftUI, no logic)
-  ↕ @Observable
-ViewModel (@MainActor, owns LoadState)
-  ↕ protocol
-Repository (maps API to models)
-  ↕ protocol
-APIClient (one send path + interceptors)
-```
-
-Each layer depends on the protocol below it. `AppDependencies` is the one place concrete types meet, which is what makes it testable and swappable.
-
-## Branding
-
-Everything you replace per project lives in `Gabay/Assets.xcassets`. All three ship empty.
-
-### App icon
-
-Open `Assets.xcassets` -> `AppIcon` and drag a PNG onto each well. There are three 1024x1024 slots:
-
-| Slot | Used when |
-|---|---|
-| **Any Appearance** | Always. The only one that is required. |
-| **Dark** | Home screen in dark mode |
-| **Tinted** | Home screen with a tint applied |
-
-Fill the first and iOS derives the other two. Fill all three when you want control over each.
-
-**Rules Apple enforces:**
-
-- **1024 x 1024**, square
-- **No alpha channel.** Transparency is rejected at upload with `ITMS-90717`, and iOS composites it against black. Check yours with `sips -g hasAlpha icon.png`
-- **Edge to edge**, no padding of your own. iOS applies a rounded mask that crops the corners, so keep important detail inside the middle 80%
-- **No rounded corners, no shadows.** iOS adds those
-
-The icon renders at 60 x 60 pt on the home screen, about 17x smaller than the file. A small mark floating in empty space disappears at that size.
-
-### Accent colour
-
-`AccentColor` has no value set, so SwiftUI falls back to system blue. Give it **Any** and **Dark** appearances in the asset catalog.
-
-Everything that reads `Theme.Color.accent` picks it up - buttons, links, control tints.
-
-### Launch background
-
-`LaunchBackground` is used by `RootView` while the session is bootstrapping, and by `PrivacyShieldView` in the app switcher.
-
-It does **not** set the system launch screen, which is currently the default background. To match them and remove the flash on launch, add this to `Config/Shared.xcconfig`:
-
-```
-INFOPLIST_KEY_UILaunchScreen_BackgroundColor = LaunchBackground
-```
-
-## Environments
-
-Three configs, one shared base. All install side by side on one device.
+Three schemes, three configurations, one shared base in `Config/`. They install side by side, so a development build never replaces the one you hike with.
 
 | | Development | Staging | Production |
 |---|---|---|---|
 | Bundle ID | `.dev` | `.staging` | *(none)* |
-| Request logging | on | off | off |
+| Logging | on | off | off |
 
-Values live in `Config/*.xcconfig` and reach code through `APIConfig`. Never hardcode a URL.
+The only value that reaches code from the xcconfigs is `CATALOG_URL`, so pointing a build at a different set of trails is a one line change.
 
-## Secrets
-
-Client SDK keys you'd rather not publish go in `Config/Secrets.xcconfig`, which is gitignored. Copy `Secrets.example.xcconfig`, drop the `.example`, fill it in — all three environments already `#include?` it, and the `?` means a clone without the file still builds.
-
-Everything there is substituted into Info.plist and ships inside the IPA. It keeps values out of git, not off a device. Server-side keys belong on your server.
-
-## Hardening
-
-Four opt-in protections. Two of them — jailbreak and anti-debug — are heuristic and report-only by design, so they flag rather than block.
-
-> **Pinning is optional.** The app is fully safe and behaves like a normal HTTPS app while `PINNED_PUBLIC_KEY_HASHES` is left blank — an empty list means default TLS trust, no extra rules. You only need to fill it in once you have a real production backend and want the extra protection.
-
-### Certificate pinning
-
-Pins the server's **public key** (SPKI), not the certificate, so a certificate renewal with the same key doesn't break the app.
-
-`CERT_PINNING_ENABLED = NO` in all three configs, because there is no backend to pin against yet. Keep it off in Development and Staging even after you have one, so local proxies (Charles, Proxyman) and self-signed certs still work. Turn it on in Production only once `PINNED_PUBLIC_KEY_HASHES` has real values — enabling it with an empty list claims pinning while performing none.
-
-1. Generate the base64 SPKI hash for each endpoint's leaf certificate:
-
-   ```bash
-   openssl s_client -connect api.example.com:443 -showcerts </dev/null 2>/dev/null \
-     | openssl x509 -pubkey -noout \
-     | openssl pkey -pubin -outform der \
-     | openssl dgst -sha256 -binary \
-     | base64
-   ```
-
-2. Paste the output into `PINNED_PUBLIC_KEY_HASHES` in `Config/Production.xcconfig`, comma-separated for multiple keys.
-
-The pinner compares that to the hash the running app computes from the server's presented certificate. Leave the list empty and it falls back to default TLS trust — a safe no-op until you add real hashes. A failed match surfaces as a `.serverTrustFailed` error.
-
-### Screen-capture / app-switcher privacy
-
-A `PrivacyShieldView` covers the UI whenever the app is not active, so the task-switcher snapshot is blank. iOS can't prevent screenshots, so instead the app detects them (`ScreenshotDetector`) and records a `screenshot_captured` analytics event — capture is observable, not blockable.
-
-### Jailbreak detection
-
-`JailbreakDetector` checks for the usual filesystem indicators (Cydia, Sileo, sshd, …). It is **report-only**: jailbreak checks are trivially bypassable and can false-positive, so the app flags the device in analytics rather than refusing to run.
-
-### Anti-debug
-
-`DebuggerDetector` reads the `P_TRACED` process flag via `sysctl` and reports an attached debugger. Deliberately no `ptrace(PT_DENY_ATTACH)` — that reads as anti-tampering to App Review and can get a submission rejected. Obfuscation beyond the existing Release symbol-stripping is intentionally not attempted.
-
-## Firebase
-
-Analytics and Crashlytics via SPM, behind protocols — only `FirebaseObservability.swift` imports Firebase.
-
-**It is optional.** With no `GoogleService-Info.plist` the app builds and runs; analytics and crash reporting fall back to no-ops and the build prints:
-
-```
-warning: No Firebase plist at ... - building without Firebase.
-```
-
-That is the normal state of a fresh clone, not a broken checkout.
-
-### Turning it on
-
-1. Create a Firebase project per environment.
-2. Register an iOS app in each, using that environment's bundle ID.
-3. Drop each `GoogleService-Info.plist` into its folder, creating folders as needed.
-
-```
-Gabay/Firebase/
-├── Development/GoogleService-Info.plist
-├── Staging/GoogleService-Info.plist
-└── Production/GoogleService-Info.plist
-```
-
-Nothing else — `FirebaseBootstrap.start()` finds the plist at launch and installs the Firebase adapters. Add only the environments you need; the others keep building without it.
-
-The folders are absent from git because the plists are gitignored.
-
-Leave **Target Membership unchecked** on every plist. The `Copy GoogleService-Info.plist` phase picks the right one from `$CONFIGURATION` and fails the build if its `BUNDLE_ID` doesn't match the target's. Checking membership makes Xcode copy it too, and the build stops with `Multiple commands produce`.
-
-Crashlytics symbols upload automatically. `Upload Crashlytics dSYM` skips Development, which keeps its symbols in the binary, and skips any configuration with no plist.
-
-### Removing it
-
-For a project that doesn't use Firebase:
-
-1. Delete `Gabay/Core/Observability/FirebaseObservability.swift`
-2. Remove the `firebase-ios-sdk` package in Xcode
-3. Delete `Gabay/Firebase/` and both build phases — `Copy GoogleService-Info.plist` and `Upload Crashlytics dSYM`
-
-Nothing else changes. Every `Observability.analytics.track(...)` and `Observability.crashes.record(...)` call keeps compiling and does nothing.
-
-### Using something else
-
-Write one file conforming to `AnalyticsTracking` and `CrashReporting`:
-
-```swift
-struct SentryCrashReporter: CrashReporting {
-    func record(_ error: any Error) { SentrySDK.capture(error: error) }
-    func log(_ message: String) { SentrySDK.addBreadcrumb(.init(message: message)) }
-    func setUser(id: String?) { SentrySDK.setUser(id.map { User(userId: $0) }) }
-}
-```
-
-Then change the one line in `AppDependencies.live()` that calls `FirebaseBootstrap.start()`. No view, view model, or call site changes.
-
-### Push is not wired
-
-`UserRepository` declares `registerForPushNotifications(token:)` and `unregisterForPushNotifications(token:)`. **Nothing calls them**, and `FirebaseMessaging` is no longer configured — the `MessagingDelegate` conformance was removed to keep Firebase out of the app's entry point.
-
-To finish it:
-
-- Add `import FirebaseMessaging` and the `MessagingDelegate` conformance back to `AppDelegate`, and set `Messaging.messaging().delegate` after `FirebaseBootstrap.start()` has run
-- Ask for permission and call `registerForRemoteNotifications()`
-- Set `Messaging.messaging().apnsToken` in `didRegisterForRemoteNotificationsWithDeviceToken`
-- Send the FCM token to your backend, and clear it on sign-out
-- Route taps through `AppNavigator`, which already handles deep links
-- Add the **Push Notifications** capability, and upload an APNs `.p8` to each Firebase project
-
-The last one needs a paid Apple Developer membership. FCM does not replace APNs on iOS — it forwards through it, and the `.p8` authorises Firebase to do that on your behalf.
+Location needs a real device to mean anything. The simulator has no magnetometer, so the heading cone stays hidden there.
 
 ## Structure
 
 ```
 Gabay/
-├── App/              entry point, composition root
-├── Components/       reusable inputs, buttons, picker
+├── App/           entry point, composition root
 ├── Core/
-│   ├── Images/       two-tier image cache
-│   ├── Navigation/   typed routes, deep links
-│   ├── Networking/   client, endpoints, errors, interceptors
-│   ├── Session/      tokens, refresh, session state
-│   └── UI/           LoadState, AsyncContentView
-├── Data/             repositories
-├── Firebase/         one GoogleService-Info.plist per environment
-├── DesignSystem/     theme, accessibility identifiers
-├── Features/         one folder per screen
-├── Models/           models, pagination
-└── Resources/        String Catalog
+│   ├── Trails/    GPX parsing, the trail store, the catalogue client
+│   ├── UI/        LoadState, error states
+│   └── Observability/
+├── DesignSystem/  theme
+├── Features/
+│   └── Trail/     the list, the map, the walker
+└── Resources/     String Catalog
 ```
 
-## Apple Developer account
+Views hold no logic. A view model owns the state, and everything below it sits behind a protocol, which is what lets the tests run without a network, a GPS or a disk of their own.
 
-Not needed to build, run, or develop against this template. The simulator needs nothing, and a free Apple ID signs builds onto your own device.
+```bash
+xcodebuild test -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
 
-A paid membership is required for exactly two things.
+## Not built yet
 
-- **Push notifications** — the capability and the APNs `.p8` are both members-only
-- **Distribution** — TestFlight and the App Store
+Recording your own walk and exporting it as a GPX is designed and written, on the `recording` branch rather than here.
 
-Everything else works without one, which is why push stays scaffolded rather than half-implemented.
+```bash
+git checkout recording
+```
 
-## Before you ship
+Still to come after that: a real offline basemap through downloadable region packs, and an off route warning.
 
-- Real API URLs in all three xcconfigs
-- All three `GoogleService-Info.plist` files in place
-- The `Item` sample removed
-- Review `PrivacyInfo.xcprivacy` against what your backend stores
-- App icon and accent color
+## Attribution
+
+Maps and their attribution come from Apple, through MapKit. Trail data is recorded on foot and published here.
