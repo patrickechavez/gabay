@@ -146,8 +146,8 @@ difficulty.
 
 **Trail detail.** Map preview, elevation profile, and a Start button.
 
-**Navigate.** The screen that matters. Full screen map, route drawn in blaze
-orange over a white casing so it reads against forest and rock alike, current
+**Navigate.** The screen that matters. Full screen map, route drawn in magenta
+over a white casing so it reads against forest and rock alike, current
 position, follow mode, and a bottom bar with distance remaining and ascent
 left. Type is larger than a normal app throughout: this is read while moving
 and out of breath.
@@ -172,13 +172,15 @@ your activity is a file on your phone, take it wherever you like.
 
 ## Look
 
-- Accent: blaze orange, `#E4572E`, after the painted marks on trees. The map
-  already owns green, blue and brown, so the accent cannot be any of them.
+- Accent: magenta, `#E5007E`. The map already owns green, blue and brown, and
+  nothing in terrain is magenta, which is why cartographers reach for it when a
+  line has to be unmistakable. It is also nowhere near Strava's orange or
+  AllTrails' green.
 - Route line: accent over a white casing.
 - Surfaces: near black with warm grey text. Easier on an OLED battery, and
   easier at night.
-- Icon: a trail blaze, one orange rectangle on dark slate. Legible at forty
-  pixels, and not another compass rose.
+- Icon: a switchback climbing to a summit dot, off white on dark slate with the
+  dot in magenta. Legible at forty pixels, and not another compass rose.
 
 ## Architecture
 
