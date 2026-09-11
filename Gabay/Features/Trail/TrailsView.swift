@@ -21,6 +21,9 @@ final class TrailsViewModel {
     // Ids being fetched, so a row can spin without blocking the rest.
     private(set) var downloading: Set<String> = []
 
+    // What the walker typed. The full list stays intact behind it.
+    var query = ""
+
     @ObservationIgnored private let store: any TrailStoring
     @ObservationIgnored private let catalog: any TrailCatalogFetching
     @ObservationIgnored private let cache: any CatalogCaching
@@ -34,6 +37,16 @@ final class TrailsViewModel {
         self.store = store
         self.catalog = catalog
         self.cache = cache
+    }
+
+    // Name or region, ignoring case and accents, so "osmena" finds Osmeña.
+    var visible: [Trail] {
+        let wanted = query.trimmingCharacters(in: .whitespaces)
+        guard !wanted.isEmpty else { return trails }
+
+        return trails.filter {
+            $0.name.localizedStandardContains(wanted) || $0.region.localizedStandardContains(wanted)
+        }
     }
 
     // Dismisses the failure alert.
@@ -159,11 +172,17 @@ struct TrailsView: View {
                     ProgressView()
                 } else if viewModel.trails.isEmpty {
                     empty
+                } else if viewModel.visible.isEmpty {
+                    ContentUnavailableView.search(text: viewModel.query)
                 } else {
                     list
                 }
             }
             .navigationTitle(Text("Trails", comment: "Title of the trail list"))
+            .searchable(
+                text: $viewModel.query,
+                prompt: Text("Search trails", comment: "Placeholder in the trail list search field")
+            )
             .toolbar {
                 // Always here, contents come and go: a rebuilt item eats a tap.
                 ToolbarItem(placement: .topBarTrailing) {
@@ -210,7 +229,7 @@ struct TrailsView: View {
     }
 
     private var list: some View {
-        List(viewModel.trails) { trail in
+        List(viewModel.visible) { trail in
             Button {
                 open(trail)
             } label: {
