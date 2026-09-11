@@ -8,20 +8,20 @@ import SwiftUI
 
 struct ErrorStateView: View {
 
-    let error: APIError
+    let error: LoadFailure
     var retry: (@Sendable () async -> Void)?
 
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: icon)
         } description: {
-            Text(error.localizedDescription)
+            Text(message)
         } actions: {
             if let retry, error.isRetryable {
                 Button {
                     Task { await retry() }
                 } label: {
-                    Text("Try Again", comment: "Button that retries a failed network request")
+                    Text("Try Again", comment: "Button that retries a failed download")
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -32,22 +32,25 @@ struct ErrorStateView: View {
         switch error {
         case .offline: "You're offline"
         case .timedOut: "That took too long"
-        case .notFound: "Not found"
-        case .forbidden: "No access"
-        case .maintenance: "Temporarily unavailable"
-        case .updateRequired: "Update required"
+        case .unavailable: "Not available"
         default: "Something went wrong"
+        }
+    }
+
+    private var message: LocalizedStringKey {
+        switch error {
+        case .offline: "Trails already on your phone still work."
+        case .timedOut: "The trail did not finish downloading."
+        case .unavailable: "That trail is not where the catalogue said it was."
+        default: "Try again in a moment."
         }
     }
 
     private var icon: String {
         switch error {
-        case .offline, .transport: "wifi.exclamationmark"
+        case .offline: "wifi.exclamationmark"
         case .timedOut: "clock.badge.exclamationmark"
-        case .notFound: "questionmark.folder"
-        case .forbidden, .unauthorized: "lock"
-        case .maintenance: "wrench.and.screwdriver"
-        case .updateRequired: "arrow.down.circle"
+        case .unavailable: "questionmark.folder"
         default: "exclamationmark.triangle"
         }
     }

@@ -43,4 +43,3 @@ struct ImagePicker<Label: View>: View {
         }
     }
 }
-

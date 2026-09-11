@@ -5,9 +5,6 @@
 
 #include "Shared.xcconfig"
 
-// "?" = optional, so a fresh clone still builds without it
-#include? "Secrets.xcconfig"
-
 
 // Identity — differs per environment so all three can install side by side
 
@@ -24,16 +21,13 @@ APP_URL_SCHEME = gabay-staging
 // API — same numbers as Production so QA tests what users will get
 
 // "//" is a comment here, so escape the double slash as /$()/
-API_BASE_URL = https:/$()/api-staging.example.com
+CATALOG_URL = https:/$()/patrickechavez.github.io/gabay-trails
 
 // Seconds before a request gives up
-API_TIMEOUT_SECONDS = 30
 
 // Retries for flaky connections
-API_MAX_RETRIES = 2
 
 // Off, so TestFlight behaves like the real thing
-API_LOGGING_ENABLED = NO
 
 // Corner ribbon so QA can tell this isn't Production
 ENV_BANNER_ENABLED = YES

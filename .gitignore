@@ -15,6 +15,5 @@ xcuserdata/
 .build/
 .swiftpm/
 
-# Secrets / local config (keep real keys out of git)
-Secrets.xcconfig
+# Local config
 *.local.xcconfig

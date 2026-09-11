@@ -36,7 +36,7 @@ extension View {
         self
         #else
         overlay(alignment: .topTrailing) {
-            if APIConfig.isEnvironmentBannerEnabled, let label = AppEnvironment.current.label {
+            if AppConfig.isEnvironmentBannerEnabled, let label = AppEnvironment.current.label {
                 EnvironmentRibbon(label: label, color: AppEnvironment.current.ribbonColor)
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)

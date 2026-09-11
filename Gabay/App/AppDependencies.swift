@@ -12,22 +12,19 @@ final class AppDependencies {
     let deepLinks: DeepLinkParser
     let analytics: any AnalyticsTracking
     let crashes: any CrashReporting
-    let network: NetworkMonitor
 
-    private let imageLoader: any ImageLoading
+    @ObservationIgnored let catalog: any TrailCatalogFetching
 
     init(
-        imageLoader: any ImageLoading,
+        catalog: any TrailCatalogFetching,
         deepLinks: DeepLinkParser,
         analytics: any AnalyticsTracking,
-        crashes: any CrashReporting,
-        network: NetworkMonitor = NetworkMonitor()
+        crashes: any CrashReporting
     ) {
-        self.imageLoader = imageLoader
+        self.catalog = catalog
         self.deepLinks = deepLinks
         self.analytics = analytics
         self.crashes = crashes
-        self.network = network
     }
 
     static func live() -> AppDependencies {
@@ -39,7 +36,7 @@ final class AppDependencies {
         Observability.install(analytics: analytics, crashes: crashes)
 
         return AppDependencies(
-            imageLoader: ImageLoader.shared,
+            catalog: TrailCatalogClient(),
             deepLinks: DeepLinkParser(),
             analytics: analytics,
             crashes: crashes

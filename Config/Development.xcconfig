@@ -5,9 +5,6 @@
 
 #include "Shared.xcconfig"
 
-// "?" = optional, so a fresh clone still builds without it
-#include? "Secrets.xcconfig"
-
 
 // Identity — differs per environment so all three can install side by side
 
@@ -21,19 +18,10 @@ APP_DISPLAY_NAME = Development
 APP_URL_SCHEME = gabay-dev
 
 
-// API
+// Trail catalog
 
 // "//" is a comment here, so escape the double slash as /$()/
-API_BASE_URL = https:/$()/api-dev.example.com
-
-// Short, so failures show up fast
-API_TIMEOUT_SECONDS = 20
-
-// Fail right away instead of hiding the error behind retries
-API_MAX_RETRIES = 0
-
-// Prints requests to the console; tokens are redacted
-API_LOGGING_ENABLED = YES
+CATALOG_URL = https:/$()/patrickechavez.github.io/gabay-trails
 
 // Corner ribbon naming the environment
 ENV_BANNER_ENABLED = YES

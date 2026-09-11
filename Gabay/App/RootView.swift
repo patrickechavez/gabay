@@ -12,7 +12,6 @@ struct RootView: View {
 
     var body: some View {
         TrailsPlaceholderView()
-            .offlineBanner(dependencies.network)
     }
 }
 
@@ -49,4 +48,3 @@ struct LaunchView: View {
         .accessibilityLabel(Text("Starting up", comment: "Accessibility label for the launch screen"))
     }
 }
-

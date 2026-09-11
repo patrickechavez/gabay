@@ -8,18 +8,21 @@ import Foundation
 
 extension JSONEncoder {
 
-    static var api: JSONEncoder {
+    static var trails: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
+        encoder.keyEncodingStrategy = .convertToSnakeCase
         return encoder
     }
 }
 
 extension JSONDecoder {
 
-    static var api: JSONDecoder {
+    static var trails: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601Tolerant
+        // The catalog is hand written, so it uses snake_case like the GPX world.
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
     }
 }

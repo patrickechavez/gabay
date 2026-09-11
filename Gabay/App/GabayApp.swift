@@ -100,8 +100,6 @@ struct GabayApp: App {
             AppLogger.lifecycle.debug("Scene active")
         case .background:
             AppLogger.lifecycle.debug("Scene backgrounded")
-
-            Task { await ImageLoader.shared.trimMemory() }
         case .inactive:
             break
         @unknown default:

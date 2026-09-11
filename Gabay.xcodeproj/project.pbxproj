@@ -6,7 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
+/* Begin PBXContainerItemProxy section */
+		2DF84E97305436770030307A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2D1CA874301A21BA00C6EFD2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D1CA87B301A21BA00C6EFD2;
+			remoteInfo = Gabay;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -18,21 +25,9 @@
 		E3BE7B85AF8DF2CB1ABCADB2 /* GabayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GabayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2DFCD243302F3B0C006F0921 /* Exceptions for "Gabay" folder in "Gabay" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 2D1CA87B301A21BA00C6EFD2 /* Gabay */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2D1CA87E301A21BA00C6EFD2 /* Gabay */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2DFCD243302F3B0C006F0921 /* Exceptions for "Gabay" folder in "Gabay" target */,
-			);
 			path = Gabay;
 			sourceTree = "<group>";
 		};
@@ -195,9 +190,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		2D1CA878301A21BA00C6EFD2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -223,7 +215,7 @@
 		CAF625863F243C2DF9EB8ADE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D1CA87B301A21BA00C6EFD2 /* Gabay */;
-			targetProxy = 81883EABFDE7958411CAB122 /* PBXContainerItemProxy */;
+			targetProxy = 2DF84E97305436770030307A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -304,11 +296,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -400,11 +392,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -497,11 +489,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

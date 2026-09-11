@@ -3,18 +3,12 @@
 <plist version="1.0">
 <dict>
 	<!-- Values come from Config/<Environment>.xcconfig via $(...) substitution.
-	     Every value must be <string> — APIConfig reads them as String first,
+	     Every value must be a string. AppConfig reads them as String first,
 	     then parses. An <integer> or <true/> here would read back as nil. -->
 
-	<!-- API -->
-	<key>API_BASE_URL</key>
-	<string>$(API_BASE_URL)</string>
-	<key>API_TIMEOUT_SECONDS</key>
-	<string>$(API_TIMEOUT_SECONDS)</string>
-	<key>API_MAX_RETRIES</key>
-	<string>$(API_MAX_RETRIES)</string>
-	<key>API_LOGGING_ENABLED</key>
-	<string>$(API_LOGGING_ENABLED)</string>
+	<!-- Where the trail catalog and its GPX files are published -->
+	<key>CATALOG_URL</key>
+	<string>$(CATALOG_URL)</string>
 
 	<!-- Corner ribbon naming the environment. Never shown in Production,
 	     which compiles the ribbon out whatever this says. -->
@@ -42,17 +36,6 @@
 		</dict>
 	</array>
 
-	<!-- Force update -->
-	<key>UPDATE_URL</key>
-	<string>$(UPDATE_URL)</string>
-	<key>FORCE_UPDATE_ENABLED</key>
-	<string>$(FORCE_UPDATE_ENABLED)</string>
-
-	<!-- Certificate pinning -->
-	<key>CERT_PINNING_ENABLED</key>
-	<string>$(CERT_PINNING_ENABLED)</string>
-	<key>PINNED_PUBLIC_KEY_HASHES</key>
-	<string>$(PINNED_PUBLIC_KEY_HASHES)</string>
 	<!-- Tracking has to survive the screen locking, or a recorded route turns
 	     into a straight line across the valley. Not a key Xcode will generate,
 	     so it lives here rather than in a build setting. -->

@@ -38,7 +38,7 @@ struct DeepLinkParser: Sendable {
     private let universalLinkHosts: Set<String>
 
     init(
-        scheme: String = APIConfig.urlScheme,
+        scheme: String = AppConfig.urlScheme,
         universalLinkHosts: Set<String> = ["example.com", "www.example.com"]
     ) {
         self.scheme = scheme.lowercased()
