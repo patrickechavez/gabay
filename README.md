@@ -6,6 +6,11 @@ Gabay is Filipino for guide.
 
 - iOS 17+ · Swift 6 · Xcode 26 · no third-party dependencies
 
+| | |
+|---|---|
+| <img src="docs/screenshots/map.png" width="320" alt="A trail drawn on the map, with how far the start is"> | <img src="docs/screenshots/trails.png" width="320" alt="The trail list, showing distance, climb and region"> |
+| The route, your position, and how far the start is | Published trails and your own imports, in one list |
+
 ## Why this exists
 
 Hiring a guide prices people out of hiking their own mountains. The trails are public, the maps are public, and the phone in your pocket already has a GPS receiver that works without a cell tower.
