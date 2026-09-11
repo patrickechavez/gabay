@@ -13,15 +13,19 @@ final class AppDependencies {
     let analytics: any AnalyticsTracking
     let crashes: any CrashReporting
 
-    @ObservationIgnored let catalog: any TrailCatalogFetching
+    let catalog: any TrailCatalogFetching
+
+    private let trails: any TrailStoring
 
     init(
         catalog: any TrailCatalogFetching,
+        trails: any TrailStoring,
         deepLinks: DeepLinkParser,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.catalog = catalog
+        self.trails = trails
         self.deepLinks = deepLinks
         self.analytics = analytics
         self.crashes = crashes
@@ -37,9 +41,14 @@ final class AppDependencies {
 
         return AppDependencies(
             catalog: TrailCatalogClient(),
+            trails: TrailStore(),
             deepLinks: DeepLinkParser(),
             analytics: analytics,
             crashes: crashes
         )
+    }
+
+    func makeTrailsViewModel() -> TrailsViewModel {
+        TrailsViewModel(store: trails)
     }
 }

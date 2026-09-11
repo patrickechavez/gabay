@@ -41,68 +41,64 @@ it.
 
 ## The map
 
-The renderer is MapLibre, wrapped for SwiftUI in a `UIViewRepresentable`.
-MapKit is not an option: Apple offers no way for a third party app to download
-map data for offline use, and a map that is only offline by accident of caching
-is not a map you take into the backcountry.
+Two stages, and the first one ships.
 
-Tiles are the harder half. Public tile servers, including OpenStreetMap's own
-and OpenTopoMap, forbid bulk downloading, so their tiles cannot be served to an
-app. A free tier API key is worse: it is a network dependency wearing a
-disguise, and the free tier is a bill waiting for the app to become popular.
+### Now: MapKit, with the route and the dot
 
-So the app carries its own tiles, built from OpenStreetMap data, with contour
-lines derived from open elevation data. A hiking map without contours is a road
-map with a green background.
+`MKMapView` draws the basemap, the route as a polyline, and the user's
+position. No dependency, no tile files, nothing to build or host.
 
-### Bundled overview, downloaded detail
+Apple serves those tiles from Apple's servers and offers no way to download
+them ahead of time, so **the basemap disappears when the signal does.** What
+survives is everything that matters most: the route line and the current
+position are drawn by the app from data already on the phone, so on a mountain
+with no bars the screen is a magenta line on grey with a dot on it.
 
-The app ships with a nationwide overview: the whole Philippines at low zoom
-only, coastlines, provinces, major roads and place names. A few megabytes. Its
-job is that the app is never blank. It installs, it opens, you see the country
-and where the trails are, with no connection and nothing downloaded yet.
+That is a deliberate trade, not an oversight. The question a lost hiker asks is
+"am I still on the trail", and a line with a dot on it answers that. What is
+lost is context: no terrain, no ridges, no rivers, and no way to see that the
+path in front of you is the one on the screen.
 
-Detail comes as **region packs**, one file each, published in the same catalog
-as the trails and fetched the same way. Cebu is the first, because that is
-where the first trails are. Roughly twenty to forty megabytes with contours,
-unmeasured until one is built.
+MapKit caches tiles it has already drawn, so a map opened at the trailhead may
+persist for a while. That is undocumented and unpredictable, and no claim rests
+on it.
 
-The user never has to think in regions. A trail knows which pack it needs, so
-the trail screen says "needs the Cebu map, 24 MB" and offers to fetch it. The
-map arrives as a consequence of choosing a trail.
+**What this means for the README.** The route works offline. The map does not.
+Those are two different sentences and the app must not blur them.
 
-This is the shape Strava and AllTrails use, without the part that costs money.
-They stream tiles from a hosted provider and charge for offline downloads,
-which is why offline sits behind their subscriptions. Region packs are static
-files on a CDN: no tile server, no per request billing, no free tier to
-outgrow.
+### Later: MapLibre and downloaded region packs
 
-Bundling the country instead was considered and rejected. The Philippines at
-hiking detail is hundreds of megabytes, nobody installs that, and a hiker in
-Cebu would be carrying Luzon. Bundling one region was the earlier plan, and it
-breaks the moment coverage is meant to grow, because every new province would
-be an App Store release.
+The upgrade is a real offline basemap, and the design for it stands:
 
-The cost of this choice, stated plainly: the first run needs a connection
-before the app is genuinely useful. The overview softens that rather than
-solving it.
+Tiles built from OpenStreetMap data with contour lines from open elevation
+data, because a hiking map without contours is a road map with a green
+background. Public tile servers forbid bulk downloading and free tier API keys
+are a network dependency in disguise, so the app carries its own.
 
-### Imported trails outside a downloaded pack
+A nationwide overview ships in the app, a few megabytes, so it is never blank.
+Detail arrives as **region packs**, one file each, listed in the same catalog as
+the trails and fetched the same way. Cebu first. A trail knows which pack it
+needs, so the trail screen says "needs the Cebu map, 24 MB" and offers to fetch
+it, and the user never has to think in regions.
 
-The route still draws, over the overview map, and the screen says there is no
-detailed map for that area. Coarse, but not broken, and honest about which it
-is.
+This is the shape Strava and AllTrails use without the part that costs money,
+and it is what OsmAnd and Organic Maps have done for a decade with their own
+formats. Region packs are static files on a CDN: no tile server, no per request
+billing, no free tier to outgrow.
 
-**Attribution.** OpenStreetMap data is ODbL. The credit goes on the map screen
-and in the About screen, not buried in a settings list.
+The spike proved MapLibre reads such a file from the app bundle. A downloaded
+pack lives in Application Support instead, so its source URL becomes a file
+path rather than `asset://`, and that variant is unproven.
 
-### Building a pack
+**Why it is not first.** Producing a pack needs tooling to run somewhere, and
+that somewhere is a build machine. Until that exists, MapKit gets a working
+follow screen into people's hands, and the geometry underneath it, distance
+remaining, progress along the line, off route detection, belongs to the app
+rather than to the map, so it survives the swap.
 
-Clip OpenStreetMap data to the region, generate contours from open elevation
-data, write a PMTiles file, publish it beside the trails. Manual the first
-time, scripted after that, and eventually a job that rebuilds a region on
-request. This is tooling work on a Mac, not app code, and it is the last
-unknown in the map plan.
+**Attribution.** Apple's attribution is built into MapKit. When the packs
+arrive, OpenStreetMap's credit goes on the map screen and in About, since the
+data is ODbL.
 
 ## Data
 
@@ -339,21 +335,21 @@ Each slice is usable on its own. The first three already make the app worth
 carrying up a mountain.
 
 1. Spike the offline tiles, done
-2. GPX parsing, the seed library, the trail list and detail with its elevation
+2. GPX parsing, the trail collection, the list and detail with its elevation
    profile
-3. Recording, both ways in, with the summary screen
-4. History, saving, and export as GPX
-5. Custom import
-6. Where am I, and the battery warning
+3. The map: route drawn on MapKit, current position, follow
+4. Recording, both ways in, with the summary screen
+5. History, saving, and export as GPX
+6. Custom import, and where am I
 7. Catalog refresh, and downloading trails that are not yet on the phone
-8. The Cebu pack and the nationwide overview, built somewhere that is not a
-   laptop
-9. The map on the recording screen, route, position, follow mode, off route
+8. The Cebu pack and the nationwide overview, built on CI rather than a laptop
+9. Swap MapKit for MapLibre and the packs, so the basemap survives losing
+   signal
 
-The map moved to the end deliberately. Everything above it is usable without
-one, and the first four slices already make an app worth carrying up a
-mountain: pick a trail, see what you are in for, record it, keep it, send it to
-Strava.
+The map is third because it is the point: a downloaded trail, drawn on screen,
+with your position on the line. Only the offline half of it is deferred, to the
+end, because that half needs tooling and hosting that the rest of the app does
+not.
 
 ## Repositories
 
