@@ -74,6 +74,44 @@ struct TrailsViewModelTests {
         #expect(viewModel.trails.first?.isOnDevice == false)
     }
 
+    @Test func showsEverythingWhenNothingIsTyped() async {
+        let (viewModel, _) = makeViewModel(catalog: StubCatalog(trails: [.osmena, .kandungaw]))
+        await viewModel.load()
+
+        viewModel.query = "   "
+
+        #expect(viewModel.visible.count == 2)
+    }
+
+    // Nobody types the ñ, so the search must not need it.
+    @Test func findsATrailByNameIgnoringCaseAndAccents() async {
+        let (viewModel, _) = makeViewModel(catalog: StubCatalog(trails: [.osmena, .kandungaw]))
+        await viewModel.load()
+
+        viewModel.query = "osmena"
+
+        #expect(viewModel.visible.map(\.name) == ["Osmeña Peak"])
+    }
+
+    @Test func findsTrailsByRegion() async {
+        let (viewModel, _) = makeViewModel(catalog: StubCatalog(trails: [.osmena, .bohol]))
+        await viewModel.load()
+
+        viewModel.query = "cebu"
+
+        #expect(viewModel.visible.map(\.name) == ["Osmeña Peak"])
+    }
+
+    @Test func findsNothingWhenNothingMatches() async {
+        let (viewModel, _) = makeViewModel(catalog: StubCatalog(trails: [.osmena]))
+        await viewModel.load()
+
+        viewModel.query = "baguio"
+
+        #expect(viewModel.visible.isEmpty)
+        #expect(viewModel.trails.count == 1)
+    }
+
     @Test func keepsTheFetchedCatalogForTheNextLaunch() async {
         let (viewModel, cache) = makeViewModel(catalog: StubCatalog(trails: [.osmena]))
 
@@ -160,6 +198,18 @@ private extension CatalogTrail {
         revision: 1,
         gpx: "osmena-peak.gpx",
         bounds: .init(north: 9.82, south: 9.79, east: 123.41, west: 123.37)
+    )
+
+    static let bohol = CatalogTrail(
+        id: "binabaje-hills",
+        name: "Binabaje Hills",
+        region: "Bohol",
+        distanceM: 6000,
+        ascentM: 300,
+        difficulty: "moderate",
+        revision: 1,
+        gpx: "binabaje-hills.gpx",
+        bounds: .init(north: 9.95, south: 9.92, east: 124.4, west: 124.37)
     )
 
     static let kandungaw = CatalogTrail(
