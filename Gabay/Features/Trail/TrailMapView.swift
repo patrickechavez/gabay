@@ -33,14 +33,14 @@ struct TrailMapView: UIViewRepresentable {
         view.showsCompass = true
         view.pointOfInterestFilter = .excludingAll
 
-        draw(on: view)
+        draw(on: view, walker: context.coordinator.knownPosition)
         return view
     }
 
     func updateUIView(_ view: RouteMapView, context: Context) {
         if context.coordinator.points != points {
             context.coordinator.points = points
-            draw(on: view)
+            draw(on: view, walker: context.coordinator.knownPosition)
         }
 
         let mode: MKUserTrackingMode = isFollowing ? .follow : .none
@@ -53,7 +53,7 @@ struct TrailMapView: UIViewRepresentable {
         Coordinator(points: points, isFollowing: $isFollowing)
     }
 
-    private func draw(on view: RouteMapView) {
+    private func draw(on view: RouteMapView, walker: CLLocationCoordinate2D?) {
         view.removeOverlays(view.overlays)
         guard points.count > 1 else { return }
 
@@ -64,7 +64,7 @@ struct TrailMapView: UIViewRepresentable {
         // whatever else is on the basemap.
         view.addOverlay(RouteCasing(coordinates: coordinates, count: coordinates.count))
         view.addOverlay(route)
-        view.routeToFrame = route.boundingMapRect
+        view.frame(route: route.boundingMapRect, walker: walker)
     }
 
     final class Coordinator: NSObject, MKMapViewDelegate {
@@ -76,6 +76,12 @@ struct TrailMapView: UIViewRepresentable {
         // Held for the life of the screen: a manager that goes out of scope
         // never delivers its answer.
         private let locations = CLLocationManager()
+
+        // The last fix iOS already has, which is usually there the moment the
+        // screen opens. Using it avoids framing twice.
+        var knownPosition: CLLocationCoordinate2D? {
+            locations.location?.coordinate
+        }
 
         init(points: [TrackPoint], isFollowing: Binding<Bool>) {
             self.points = points
@@ -138,45 +144,58 @@ final class RouteMapView: MKMapView {
 
     private static let padding = UIEdgeInsets(top: 80, left: 40, bottom: 80, right: 40)
 
-    // The route usually arrives after the first layout, because reading the
-    // file is asynchronous, so framing has to be driven from both sides.
-    var routeToFrame: MKMapRect? {
-        didSet { frameRouteIfPossible() }
+    private var route: MKMapRect?
+    private var pending: MKMapRect?
+    private var hasFramedWithWalker = false
+
+    // Framing is worked out once and applied once. The route usually arrives
+    // after the first layout, because reading the file is asynchronous, so the
+    // rect waits here until the view has a size to fit it into.
+    func frame(route rect: MKMapRect, walker: CLLocationCoordinate2D?) {
+        route = rect
+        pending = rect
+
+        if let walker, let joined = joining(rect, with: walker) {
+            pending = joined
+            hasFramedWithWalker = true
+        }
+
+        applyPendingFrame()
     }
 
-    private var route: MKMapRect?
-    private var hasFramedWithUser = false
+    // A fix that only arrives after the map is drawn. Without animation: this
+    // is the first frame the walker sees, not a move away from another one.
+    func widenFrame(toInclude coordinate: CLLocationCoordinate2D) {
+        guard !hasFramedWithWalker, let route, let joined = joining(route, with: coordinate) else {
+            return
+        }
+
+        hasFramedWithWalker = true
+        pending = joined
+        applyPendingFrame()
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        frameRouteIfPossible()
+        applyPendingFrame()
     }
 
-    private func frameRouteIfPossible() {
-        guard let rect = routeToFrame, bounds.width > 0 else { return }
-        routeToFrame = nil
-        route = rect
+    private func applyPendingFrame() {
+        guard let rect = pending, bounds.width > 0 else { return }
+        pending = nil
 
         setVisibleMapRect(rect, edgePadding: Self.padding, animated: false)
     }
 
-    // Opens showing both the trail and the walker, so the first question,
-    // "where am I relative to this", is answered without touching anything.
-    func widenFrame(toInclude coordinate: CLLocationCoordinate2D) {
-        guard !hasFramedWithUser, let route, bounds.width > 0 else { return }
-
+    private func joining(_ rect: MKMapRect, with coordinate: CLLocationCoordinate2D) -> MKMapRect? {
         let walker = MKMapPoint(coordinate)
-        let reach = route.insetBy(
-            dx: -Self.joinableDistance * MKMapPointsPerMeterAtLatitude(coordinate.latitude),
-            dy: -Self.joinableDistance * MKMapPointsPerMeterAtLatitude(coordinate.latitude)
+        let pointsPerMetre = MKMapPointsPerMeterAtLatitude(coordinate.latitude)
+        let reach = rect.insetBy(
+            dx: -Self.joinableDistance * pointsPerMetre,
+            dy: -Self.joinableDistance * pointsPerMetre
         )
-        guard reach.contains(walker) else { return }
+        guard reach.contains(walker) else { return nil }
 
-        hasFramedWithUser = true
-        setVisibleMapRect(
-            route.union(MKMapRect(origin: walker, size: MKMapSize(width: 0, height: 0))),
-            edgePadding: Self.padding,
-            animated: true
-        )
+        return rect.union(MKMapRect(origin: walker, size: MKMapSize(width: 0, height: 0)))
     }
 }

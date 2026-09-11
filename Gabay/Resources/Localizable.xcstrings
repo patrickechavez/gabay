@@ -53,9 +53,6 @@
         }
       }
     },
-    "approx" : {
-      "comment" : "Label under the estimated walking time"
-    },
     "Cancel" : {
       "comment" : "Dismisses the date picker without choosing\nDismisses the picker without choosing"
     },
@@ -131,9 +128,6 @@
         }
       }
     },
-    "climb" : {
-      "comment" : "Label under the metres of ascent"
-    },
     "Confirm password" : {
       "comment" : "Label for the password confirmation field",
       "extractionState" : "manual",
@@ -190,9 +184,6 @@
     },
     "Delete" : {
       "comment" : "Removes an imported trail from the phone"
-    },
-    "distance" : {
-      "comment" : "Label under the trail length"
     },
     "Done" : {
       "comment" : "Confirms the chosen date"
