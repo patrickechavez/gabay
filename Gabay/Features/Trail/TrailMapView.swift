@@ -4,6 +4,7 @@
 //  Created by John Patrick Echavez on 9/11/26.
 //
 
+import CoreLocation
 import MapKit
 import SwiftUI
 
@@ -20,9 +21,15 @@ struct TrailMapView: UIViewRepresentable {
     @Binding var isFollowing: Bool
 
     func makeUIView(context: Context) -> RouteMapView {
+        context.coordinator.askForLocation()
+
         let view = RouteMapView()
         view.delegate = context.coordinator
         view.showsUserLocation = true
+
+        // The dot takes the app tint, which would make the walker the same
+        // colour as the route. Blue for you, magenta for the trail.
+        view.tintColor = .systemBlue
         view.showsCompass = true
         view.pointOfInterestFilter = .excludingAll
 
@@ -66,9 +73,19 @@ struct TrailMapView: UIViewRepresentable {
 
         @Binding private var isFollowing: Bool
 
+        // Held for the life of the screen: a manager that goes out of scope
+        // never delivers its answer.
+        private let locations = CLLocationManager()
+
         init(points: [TrackPoint], isFollowing: Binding<Bool>) {
             self.points = points
             _isFollowing = isFollowing
+        }
+
+        // The map shows the dot, but nothing shows it until somebody asks.
+        func askForLocation() {
+            guard locations.authorizationStatus == .notDetermined else { return }
+            locations.requestWhenInUseAuthorization()
         }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: any MKOverlay) -> MKOverlayRenderer {
@@ -96,6 +113,15 @@ struct TrailMapView: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) {
             isFollowing = mode != .none
         }
+
+        // The first fix usually lands after the route is drawn, so the frame is
+        // widened then rather than at load.
+        func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
+            guard let view = mapView as? RouteMapView, let coordinate = userLocation.location?.coordinate else {
+                return
+            }
+            view.widenFrame(toInclude: coordinate)
+        }
     }
 }
 
@@ -106,11 +132,20 @@ final class RouteCasing: MKPolyline {}
 // zero sized view does nothing, and that is the state at make time.
 final class RouteMapView: MKMapView {
 
+    // Far enough away and the walker is not at this trail at all: framing both
+    // would zoom out to an ocean. Twenty five kilometres is a drive, not a walk.
+    private static let joinableDistance: CLLocationDistance = 25_000
+
+    private static let padding = UIEdgeInsets(top: 80, left: 40, bottom: 80, right: 40)
+
     // The route usually arrives after the first layout, because reading the
     // file is asynchronous, so framing has to be driven from both sides.
     var routeToFrame: MKMapRect? {
         didSet { frameRouteIfPossible() }
     }
+
+    private var route: MKMapRect?
+    private var hasFramedWithUser = false
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -120,11 +155,28 @@ final class RouteMapView: MKMapView {
     private func frameRouteIfPossible() {
         guard let rect = routeToFrame, bounds.width > 0 else { return }
         routeToFrame = nil
+        route = rect
 
+        setVisibleMapRect(rect, edgePadding: Self.padding, animated: false)
+    }
+
+    // Opens showing both the trail and the walker, so the first question,
+    // "where am I relative to this", is answered without touching anything.
+    func widenFrame(toInclude coordinate: CLLocationCoordinate2D) {
+        guard !hasFramedWithUser, let route, bounds.width > 0 else { return }
+
+        let walker = MKMapPoint(coordinate)
+        let reach = route.insetBy(
+            dx: -Self.joinableDistance * MKMapPointsPerMeterAtLatitude(coordinate.latitude),
+            dy: -Self.joinableDistance * MKMapPointsPerMeterAtLatitude(coordinate.latitude)
+        )
+        guard reach.contains(walker) else { return }
+
+        hasFramedWithUser = true
         setVisibleMapRect(
-            rect,
-            edgePadding: UIEdgeInsets(top: 80, left: 40, bottom: 180, right: 40),
-            animated: false
+            route.union(MKMapRect(origin: walker, size: MKMapSize(width: 0, height: 0))),
+            edgePadding: Self.padding,
+            animated: true
         )
     }
 }
