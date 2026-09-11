@@ -22,13 +22,4 @@ enum AppEnvironment {
         return .production
         #endif
     }()
-
-    // nil in Production, which shows no ribbon.
-    var label: String? {
-        switch self {
-        case .development: "dev"
-        case .staging: "staging"
-        case .production: nil
-        }
-    }
 }

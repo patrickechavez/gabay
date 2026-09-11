@@ -21,7 +21,6 @@ struct GabayApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(dependencies: dependencies)
-                .environmentRibbon()
                 .onChange(of: scenePhase) { _, phase in
                     handle(phase)
                 }

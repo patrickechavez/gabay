@@ -29,9 +29,6 @@ CATALOG_URL = https:/$()/patrickechavez.github.io/gabay-trails
 
 // Must stay NO — logs leak user data to the device console
 
-// Belt and braces — the ribbon isn't compiled into Production at all
-ENV_BANNER_ENABLED = NO
-
 
 // Force update — scaffolding, no code reads these yet
 

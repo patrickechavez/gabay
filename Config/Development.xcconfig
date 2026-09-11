@@ -21,8 +21,6 @@ APP_DISPLAY_NAME = Development
 // "//" is a comment here, so escape the double slash as /$()/
 CATALOG_URL = https:/$()/patrickechavez.github.io/gabay-trails
 
-// Corner ribbon naming the environment
-ENV_BANNER_ENABLED = YES
 
 
 // Force update — scaffolding, no code reads these yet

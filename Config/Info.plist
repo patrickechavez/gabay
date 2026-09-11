@@ -11,8 +11,6 @@
 
 	<key>CATALOG_URL</key>
 	<string>$(CATALOG_URL)</string>
-	<key>ENV_BANNER_ENABLED</key>
-	<string>$(ENV_BANNER_ENABLED)</string>
 	<!-- Tracking has to survive the screen locking, or a recorded route turns
 	     into a straight line across the valley. Not a key Xcode generates, so
 	     it lives here rather than in a build setting. -->

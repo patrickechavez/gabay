@@ -17,15 +17,9 @@ enum AppConfig {
         return url
     }()
 
-    static let isEnvironmentBannerEnabled: Bool = bool("ENV_BANNER_ENABLED")
-
     private static func string(_ key: String) -> String? {
         guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
               !value.isEmpty else { return nil }
         return value
-    }
-
-    private static func bool(_ key: String) -> Bool {
-        string(key)?.uppercased() == "YES"
     }
 }
