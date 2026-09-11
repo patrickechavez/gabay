@@ -236,3 +236,35 @@ Two, with different lifecycles.
 - Sharing, social features, leaderboards
 - Apple Watch
 - Trail conditions, comments, or anything else that needs a server
+
+## Spike result: bundled tiles
+
+Answered on 11 September 2026, on the `spike/offline-tiles` branch.
+
+**MapLibre reads a tile archive from the app bundle.** No local server, no
+custom source, no third-party PMTiles reader. MapLibre iOS 6.10 added PMTiles
+support and range requests to its asset file source, so a style can point
+straight at a file that shipped with the app:
+
+```json
+"sources": {
+  "protomaps": { "type": "vector", "url": "pmtiles://asset://spike.pmtiles" }
+}
+```
+
+The style itself is written to a temporary file at launch and loaded from
+there, because MapLibre takes a style URL rather than a style object.
+
+Proven with a 6.3MB Protomaps extract of Florence: it rendered earth, water,
+landuse, roads and buildings. Renaming the file inside the installed app made
+the map fall back to MapLibre's built-in world style instead, which is what
+proves the pixels came from the bundle rather than from the network.
+
+So the plan in this document holds, and `MKTileOverlay` stays unused.
+
+The dependency is `maplibre-gl-native-distribution`, BSD licensed, added
+through SPM. It is the only third-party code in the app.
+
+Still to do, and a separate job: producing the real extract for Rizal,
+Batangas and Quezon with contour lines, rather than a sample of an Italian
+city.
