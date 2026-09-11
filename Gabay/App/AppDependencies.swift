@@ -16,17 +16,25 @@ final class AppDependencies {
 
     private let trails: any TrailStoring
     private let cache: any CatalogCaching
+    private let activities: any ActivityStoring
+
+    // One recorder for the app: a walk outlives the screen that started it.
+    let recorder: Recorder
 
     init(
         catalog: any TrailCatalogFetching,
         trails: any TrailStoring,
         cache: any CatalogCaching,
+        activities: any ActivityStoring,
+        locations: any LocationStreaming,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.catalog = catalog
         self.trails = trails
         self.cache = cache
+        self.activities = activities
+        recorder = Recorder(store: activities, locations: locations)
         self.analytics = analytics
         self.crashes = crashes
     }
@@ -42,6 +50,8 @@ final class AppDependencies {
             catalog: TrailCatalogClient(),
             trails: TrailStore(),
             cache: CatalogCache(),
+            activities: ActivityStore(),
+            locations: LiveLocationStream(),
             analytics: analytics,
             crashes: crashes
         )
@@ -49,5 +59,9 @@ final class AppDependencies {
 
     func makeTrailsViewModel() -> TrailsViewModel {
         TrailsViewModel(store: trails, catalog: catalog, cache: cache)
+    }
+
+    func makeHistoryViewModel() -> HistoryViewModel {
+        HistoryViewModel(store: activities)
     }
 }

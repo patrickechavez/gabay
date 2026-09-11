@@ -148,8 +148,11 @@ struct TrailsView: View {
     @State private var isImporting = false
     @State private var selected: Trail?
 
-    init(viewModel: TrailsViewModel) {
+    private let recorder: Recorder
+
+    init(viewModel: TrailsViewModel, recorder: Recorder) {
         _viewModel = State(wrappedValue: viewModel)
+        self.recorder = recorder
     }
 
     var body: some View {
@@ -186,7 +189,9 @@ struct TrailsView: View {
             )
             .navigationDestination(item: $selected) { trail in
                 // Read when the screen opens, or the list parses every file.
-                TrailDetailView(trail: trail) { await viewModel.points(of: trail) }
+                TrailDetailView(trail: trail, recorder: recorder) {
+                    await viewModel.points(of: trail)
+                }
             }
             .alert(
                 Text("Download failed", comment: "Title when a trail could not be fetched"),

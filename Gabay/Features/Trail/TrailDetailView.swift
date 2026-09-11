@@ -12,18 +12,26 @@ struct TrailDetailView: View {
 
     let trail: Trail
 
+    @Bindable var recorder: Recorder
+
     let load: () async -> [TrackPoint]
 
     @State private var points: [TrackPoint] = []
     @State private var isFollowing = false
     @State private var position: CLLocationCoordinate2D?
+    @State private var isRecording = false
+    @State private var failed = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             TrailMapView(points: points, isFollowing: $isFollowing, position: $position)
                 .ignoresSafeArea()
 
-            distanceToStart
+            VStack(spacing: Theme.Spacing.md) {
+                distanceToStart
+                start
+            }
+            .padding(.bottom, Theme.Spacing.lg)
         }
             .task { points = await load() }
             .navigationTitle(trail.name)
@@ -39,6 +47,47 @@ struct TrailDetailView: View {
                                              comment: "Keeps the map centred on the walker"))
                 }
             }
+            .fullScreenCover(isPresented: $isRecording) {
+                RecordingView(recorder: recorder, trail: points)
+            }
+            .alert(
+                Text("Could not start", comment: "Title when a recording could not begin"),
+                isPresented: $failed
+            ) {
+                Button {
+                } label: {
+                    Text("OK", comment: "Dismisses the failed start alert")
+                }
+            } message: {
+                Text("There was no room to write the walk. Free up some space.",
+                     comment: "Shown when the app could not open a file for a new walk")
+            }
+    }
+
+    // Nothing stands between a cold trailhead and Start.
+    private var start: some View {
+        Button {
+            begin()
+        } label: {
+            Label {
+                Text("Start", comment: "Begins recording a walk")
+            } icon: {
+                Image(systemName: "play.fill")
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .screenPadding()
+    }
+
+    private func begin() {
+        do {
+            try recorder.start(following: trail)
+            isRecording = true
+        } catch {
+            failed = true
+        }
     }
 
     // Answers "am I near this" in text, so the camera never has to.
@@ -51,7 +100,6 @@ struct TrailDetailView: View {
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.vertical, Theme.Spacing.sm)
                 .background(.regularMaterial, in: Capsule())
-                .padding(.bottom, Theme.Spacing.xl)
         }
     }
 

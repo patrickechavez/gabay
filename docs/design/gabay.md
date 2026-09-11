@@ -169,21 +169,25 @@ and they leave through the share sheet instead.
 ### Recorded activities
 
 Every walk is written as a real GPX file, one per activity, in the same format
-the app reads. Beside it, a SwiftData row holds only the summary: name, date,
-type, distance, moving time, ascent, and which file it belongs to.
+the app reads. Beside it sits a small JSON sidecar holding only the summary:
+name, date, type, distance, time and ascent.
 
-That split does three jobs. The history list is a cheap query over small rows,
-so it opens instantly with hundreds of walks behind it. Export is a file copy
-rather than a conversion, because the GPX already exists. And the durable
-artifact is a standard file, readable by anything, so a lost database is an
-inconvenience rather than a loss.
+That split does three jobs. The history list reads sidecars rather than parsing
+megabytes of XML, so it opens instantly with hundreds of walks behind it.
+Export is a file copy rather than a conversion, because the GPX already exists.
+And the durable artifact is a standard file, readable by anything.
 
-Storing every point as a database row was the alternative: thousands of rows
-per activity, and a conversion on every share.
+A database was the alternative, and SwiftData was the original plan. A sidecar
+does the same job here without a schema to migrate, without a second source of
+truth to keep in step with the files, and without machinery the rest of the app
+does not use: trails are already stored as files with no index. The sidecar is
+also self healing, which the next paragraph depends on.
 
 The file is written as the walk happens, not at the end. A crash or a battery
 death partway through leaves a shorter walk rather than nothing, which is the
 same reasoning that makes the parser keep what it read from a truncated file.
+Such a file has no sidecar, so on the next launch its summary is measured back
+out of the GPX and the walk simply appears in history.
 
 ## Location
 

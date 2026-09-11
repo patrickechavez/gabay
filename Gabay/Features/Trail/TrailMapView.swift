@@ -14,6 +14,12 @@ struct TrailMapView: UIViewRepresentable {
 
     let points: [TrackPoint]
 
+    // The walk being recorded, or the one being looked back at.
+    var track: [TrackPoint] = []
+
+    // Frames the track when there is no route to frame instead.
+    var framesTrack = false
+
     // Keeps the map centred on the walker rather than the route.
     @Binding var isFollowing: Bool
 
@@ -36,14 +42,20 @@ struct TrailMapView: UIViewRepresentable {
         view.showsCompass = true
         view.pointOfInterestFilter = .excludingAll
 
-        draw(on: view)
+        drawRoute(on: view)
+        drawTrack(on: view)
         return view
     }
 
     func updateUIView(_ view: RouteMapView, context: Context) {
         if context.coordinator.points != points {
             context.coordinator.points = points
-            draw(on: view)
+            drawRoute(on: view)
+        }
+
+        if context.coordinator.track != track {
+            context.coordinator.track = track
+            drawTrack(on: view)
         }
 
         let mode: MKUserTrackingMode = isFollowing ? .follow : .none
@@ -56,11 +68,11 @@ struct TrailMapView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(points: points, isFollowing: $isFollowing, position: $position)
+        Coordinator(points: points, track: track, isFollowing: $isFollowing, position: $position)
     }
 
-    private func draw(on view: RouteMapView) {
-        view.removeOverlays(view.overlays)
+    private func drawRoute(on view: RouteMapView) {
+        view.removeOverlays(view.overlays.filter { !($0 is RecordedTrack) })
         guard points.count > 1 else { return }
 
         let coordinates = points.map(\.coordinate)
@@ -72,9 +84,23 @@ struct TrailMapView: UIViewRepresentable {
         view.frame(route: route.boundingMapRect)
     }
 
+    // Drawn last, so where you have been sits over where you are going.
+    private func drawTrack(on view: RouteMapView) {
+        view.removeOverlays(view.overlays.filter { $0 is RecordedTrack })
+        guard track.count > 1 else { return }
+
+        let coordinates = track.map(\.coordinate)
+        let walked = RecordedTrack(coordinates: coordinates, count: coordinates.count)
+        view.addOverlay(walked)
+
+        if framesTrack, points.isEmpty { view.frame(route: walked.boundingMapRect) }
+    }
+
     final class Coordinator: NSObject, MKMapViewDelegate, CLLocationManagerDelegate {
 
         var points: [TrackPoint]
+
+        var track: [TrackPoint]
 
         @Binding private var isFollowing: Bool
 
@@ -88,10 +114,12 @@ struct TrailMapView: UIViewRepresentable {
 
         init(
             points: [TrackPoint],
+            track: [TrackPoint],
             isFollowing: Binding<Bool>,
             position: Binding<CLLocationCoordinate2D?>
         ) {
             self.points = points
+            self.track = track
             _isFollowing = isFollowing
             _position = position
             super.init()
@@ -117,8 +145,13 @@ struct TrailMapView: UIViewRepresentable {
             let renderer = MKPolylineRenderer(polyline: line)
             let isCasing = overlay is RouteCasing
 
-            // Named: converting Color.accentColor gives the system accent instead.
-            renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
+            // Blue for where you have been, to match the dot that made it.
+            if overlay is RecordedTrack {
+                renderer.strokeColor = .systemBlue
+            } else {
+                // Named: converting Color.accentColor gives the system accent instead.
+                renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
+            }
             renderer.lineWidth = isCasing ? 9 : 5
             renderer.lineJoin = .round
             renderer.lineCap = .round
@@ -159,6 +192,9 @@ struct TrailMapView: UIViewRepresentable {
 
 // The wider line drawn underneath the route.
 final class RouteCasing: MKPolyline {}
+
+// The walk itself, as opposed to the trail it followed.
+final class RecordedTrack: MKPolyline {}
 
 // Frames the route the first time the map has a size. Setting a map rect on a
 // zero sized view does nothing, and that is the state at make time.

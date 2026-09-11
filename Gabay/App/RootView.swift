@@ -11,7 +11,34 @@ struct RootView: View {
     let dependencies: AppDependencies
 
     var body: some View {
-        TrailsView(viewModel: dependencies.makeTrailsViewModel())
+        TabView {
+            TrailsView(viewModel: dependencies.makeTrailsViewModel(), recorder: dependencies.recorder)
+                .tabItem {
+                    Label {
+                        Text("Trails", comment: "Title of the trail list")
+                    } icon: {
+                        Image(systemName: "mountain.2")
+                    }
+                }
+
+            RecordView(recorder: dependencies.recorder)
+                .tabItem {
+                    Label {
+                        Text("Record", comment: "Title of the recording tab")
+                    } icon: {
+                        Image(systemName: "record.circle")
+                    }
+                }
+
+            HistoryView(viewModel: dependencies.makeHistoryViewModel())
+                .tabItem {
+                    Label {
+                        Text("History", comment: "Title of the saved walks tab")
+                    } icon: {
+                        Image(systemName: "clock")
+                    }
+                }
+        }
     }
 }
 
