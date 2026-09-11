@@ -25,8 +25,7 @@ struct TrailStoreTests {
         #expect(try store.trails().isEmpty)
     }
 
-    // The list has to show something the moment a file arrives, so the numbers
-    // are measured on import rather than waiting for the map.
+    // Measured on import, so the list has numbers the moment a file arrives.
     @Test func importsAFileAndMeasuresIt() throws {
         let (store, _) = makeStore()
 
@@ -69,8 +68,7 @@ struct TrailStoreTests {
         #expect(try store.points(of: trail).count == 5)
     }
 
-    // Two imports of the same file are two trails: somebody may well carry two
-    // versions of a route and want both.
+    // Two imports are two trails: people carry variants of a route.
     @Test func keepsEachImportSeparately() throws {
         let (store, _) = makeStore()
 

@@ -47,8 +47,7 @@ protocol TrailCatalogFetching: Sendable {
     func gpx(at path: String) async throws -> Data
 }
 
-// Plain GETs against static files. No auth, no retry, no interceptors: there
-// is no server to negotiate with, only files on a CDN.
+// Plain GETs against static files. There is no server to negotiate with.
 struct TrailCatalogClient: TrailCatalogFetching {
 
     // A trail that will not download in this long is not worth waiting for.

@@ -8,11 +8,8 @@ import CoreLocation
 import MapKit
 import SwiftUI
 
-// The route and where you are on it.
-//
-// Apple serves the basemap, so it goes grey with no signal. The line and the
-// position do not: both are drawn from data already on the phone, which is the
-// half that answers "am I still on the trail".
+// The route and where you are on it. Apple's basemap goes grey with no signal,
+// the line and the dot do not.
 struct TrailMapView: UIViewRepresentable {
 
     let points: [TrackPoint]
@@ -34,8 +31,7 @@ struct TrailMapView: UIViewRepresentable {
             forAnnotationViewWithReuseIdentifier: WalkerAnnotationView.reuseIdentifier
         )
 
-        // The dot takes the app tint, which would make the walker the same
-        // colour as the route. Blue for you, magenta for the trail.
+        // Blue for you, magenta for the trail, or the tint makes them the same.
         view.tintColor = .systemBlue
         view.showsCompass = true
         view.pointOfInterestFilter = .excludingAll
@@ -54,8 +50,7 @@ struct TrailMapView: UIViewRepresentable {
         if view.userTrackingMode != mode {
             view.setUserTrackingMode(mode, animated: true)
 
-            // Letting go of the walker means going back to the trail, rather
-            // than leaving the map wherever they happened to be.
+            // Letting go of the walker goes back to the trail.
             if mode == .none { view.frameRouteAgain() }
         }
     }
@@ -71,8 +66,7 @@ struct TrailMapView: UIViewRepresentable {
         let coordinates = points.map(\.coordinate)
         let route = MKPolyline(coordinates: coordinates, count: coordinates.count)
 
-        // A white casing under the line, so it reads against forest, rock and
-        // whatever else is on the basemap.
+        // A white casing, so the line reads against forest and rock alike.
         view.addOverlay(RouteCasing(coordinates: coordinates, count: coordinates.count))
         view.addOverlay(route)
         view.frame(route: route.boundingMapRect)
@@ -86,12 +80,10 @@ struct TrailMapView: UIViewRepresentable {
 
         @Binding private var position: CLLocationCoordinate2D?
 
-        // Held for the life of the screen: a manager that goes out of scope
-        // never delivers its answer.
+        // Held for the screen's life: a manager that goes out of scope says nothing.
         private let locations = CLLocationManager()
 
-        // Held so the cone can be turned as the compass moves. The manager
-        // stops on its own when the coordinator goes.
+        // Held so the cone can turn as the compass moves.
         private weak var walker: WalkerAnnotationView?
 
         init(
@@ -125,8 +117,7 @@ struct TrailMapView: UIViewRepresentable {
             let renderer = MKPolylineRenderer(polyline: line)
             let isCasing = overlay is RouteCasing
 
-            // Named rather than converted from Color.accentColor, which
-            // resolves to the system accent instead of the asset.
+            // Named: converting Color.accentColor gives the system accent instead.
             renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
             renderer.lineWidth = isCasing ? 9 : 5
             renderer.lineJoin = .round
@@ -134,9 +125,8 @@ struct TrailMapView: UIViewRepresentable {
             return renderer
         }
 
-        // The only place following turns off by itself. MapKit drops tracking
-        // when the walker pans by hand and reports it here, so nothing else
-        // needs to guess at it from region changes.
+        // The only place following turns off by itself. Guessing from region
+        // changes raced the animation and ate taps.
         func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) {
             guard isFollowing != (mode != .none) else { return }
             isFollowing = mode != .none
@@ -159,8 +149,7 @@ struct TrailMapView: UIViewRepresentable {
             return view
         }
 
-        // The cone points at the world, so it turns with the map as well as
-        // with the walker.
+        // The cone points at the world, so it turns with the map too.
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
             walker?.mapHeading = mapView.camera.heading
         }
@@ -180,9 +169,7 @@ final class RouteMapView: MKMapView {
     private var route: MKMapRect?
     private var pending: MKMapRect?
 
-    // The whole route, every time the screen opens. Predictable, and the shape
-    // of the walk is the information. Where the walker is belongs to the
-    // button, not to the camera.
+    // The whole route, every time. Where the walker is belongs to the button.
     func frame(route rect: MKMapRect) {
         route = rect
         pending = rect

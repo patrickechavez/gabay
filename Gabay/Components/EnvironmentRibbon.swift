@@ -6,10 +6,7 @@
 
 import SwiftUI
 
-// Names the environment in the corner, the way Flutter's debug banner does.
-//
-// Bottom leading rather than top trailing: the top right corner belongs to the
-// navigation bar, and a ribbon there covers whatever button is in it.
+// Names the environment in the corner, away from the navigation bar's buttons.
 struct EnvironmentRibbon: View {
 
     let label: String

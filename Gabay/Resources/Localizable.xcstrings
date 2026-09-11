@@ -1,25 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
-    "—" : {
-
-    },
-    "*" : {
-
-    },
-    "%@ %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ %2$@"
-          }
-        }
-      }
-    },
     "%@ far" : {
       "comment" : "How long a trail is, shown under its name"
     },
@@ -28,9 +9,6 @@
     },
     "%@ up" : {
       "comment" : "How much a trail climbs, shown under its name"
-    },
-    "917 123 4567" : {
-      "comment" : "Placeholder for the phone number field"
     },
     "Account" : {
       "comment" : "Header of the account section on the profile screen",
@@ -55,9 +33,6 @@
           }
         }
       }
-    },
-    "Cancel" : {
-      "comment" : "Dismisses the date picker without choosing\nDismisses the picker without choosing"
     },
     "Cancelled." : {
       "comment" : "A request was cancelled",
@@ -143,12 +118,6 @@
         }
       }
     },
-    "Country" : {
-      "comment" : "Title of the country picker sheet"
-    },
-    "Country calling code" : {
-      "comment" : "Accessibility label for the country code picker"
-    },
     "Create Account" : {
       "comment" : "Primary button on the registration screen",
       "extractionState" : "manual",
@@ -187,9 +156,6 @@
     },
     "Delete" : {
       "comment" : "Removes an imported trail from the phone"
-    },
-    "Done" : {
-      "comment" : "Confirms the chosen date"
     },
     "Edit Profile" : {
       "comment" : "Title of the placeholder edit-profile screen",
@@ -238,9 +204,6 @@
           }
         }
       }
-    },
-    "Favorites" : {
-      "comment" : "Favorites tab title"
     },
     "First name" : {
       "comment" : "Placeholder for the first name field",
@@ -419,9 +382,6 @@
         }
       }
     },
-    "Phone" : {
-      "comment" : "Label for the phone number field"
-    },
     "Please check the highlighted fields." : {
       "comment" : "Error shown when form validation fails server-side",
       "extractionState" : "manual",
@@ -493,9 +453,6 @@
           }
         }
       }
-    },
-    "Select" : {
-      "comment" : "Placeholder for a date field\nPlaceholder for a picker field"
     },
     "Send Reset Link" : {
       "comment" : "Button that requests a password reset email",

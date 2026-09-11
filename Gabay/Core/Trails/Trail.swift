@@ -6,16 +6,14 @@
 
 import Foundation
 
-// A trail as the list knows it: enough to decide whether to go, without
-// reading the file.
+// What the list knows: enough to decide whether to go, without opening the file.
 struct Trail: Identifiable, Equatable, Sendable {
 
     enum Difficulty: String, Codable, Sendable, CaseIterable {
         case easy, moderate, hard
     }
 
-    // Where the trail came from, which is the only thing the list treats
-    // differently.
+    // Where the trail came from.
     enum Source: Equatable, Sendable {
         case catalog
         case imported
@@ -56,8 +54,7 @@ struct Trail: Identifiable, Equatable, Sendable {
             ))
     }
 
-    // Naismith's rule: 4km an hour on the flat, plus an hour for every 600
-    // metres climbed. Rough, and every hiker knows it is rough.
+    // Naismith's rule: 4km an hour, plus an hour per 600 metres climbed.
     var estimatedDuration: TimeInterval {
         distance / 4000 * 3600 + (ascent ?? 0) / 600 * 3600
     }
@@ -79,8 +76,7 @@ extension Trail {
         )
     }
 
-    // Builds one from a file the user imported, where the numbers have to be
-    // measured rather than read.
+    // Builds one from an imported file, measuring what a catalog would have told us.
     init(imported document: GPXDocument, id: String, fallbackName: String) {
         let points = document.points
         let hasElevation = points.contains { $0.elevation != nil }

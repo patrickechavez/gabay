@@ -22,8 +22,7 @@ enum GPXError: Error, Equatable {
     case noPoints
 }
 
-// Reads GPX into points. Understands tracks and routes, which are the same
-// thing to a walker: an ordered line to follow.
+// Reads GPX into points. A track and a route are both a line to follow.
 struct GPXParser {
 
     func parse(_ data: Data) throws -> GPXDocument {
@@ -43,8 +42,7 @@ struct GPXParser {
 
 private extension GPXParser {
 
-    // GPX is small and read once, so a streaming parser with a little state
-    // beats loading a DOM.
+    // GPX is small and read once, so streaming beats loading a DOM.
     final class Reader: NSObject, XMLParserDelegate {
 
         private var tracks: [Track] = []
@@ -64,8 +62,7 @@ private extension GPXParser {
             var time: Date?
         }
 
-        // Per reader rather than shared: a formatter is not safe across threads,
-        // and one parse is one reader.
+        // Per reader: a formatter is not safe across threads.
         private let timeFormatter: ISO8601DateFormatter = {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -141,8 +138,7 @@ private extension GPXParser {
                 currentPoint = nil
 
             case "wpt":
-                // A standalone waypoint is not part of the line, so it is read
-                // and dropped rather than joined onto a track.
+                // A landmark is not part of the line, so it is dropped.
                 currentPoint = nil
 
             case "trk", "rte":
@@ -157,8 +153,7 @@ private extension GPXParser {
         private func name(_ value: String) {
             guard !value.isEmpty else { return }
 
-            // The first <name> inside a track wins; anything outside one names
-            // the document.
+            // The first name inside a track wins, anything outside names the file.
             if var track = currentTrack {
                 if track.name == nil {
                     track.name = value

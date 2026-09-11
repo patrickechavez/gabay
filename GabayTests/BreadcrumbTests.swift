@@ -6,9 +6,8 @@
 import Testing
 @testable import Gabay
 
-// Serialized because Breadcrumb holds one process-wide reporter. Other suites
-// still run alongside, so these assert on what the spy contains, not on it
-// being the only thing recorded.
+// Serialized: Breadcrumb holds one process-wide reporter, so these assert on
+// what the spy contains rather than on it being alone.
 @Suite(.serialized)
 struct BreadcrumbTests {
 

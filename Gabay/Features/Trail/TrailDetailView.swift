@@ -41,8 +41,7 @@ struct TrailDetailView: View {
             }
     }
 
-    // Answers "am I near this" in a line of text, so the map never has to zoom
-    // out to somewhere neither useful nor readable.
+    // Answers "am I near this" in text, so the camera never has to.
     @ViewBuilder
     private var distanceToStart: some View {
         if let position, let metres = points.distanceFromStart(to: position) {
@@ -79,8 +78,7 @@ struct ElevationProfile: View {
                 path
                     .fill(Theme.Color.accent.opacity(0.12))
             } else {
-                // A hand drawn route carries no elevation, so there is nothing
-                // to show rather than a flat line pretending otherwise.
+                // No elevation in the file, so nothing rather than a flat line.
                 Text("No elevation in this file",
                      comment: "Shown when a GPX has no elevation to draw")
                     .font(Theme.Font.caption)

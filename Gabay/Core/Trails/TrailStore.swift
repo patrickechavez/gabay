@@ -29,8 +29,7 @@ enum TrailStoreError: Error, Equatable {
     case unreadableFile
 }
 
-// Files on disk, one GPX per trail. The file system is the database: these are
-// files, and treating them as anything else only adds a layer to lose them in.
+// One GPX per trail on disk. They are files, so the file system is the database.
 struct TrailStore: TrailStoring {
 
     private let directory: URL
@@ -64,9 +63,7 @@ struct TrailStore: TrailStoring {
     }
 
     func points(of trail: Trail) throws -> [TrackPoint] {
-        // Reading is the existence check. `fileExists` takes a plain path, and
-        // a URL's path is percent encoded, so "Application Support" never
-        // matches.
+        // Reading is the existence check: a URL's path is percent encoded.
         guard let data = try? Data(contentsOf: file(for: trail.id)) else {
             throw TrailStoreError.fileMissing
         }

@@ -8,17 +8,13 @@ import CoreLocation
 import MapKit
 import UIKit
 
-// The walker: a dot, and a cone showing which way they are facing.
-//
-// MapKit only draws a heading cone in follow-with-heading mode, which also
-// spins the whole map. A hiker reading a trail wants north up and still wants
-// to know which way they are pointing, so the dot is drawn here instead.
+// The walker, drawn here because MapKit only cones in follow-with-heading mode,
+// which also spins the map.
 final class WalkerAnnotationView: MKAnnotationView {
 
     static let reuseIdentifier = "walker"
 
-    // Wide enough to read at a glance, narrow enough to mean something. A
-    // compass on a phone is not accurate enough to justify a thin beam.
+    // A phone compass is not accurate enough to justify a thinner beam.
     private static let spread: CGFloat = 60
 
     private static let reach: CGFloat = 46
@@ -28,8 +24,7 @@ final class WalkerAnnotationView: MKAnnotationView {
     private let dot = CALayer()
     private let ring = CALayer()
 
-    // Where the walker faces, and where the map faces, since the cone has to
-    // account for both.
+    // Where the walker faces, and where the map does.
     var heading: CLLocationDirection? {
         didSet { turnCone() }
     }
@@ -54,9 +49,7 @@ final class WalkerAnnotationView: MKAnnotationView {
     private func build() {
         let centre = CGPoint(x: bounds.midX, y: bounds.midY)
 
-        // The cone is a gradient masked by the wedge, so it fades out with
-        // distance rather than ending in a hard edge. Confidence in a heading
-        // falls off the same way.
+        // A gradient masked by the wedge, so confidence fades with distance.
         cone.frame = bounds
         cone.path = conePath(from: centre)
         cone.fillColor = UIColor.black.cgColor
@@ -115,8 +108,7 @@ final class WalkerAnnotationView: MKAnnotationView {
 
         fade.isHidden = false
 
-        // Rotations are not animated: the compass jitters, and a cone easing
-        // between angles lags behind where the walker is actually looking.
+        // Not animated: easing between angles lags behind a jittering compass.
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         fade.transform = CATransform3DMakeRotation((heading - mapHeading) * .pi / 180, 0, 0, 1)

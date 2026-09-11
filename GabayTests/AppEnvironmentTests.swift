@@ -8,8 +8,7 @@ import Testing
 
 struct AppEnvironmentTests {
 
-    // The test target builds Development, so this fails if the compilation
-    // conditions or the #if ladder break.
+    // Fails if the compilation conditions or the #if ladder break.
     @Test func resolvesTheBuildConfiguration() {
         #expect(AppEnvironment.current == .development)
     }

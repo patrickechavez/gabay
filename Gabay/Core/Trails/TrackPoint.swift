@@ -14,8 +14,7 @@ struct TrackPoint: Equatable, Sendable {
 
     let longitude: Double
 
-    // Metres above sea level. Absent in files written without a barometer or
-    // elevation lookup, which is common for hand drawn routes.
+    // Metres above sea level, absent in hand drawn routes.
     let elevation: Double?
 
     // Absent in a planned route, present in a recording.
@@ -48,11 +47,7 @@ extension Array where Element == TrackPoint {
         return zip(self, dropFirst()).reduce(0) { $0 + $1.0.distance(to: $1.1) }
     }
 
-    // Metres climbed, counting only the rises.
-    //
-    // Small wobbles are ignored. A GPS elevation drifts by several metres while
-    // standing still, and adding every rise would turn a flat walk into a
-    // mountain.
+    // Metres climbed. Wobbles are ignored, or GPS drift makes a flat walk a mountain.
     func ascent(ignoringRisesUnder threshold: Double = 3) -> Double {
         var total = 0.0
         var reference: Double?
@@ -75,8 +70,7 @@ extension Array where Element == TrackPoint {
         return total
     }
 
-    // Metres from a position to the start of the trail, for "how far away am
-    // I" without moving the camera to answer it.
+    // Metres to the start, so "am I near this" needs no camera move to answer.
     func distanceFromStart(to coordinate: CLLocationCoordinate2D) -> Double? {
         guard let start = first else { return nil }
 

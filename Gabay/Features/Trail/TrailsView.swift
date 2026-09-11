@@ -23,8 +23,7 @@ final class TrailsViewModel {
         self.store = store
     }
 
-    // Reading every file to measure it is slow enough to notice: a long walk
-    // is megabytes of XML. None of it belongs on the main actor.
+    // Measuring every file is megabytes of XML, so not on the main actor.
     func load() async {
         guard trails.isEmpty else { return }
 
@@ -89,12 +88,9 @@ struct TrailsView: View {
             }
             .navigationTitle(Text("Trails", comment: "Title of the trail list"))
             .toolbar {
-                // The item is always here and its contents come and go. A
-                // toolbar item that appears and disappears is rebuilt, and a
-                // rebuilt one swallows the tap that arrives with it.
+                // Always here, contents come and go: a rebuilt item eats a tap.
                 ToolbarItem(placement: .topBarTrailing) {
-                    // Only once there is a list. An empty screen offers the
-                    // import as its own button, and two of them says it twice.
+                    // The empty screen offers this as its own button already.
                     if !viewModel.trails.isEmpty {
                         Button {
                             isImporting = true
@@ -118,8 +114,7 @@ struct TrailsView: View {
     private var list: some View {
         List(viewModel.trails) { trail in
             NavigationLink {
-                // Points are read when the screen opens, not when the row is
-                // built, or opening the list parses every file.
+                // Read when the screen opens, or the list parses every file.
                 TrailDetailView(trail: trail) { await viewModel.points(of: trail) }
             } label: {
                 row(trail)
@@ -144,8 +139,7 @@ struct TrailsView: View {
             Text(trail.name)
                 .font(Theme.Font.body)
 
-            // Distance and climb are both in metres on a short trail, so they
-            // need naming or the row reads as two of the same number.
+            // Both are metres on a short trail, so they need naming.
             HStack(spacing: Theme.Spacing.md) {
                 Text("\(trail.formattedDistance) far",
                      comment: "How long a trail is, shown under its name")
