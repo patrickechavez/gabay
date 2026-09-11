@@ -112,8 +112,15 @@ Adding a trail, or a whole province, is therefore a commit rather than a
 release: drop in the file, add its block to the catalog, push. The app picks it
 up on the next launch that has a connection.
 
-A seed catalog ships inside the app with the nationwide overview, so a fresh
-install always has something to show and something to download.
+**No trails ship inside the app.** A fresh install is empty until it either
+reaches the catalog or is handed a file. That is deliberate: the library is
+meant to grow without releases, and a set of trails baked into the binary would
+be stale the moment it shipped, as well as carrying megabytes nobody in another
+province wants.
+
+The consequence, stated plainly: the first run needs either a connection or a
+GPX file. The empty state says so, and offers the import button rather than
+apologising.
 
 Three rules keep the refresh from eroding the offline promise:
 
