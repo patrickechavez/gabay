@@ -6,7 +6,7 @@
 
 import SwiftUI
 
-// The trail on a map, with the numbers that decide whether you are going.
+// The trail on a map, and nothing else.
 struct TrailDetailView: View {
 
     let trail: Trail
@@ -17,58 +17,22 @@ struct TrailDetailView: View {
     @State private var isFollowing = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            TrailMapView(points: points, isFollowing: $isFollowing)
-                .ignoresSafeArea()
-
-            panel
-        }
-        .task { points = await load() }
-        .navigationTitle(trail.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isFollowing.toggle()
-                } label: {
-                    Image(systemName: isFollowing ? "location.fill" : "location")
+        TrailMapView(points: points, isFollowing: $isFollowing)
+            .ignoresSafeArea()
+            .task { points = await load() }
+            .navigationTitle(trail.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isFollowing.toggle()
+                    } label: {
+                        Image(systemName: isFollowing ? "location.fill" : "location")
+                    }
+                    .accessibilityLabel(Text("Follow my position",
+                                             comment: "Keeps the map centred on the walker"))
                 }
-                .accessibilityLabel(Text("Follow my position",
-                                         comment: "Keeps the map centred on the walker"))
             }
-        }
-    }
-
-    private var panel: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            HStack(spacing: Theme.Spacing.xl) {
-                stat(trail.formattedDistance, Text("distance", comment: "Label under the trail length"))
-                stat(trail.formattedAscent ?? "–", Text("climb", comment: "Label under the metres of ascent"))
-                stat(duration, Text("approx", comment: "Label under the estimated walking time"))
-            }
-
-            ElevationProfile(points: points)
-                .frame(height: 64)
-        }
-        .padding(Theme.Spacing.lg)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-        .padding(Theme.Spacing.lg)
-    }
-
-    private func stat(_ value: String, _ label: Text) -> some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(Theme.Font.sectionTitle)
-            label
-                .font(Theme.Font.caption)
-                .foregroundStyle(Theme.Color.secondaryText)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var duration: String {
-        Duration.seconds(trail.estimatedDuration)
-            .formatted(.units(allowed: [.hours, .minutes], width: .narrow))
     }
 }
 
@@ -111,7 +75,12 @@ struct ElevationProfile: View {
             let along = CGFloat(index) * step
             let height = size.height - CGFloat((elevation - lowest) / range) * size.height
             let point = CGPoint(x: along, y: height)
-            index == 0 ? path.move(to: point) : path.addLine(to: point)
+
+            if index == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
         }
         return path
     }
