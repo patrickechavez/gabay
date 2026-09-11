@@ -47,6 +47,9 @@
         }
       }
     },
+    "approx" : {
+      "comment" : "Label under the estimated walking time"
+    },
     "Cancel" : {
       "comment" : "Dismisses the date picker without choosing\nDismisses the picker without choosing"
     },
@@ -122,6 +125,9 @@
         }
       }
     },
+    "climb" : {
+      "comment" : "Label under the metres of ascent"
+    },
     "Confirm password" : {
       "comment" : "Label for the password confirmation field",
       "extractionState" : "manual",
@@ -175,6 +181,9 @@
           }
         }
       }
+    },
+    "distance" : {
+      "comment" : "Label under the trail length"
     },
     "Done" : {
       "comment" : "Confirms the chosen date"
@@ -242,6 +251,9 @@
         }
       }
     },
+    "Follow my position" : {
+      "comment" : "Keeps the map centred on the walker"
+    },
     "Forgot password?" : {
       "comment" : "Link to the password reset screen",
       "extractionState" : "manual",
@@ -277,6 +289,12 @@
           }
         }
       }
+    },
+    "Import a GPX file" : {
+      "comment" : "Adds a trail from the user's own files"
+    },
+    "Import a GPX file to walk it." : {
+      "comment" : "What to do when the trail list is empty"
     },
     "Items" : {
       "comment" : "Home tab title",
@@ -349,6 +367,12 @@
           }
         }
       }
+    },
+    "No elevation in this file" : {
+      "comment" : "Shown when a GPX has no elevation to draw"
+    },
+    "No trails yet" : {
+      "comment" : "Shown when nothing has been downloaded or imported"
     },
     "Not available" : {
 
@@ -671,11 +695,11 @@
         }
       }
     },
+    "Trails" : {
+      "comment" : "Title of the trail list"
+    },
     "Trails already on your phone still work." : {
 
-    },
-    "Trails that work without a signal" : {
-      "comment" : "One line saying what the app is for"
     },
     "Try Again" : {
       "comment" : "Button that retries a failed network request",

@@ -11,8 +11,9 @@ struct TrailDetailView: View {
 
     let trail: Trail
 
-    let points: [TrackPoint]
+    let load: () async -> [TrackPoint]
 
+    @State private var points: [TrackPoint] = []
     @State private var isFollowing = false
 
     var body: some View {
@@ -22,6 +23,7 @@ struct TrailDetailView: View {
 
             panel
         }
+        .task { points = await load() }
         .navigationTitle(trail.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

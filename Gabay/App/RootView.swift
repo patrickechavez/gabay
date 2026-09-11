@@ -15,7 +15,6 @@ struct RootView: View {
     }
 }
 
-
 struct LaunchView: View {
     var body: some View {
         ZStack {

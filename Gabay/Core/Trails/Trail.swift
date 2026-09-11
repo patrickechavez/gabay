@@ -46,7 +46,11 @@ struct Trail: Identifiable, Equatable, Sendable {
 
     var formattedAscent: String {
         Measurement(value: ascent, unit: UnitLength.meters)
-            .formatted(.measurement(width: .abbreviated, usage: .asProvided))
+            .formatted(.measurement(
+                width: .abbreviated,
+                usage: .asProvided,
+                numberFormatStyle: .number.precision(.fractionLength(0))
+            ))
     }
 
     // Naismith's rule: 4km an hour on the flat, plus an hour for every 600

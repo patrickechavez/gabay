@@ -13,6 +13,8 @@ final class TrailsViewModel {
 
     private(set) var trails: [Trail] = []
 
+    private(set) var isLoading = false
+
     private(set) var failure: LoadFailure?
 
     @ObservationIgnored private let store: any TrailStoring
@@ -21,12 +23,21 @@ final class TrailsViewModel {
         self.store = store
     }
 
-    func load() {
-        trails = (try? store.trails()) ?? []
+    // Reading every file to measure it is slow enough to notice: a long walk
+    // is megabytes of XML. None of it belongs on the main actor.
+    func load() async {
+        guard trails.isEmpty else { return }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        let store = self.store
+        trails = await Task.detached { (try? store.trails()) ?? [] }.value
     }
 
-    func points(of trail: Trail) -> [TrackPoint] {
-        (try? store.points(of: trail)) ?? []
+    func points(of trail: Trail) async -> [TrackPoint] {
+        let store = self.store
+        return await Task.detached { (try? store.points(of: trail)) ?? [] }.value
     }
 
     // A file from anywhere: Files, an email attachment, AirDrop.
@@ -56,7 +67,9 @@ struct TrailsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.trails.isEmpty {
+                if viewModel.isLoading {
+                    ProgressView()
+                } else if viewModel.trails.isEmpty {
                     empty
                 } else {
                     list
@@ -79,14 +92,16 @@ struct TrailsView: View {
                 allowedContentTypes: [.gpx, .xml, .data],
                 onCompletion: viewModel.import
             )
-            .task { viewModel.load() }
+            .task { await viewModel.load() }
         }
     }
 
     private var list: some View {
         List(viewModel.trails) { trail in
             NavigationLink {
-                TrailDetailView(trail: trail, points: viewModel.points(of: trail))
+                // Points are read when the screen opens, not when the row is
+                // built, or opening the list parses every file.
+                TrailDetailView(trail: trail) { await viewModel.points(of: trail) }
             } label: {
                 row(trail)
             }
