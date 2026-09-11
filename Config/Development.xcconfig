@@ -1,0 +1,61 @@
+//
+//  Development.xcconfig
+//  Gabay
+//
+
+#include "Shared.xcconfig"
+
+// "?" = optional, so a fresh clone still builds without it
+#include? "Secrets.xcconfig"
+
+
+// Identity — differs per environment so all three can install side by side
+
+// The app's unique ID on iOS
+PRODUCT_BUNDLE_IDENTIFIER = com.patrick.Gabay.dev
+
+// Name under the Home Screen icon
+APP_DISPLAY_NAME = Development
+
+// Deep links: gabay-dev://items/5
+APP_URL_SCHEME = gabay-dev
+
+
+// API
+
+// "//" is a comment here, so escape the double slash as /$()/
+API_BASE_URL = https:/$()/api-dev.example.com
+
+// Short, so failures show up fast
+API_TIMEOUT_SECONDS = 20
+
+// Fail right away instead of hiding the error behind retries
+API_MAX_RETRIES = 0
+
+// Prints requests to the console; tokens are redacted
+API_LOGGING_ENABLED = YES
+
+// Corner ribbon naming the environment
+ENV_BANNER_ENABLED = YES
+
+
+// Force update — scaffolding, no code reads these yet
+
+// Where the Update button sends the user
+UPDATE_URL = itms-apps:/$()/apple.com/app/id000000000
+
+// Read by APIConfig, but nothing acts on it
+FORCE_UPDATE_ENABLED = YES
+
+
+// Certificate pinning
+
+// Off so Charles/Proxyman can inspect traffic
+CERT_PINNING_ENABLED = NO
+
+// Base64 SHA-256 of your server's public key
+PINNED_PUBLIC_KEY_HASHES =
+
+
+// Enables #if DEVELOPMENT in Swift
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEVELOPMENT

@@ -1,0 +1,61 @@
+//
+//  Staging.xcconfig
+//  Gabay
+//
+
+#include "Shared.xcconfig"
+
+// "?" = optional, so a fresh clone still builds without it
+#include? "Secrets.xcconfig"
+
+
+// Identity — differs per environment so all three can install side by side
+
+// The app's unique ID on iOS
+PRODUCT_BUNDLE_IDENTIFIER = com.patrick.Gabay.staging
+
+// Name under the Home Screen icon
+APP_DISPLAY_NAME = Staging
+
+// Deep links: gabay-staging://items/5
+APP_URL_SCHEME = gabay-staging
+
+
+// API — same numbers as Production so QA tests what users will get
+
+// "//" is a comment here, so escape the double slash as /$()/
+API_BASE_URL = https:/$()/api-staging.example.com
+
+// Seconds before a request gives up
+API_TIMEOUT_SECONDS = 30
+
+// Retries for flaky connections
+API_MAX_RETRIES = 2
+
+// Off, so TestFlight behaves like the real thing
+API_LOGGING_ENABLED = NO
+
+// Corner ribbon so QA can tell this isn't Production
+ENV_BANNER_ENABLED = YES
+
+
+// Force update — scaffolding, no code reads these yet
+
+// Where the Update button sends the user
+UPDATE_URL = itms-apps:/$()/apple.com/app/id000000000
+
+// Read by APIConfig, but nothing acts on it
+FORCE_UPDATE_ENABLED = YES
+
+
+// Certificate pinning
+
+// Off so a cert rotation can't break QA mid-release
+CERT_PINNING_ENABLED = NO
+
+// Base64 SHA-256 of your server's public key
+PINNED_PUBLIC_KEY_HASHES =
+
+
+// Enables #if STAGING in Swift
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) STAGING

@@ -1,0 +1,24 @@
+# SwiftLint settings. Rule list: https://realm.github.io/SwiftLint/rule-directory.html
+
+disabled_rules:
+  # Flags the normal SwiftUI shape — a view builder trailing closure
+  # alongside another closure argument, e.g. AsyncContentView(retry: {...}) { item in ... }.
+  - multiple_closures_with_trailing_closure
+
+nesting:
+  # CodingKeys must be nested inside its type for Codable synthesis, so a
+  # nested wire model puts it two deep with no way around it.
+  type_level: 2
+
+identifier_name:
+  # This list replaces SwiftLint's default, so `id` has to be repeated here —
+  # dropping it would flag every Identifiable type, where the name is required.
+  excluded:
+    - id
+    # Short sizing names read better than spelled-out ones in a design system,
+    # e.g. Theme.Spacing.md instead of Theme.Spacing.medium.
+    - xs
+    - sm
+    - md
+    - lg
+    - xl

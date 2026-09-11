@@ -1,0 +1,63 @@
+//
+//  Production.xcconfig
+//  Gabay
+//
+//  The only configuration real users run.
+//
+
+#include "Shared.xcconfig"
+
+// "?" = optional, so a fresh clone still builds without it
+#include? "Secrets.xcconfig"
+
+
+// Identity — differs per environment so all three can install side by side
+
+// Changing this after release makes a NEW app, not an update
+PRODUCT_BUNDLE_IDENTIFIER = com.patrick.Gabay
+
+// Name under the Home Screen icon
+APP_DISPLAY_NAME = Gabay
+
+// Deep links: gabay://items/5
+APP_URL_SCHEME = gabay
+
+
+// API
+
+// "//" is a comment here, so escape the double slash as /$()/
+API_BASE_URL = https:/$()/api.example.com
+
+// Seconds before a request gives up
+API_TIMEOUT_SECONDS = 30
+
+// Retries for flaky mobile connections
+API_MAX_RETRIES = 2
+
+// Must stay NO — logs leak user data to the device console
+API_LOGGING_ENABLED = NO
+
+// Belt and braces — the ribbon isn't compiled into Production at all
+ENV_BANNER_ENABLED = NO
+
+
+// Force update — scaffolding, no code reads these yet
+
+// Replace id000000000 with your real App Store ID before shipping
+UPDATE_URL = itms-apps:/$()/apple.com/app/id000000000
+
+// Read by APIConfig, but nothing acts on it
+FORCE_UPDATE_ENABLED = YES
+
+
+// Certificate pinning
+
+// YES with an empty list below would claim pinning but do none
+CERT_PINNING_ENABLED = NO
+
+// List two (current + next) so you can rotate keys without an app update
+PINNED_PUBLIC_KEY_HASHES =
+
+
+// Enables #if PRODUCTION in Swift
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) PRODUCTION

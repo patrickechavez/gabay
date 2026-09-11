@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Values come from Config/<Environment>.xcconfig via $(...) substitution.
+	     Every value must be <string> — APIConfig reads them as String first,
+	     then parses. An <integer> or <true/> here would read back as nil. -->
+
+	<!-- API -->
+	<key>API_BASE_URL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>API_TIMEOUT_SECONDS</key>
+	<string>$(API_TIMEOUT_SECONDS)</string>
+	<key>API_MAX_RETRIES</key>
+	<string>$(API_MAX_RETRIES)</string>
+	<key>API_LOGGING_ENABLED</key>
+	<string>$(API_LOGGING_ENABLED)</string>
+
+	<!-- Corner ribbon naming the environment. Never shown in Production,
+	     which compiles the ribbon out whatever this says. -->
+	<key>ENV_BANNER_ENABLED</key>
+	<string>$(ENV_BANNER_ENABLED)</string>
+
+	<!-- Deep links. APP_URL_SCHEME differs per environment so the three apps
+	     can sit on one device without fighting over the same scheme. -->
+	<key>APP_URL_SCHEME</key>
+	<string>$(APP_URL_SCHEME)</string>
+
+	<!-- Registers the scheme with iOS. Without this the app never receives
+	     gabay://... links, no matter what the code does. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(APP_URL_SCHEME)</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Force update -->
+	<key>UPDATE_URL</key>
+	<string>$(UPDATE_URL)</string>
+	<key>FORCE_UPDATE_ENABLED</key>
+	<string>$(FORCE_UPDATE_ENABLED)</string>
+
+	<!-- Certificate pinning -->
+	<key>CERT_PINNING_ENABLED</key>
+	<string>$(CERT_PINNING_ENABLED)</string>
+	<key>PINNED_PUBLIC_KEY_HASHES</key>
+	<string>$(PINNED_PUBLIC_KEY_HASHES)</string>
+</dict>
+</plist>

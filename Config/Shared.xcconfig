@@ -1,0 +1,10 @@
+//
+//  Shared.xcconfig
+//  Gabay
+//
+
+// The version users see; bump it per release
+MARKETING_VERSION = 1.0.0
+
+// Must go up on every upload; CI usually sets this
+CURRENT_PROJECT_VERSION = 1
