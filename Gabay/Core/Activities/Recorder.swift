@@ -32,8 +32,11 @@ final class Recorder {
 
     private(set) var elapsed: TimeInterval = 0
 
+    // Every usable fix, taken or dropped, so the phase change is observable.
+    private(set) var fixesSeen = 0
+
     // False until the first usable fix, so the Record tab can say so.
-    private(set) var hasFix = false
+    var hasFix: Bool { fixesSeen > 0 }
 
     @ObservationIgnored private let store: any ActivityStoring
     @ObservationIgnored private let locations: any LocationStreaming
@@ -151,7 +154,7 @@ final class Recorder {
         elapsed = 0
         accumulated = 0
         climbReference = nil
-        hasFix = false
+        fixesSeen = 0
         draft = nil
         trail = nil
     }
@@ -182,7 +185,7 @@ final class Recorder {
 
     // Paused means paused: a fix that arrives now is not part of the walk.
     private func record(_ fix: Fix) {
-        hasFix = true
+        fixesSeen += 1
         guard phase == .recording else { return }
 
         let point = fix.point

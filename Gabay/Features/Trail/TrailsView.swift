@@ -133,11 +133,19 @@ final class TrailsViewModel {
         )
     }
 
-    // What is here wins over what the catalog says about it.
+    // The catalog describes a trail, the file only proves it is here. A GPX
+    // carries whatever name its author typed, which is not the published one.
     private func rebuild() {
         let here = Set(onDevice.map(\.id))
 
-        trails = (onDevice + entries.values.filter { !here.contains($0.id) }.map { Trail($0, isOnDevice: false) })
+        let downloaded = onDevice.map { trail in
+            entries[trail.id].map { Trail($0, isOnDevice: true) } ?? trail
+        }
+        let waiting = entries.values
+            .filter { !here.contains($0.id) }
+            .map { Trail($0, isOnDevice: false) }
+
+        trails = (downloaded + waiting)
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 }

@@ -13,9 +13,10 @@ struct TrailsViewModelTests {
     // A real store over a temporary folder, so downloads land on a real disk.
     private func makeViewModel(
         catalog: StubCatalog = StubCatalog(),
-        cached: CatalogUpdate? = nil
+        cached: CatalogUpdate? = nil,
+        directory: URL = URL.temporaryDirectory.appending(path: UUID().uuidString)
     ) -> (TrailsViewModel, StubCache) {
-        let store = TrailStore(directory: URL.temporaryDirectory.appending(path: UUID().uuidString))
+        let store = TrailStore(directory: directory)
         let cache = StubCache(stored: cached)
 
         return (TrailsViewModel(store: store, catalog: catalog, cache: cache), cache)
@@ -72,6 +73,25 @@ struct TrailsViewModelTests {
 
         #expect(viewModel.trails.count == 1)
         #expect(viewModel.trails.first?.isOnDevice == false)
+    }
+
+    // The GPX says "Afternoon Hike"; the catalogue says "Osmeña Peak".
+    @Test func keepsTheCatalogueNameAfterARelaunch() async throws {
+        let directory = URL.temporaryDirectory.appending(path: UUID().uuidString)
+        let catalog = StubCatalog(trails: [.osmena])
+
+        let (first, _) = makeViewModel(catalog: catalog, directory: directory)
+        await first.load()
+        _ = await first.download(try #require(first.trails.first))
+
+        // A second view model over the same folder is the next launch.
+        let (second, _) = makeViewModel(catalog: catalog, directory: directory)
+        await second.load()
+
+        let trail = try #require(second.trails.first)
+        #expect(trail.name == "Osmeña Peak")
+        #expect(trail.region == "Cebu")
+        #expect(trail.isOnDevice)
     }
 
     @Test func keepsTheFetchedCatalogForTheNextLaunch() async {
@@ -180,7 +200,7 @@ private enum GPXFixture {
     static let twoPoints = """
     <?xml version="1.0" encoding="UTF-8"?>
     <gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
-      <trk><name>Osmeña Peak</name><trkseg>
+      <trk><name>Afternoon Hike</name><trkseg>
         <trkpt lat="9.7900" lon="123.3700"><ele>820</ele></trkpt>
         <trkpt lat="9.8200" lon="123.4100"><ele>860</ele></trkpt>
       </trkseg></trk>

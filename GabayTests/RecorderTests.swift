@@ -33,6 +33,16 @@ struct RecorderTests {
         }
     }
 
+    // Waits for the recorder to have seen them, rather than hoping it has.
+    private func send(_ fixes: [Fix], through locations: StubLocations, to recorder: Recorder) async {
+        let target = recorder.fixesSeen + fixes.count
+        await locations.send(fixes)
+
+        for _ in 0..<10_000 where recorder.fixesSeen < target {
+            await Task.yield()
+        }
+    }
+
     @Test func startsIdle() {
         let (recorder, _, _) = makeRecorder()
 
@@ -44,7 +54,7 @@ struct RecorderTests {
         let (recorder, locations, _) = makeRecorder()
         try recorder.start()
 
-        await locations.send(fixes(3))
+        await send(fixes(3), through: locations, to: recorder)
 
         #expect(recorder.points.count == 3)
         #expect(recorder.distance > 0)
@@ -55,15 +65,15 @@ struct RecorderTests {
     @Test func ignoresFixesWhilePaused() async throws {
         let (recorder, locations, _) = makeRecorder()
         try recorder.start()
-        await locations.send(fixes(2))
+        await send(fixes(2), through: locations, to: recorder)
 
         recorder.pause()
-        await locations.send([fixes(4).last!])
+        await send([fixes(4)[2]], through: locations, to: recorder)
 
         #expect(recorder.points.count == 2)
 
         recorder.resume()
-        await locations.send([fixes(4)[3]])
+        await send([fixes(4)[3]], through: locations, to: recorder)
 
         #expect(recorder.points.count == 3)
     }
@@ -87,7 +97,7 @@ struct RecorderTests {
     @Test func handsBackAWalkWithWhatWasMeasured() async throws {
         let (recorder, locations, _) = makeRecorder()
         try recorder.start(following: .osmena)
-        await locations.send(fixes(3))
+        await send(fixes(3), through: locations, to: recorder)
 
         let walk = try #require(await recorder.finish())
 
@@ -101,7 +111,7 @@ struct RecorderTests {
     @Test func savingKeepsTheWalkAndClearsTheRecorder() async throws {
         let (recorder, locations, store) = makeRecorder()
         try recorder.start()
-        await locations.send(fixes(3))
+        await send(fixes(3), through: locations, to: recorder)
 
         var walk = try #require(await recorder.finish())
         walk.name = "Osmeña Peak"
@@ -117,7 +127,7 @@ struct RecorderTests {
     @Test func discardingLeavesNothingBehind() async throws {
         let (recorder, locations, store) = makeRecorder()
         try recorder.start()
-        await locations.send(fixes(3))
+        await send(fixes(3), through: locations, to: recorder)
 
         let walk = try #require(await recorder.finish())
         recorder.discard(walk)
@@ -148,7 +158,7 @@ struct RecorderTests {
 
 // MARK: - Stubs
 
-// Feeds fixes to whoever is listening, and waits for them to be taken.
+// Feeds fixes to whoever is listening.
 private final class StubLocations: LocationStreaming, @unchecked Sendable {
 
     private var continuation: AsyncStream<Fix>.Continuation?
@@ -164,9 +174,6 @@ private final class StubLocations: LocationStreaming, @unchecked Sendable {
         while continuation == nil { await Task.yield() }
 
         for fix in fixes { continuation?.yield(fix) }
-
-        // Let the recorder's reader task drain what was just queued.
-        for _ in 0..<10 { await Task.yield() }
     }
 }
 
