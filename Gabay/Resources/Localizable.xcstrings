@@ -460,6 +460,9 @@
         }
       }
     },
+    "Search trails" : {
+      "comment" : "Placeholder in the trail list search field"
+    },
     "Send Reset Link" : {
       "comment" : "Button that requests a password reset email",
       "extractionState" : "manual",
