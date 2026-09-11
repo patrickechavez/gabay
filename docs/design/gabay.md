@@ -170,34 +170,94 @@ told.
 
 ## Screens
 
-**Trail list.** Bundled and imported together, each with distance, ascent and
-difficulty.
+Three tabs: **Trails**, **Record**, **History**. The map arrives later and
+changes none of this, because every screen below works without one.
 
-**Trail detail.** Map preview, elevation profile, and a Start button.
+### Trails
 
-**Navigate.** The screen that matters. Full screen map, route drawn in magenta
-over a white casing so it reads against forest and rock alike, current
-position, follow mode, and a bottom bar with distance remaining and ascent
-left. Type is larger than a normal app throughout: this is read while moving
-and out of breath.
+The whole catalog in one list, with distance, ascent and region. Trails already
+on the phone and trails still to download look the same, except for a small
+tag on the ones that need fetching. There is no downloads screen and no manage
+storage screen: downloading is a consequence of opening a trail, not a chore of
+its own.
 
-**Off route.** A banner and a haptic at roughly fifty metres from the line,
+Importing a GPX sits at the bottom of this list, through `.fileImporter`. An
+imported trail joins the same list and is indistinguishable afterwards.
+
+### Trail detail
+
+Name, the three numbers that decide whether you are going, distance, ascent and
+a rough time, then the elevation profile drawn from the GPX itself. No network
+and no map needed: the file already carries every point's elevation.
+
+Then the activity type, walk, run or hike, and Start.
+
+### Record
+
+The same Start without a trail. Nothing to follow, just track where you go.
+Activity type, a line saying whether the GPS has a fix yet, and a way back to
+the trail list for anyone who opened the wrong tab.
+
+### Recording
+
+One screen for both cases, because they differ by one element.
+
+With a trail: distance is the hero, shown as "2.4 of 6.2" with a thin progress
+bar, because on a trail the only question is how much further. Without a trail
+there is no fraction to show, so the bar goes and it reads "3.8 km".
+
+Underneath: moving time, ascent, pace, and battery. Battery is on this screen
+deliberately. The app holds the GPS open for hours in places where a flat phone
+is a real problem, and showing the number is a small honesty.
+
+Type is larger than a normal app throughout. This is read while moving and out
+of breath.
+
+**Where am I** is a button here, not a screen: coordinates in a form that can
+be read aloud over a radio or typed into a message if a single bar appears.
+This is the feature that earns the phrase "hike safely without a guide", and it
+costs almost nothing to build.
+
+### Finished
+
+What you actually walked: distance, moving time, ascent, and the profile of the
+walk rather than the profile of the trail. Save, or export.
+
+A recording with no trail has no name. It is saved as its type and date,
+"Run, 8 September", and can be renamed. The app cannot do better: naming it
+"Budlaan" would need offline geocoding, which is map data the phone may not
+have.
+
+### History
+
+Every saved walk with its date, type, distance and moving time. Tapping one
+shows the same summary as Finished.
+
+### Export
+
+A finished activity leaves as a GPX file through the share sheet, which is how
+it reaches Strava, which accepts activity uploads for free. No API integration,
+no OAuth, no account, and nothing to maintain when somebody else's API changes.
+The GPX carries the activity type, so it arrives as a run rather than as
+something unlabelled.
+
+The About screen says it plainly: Gabay uploads nothing, your activity is a
+file on your phone, take it wherever you like.
+
+### What the activity type actually does
+
+It is not only a label. It is stamped on the export, and it sets how often the
+app asks for a position. Trail running wants a fix every second for pace to
+mean anything; hiking does not, and fewer fixes over a six hour day is real
+battery. The choice is remembered, so the second time you open the app you are
+already on the one you use.
+
+### Later, when the map exists
+
+The map becomes a fourth thing on the recording screen, not a fourth tab: the
+route drawn in magenta over a white casing, your position, follow mode. Off
+route warning with a banner and a haptic at roughly fifty metres from the line,
 debounced hard enough that a GPS wobble under tree cover does not cry wolf.
-
-**Where am I.** One tap from the map. Coordinates in a form that can be read
-aloud over a radio or typed into a message if a single bar appears. This is the
-feature that earns the phrase "hike safely without a guide", and it costs
-almost nothing to build.
-
-**Import.** The native file picker through `.fileImporter`.
-
-**History.** Recorded activities, with the route and the numbers.
-
-**Export.** A finished activity leaves as a GPX file through the share sheet,
-which is how it reaches Strava, which accepts activity uploads for free. No API
-integration, no OAuth, no account, and nothing to maintain when somebody else's
-API changes. The About screen says so in as many words: Gabay uploads nothing,
-your activity is a file on your phone, take it wherever you like.
 
 ## Look
 
@@ -218,7 +278,7 @@ View (SwiftUI, no logic)
   ↕ @Observable
 ViewModel (@MainActor)
   ↕ protocol
-TrailLibrary · LocationTracker · ActivityStore
+TrailLibrary · LocationTracker · ActivityStore · TrailCatalogClient
   ↕
 Bundle files · CoreLocation · SwiftData
 ```
@@ -232,9 +292,12 @@ The activity store, so recording can be tested without touching a database.
 
 - GPX parsing against real files, including truncated and malformed ones
 - Distance and ascent calculations against known routes
-- Off route detection against a synthetic track that leaves and rejoins
+- A recording driven end to end by the replaying location tracker, with and
+  without a trail attached
+- Writing a recorded activity back out as GPX, and reading it in again
 - Trail library loading from a fixture bundle
-- The navigate flow driven by the replaying location tracker
+- Off route detection against a synthetic track that leaves and rejoins, once
+  that exists
 
 ## Build order
 
@@ -242,13 +305,21 @@ Each slice is usable on its own. The first three already make the app worth
 carrying up a mountain.
 
 1. Spike the offline tiles, done
-2. Build the Cebu pack and the nationwide overview
-3. GPX parsing, the seed library, list and detail with elevation profile
-4. Map, route, position, follow mode
-5. Catalog refresh, and downloading a region pack from the trail screen
-6. Off route, where am I, battery warning
-7. Custom import
-8. Recording, history, and export as GPX
+2. GPX parsing, the seed library, the trail list and detail with its elevation
+   profile
+3. Recording, both ways in, with the summary screen
+4. History, saving, and export as GPX
+5. Custom import
+6. Where am I, and the battery warning
+7. Catalog refresh, and downloading trails that are not yet on the phone
+8. The Cebu pack and the nationwide overview, built somewhere that is not a
+   laptop
+9. The map on the recording screen, route, position, follow mode, off route
+
+The map moved to the end deliberately. Everything above it is usable without
+one, and the first four slices already make an app worth carrying up a
+mountain: pick a trail, see what you are in for, record it, keep it, send it to
+Strava.
 
 ## Repositories
 
