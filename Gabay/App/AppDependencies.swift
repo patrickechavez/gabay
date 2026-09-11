@@ -15,15 +15,18 @@ final class AppDependencies {
     let catalog: any TrailCatalogFetching
 
     private let trails: any TrailStoring
+    private let cache: any CatalogCaching
 
     init(
         catalog: any TrailCatalogFetching,
         trails: any TrailStoring,
+        cache: any CatalogCaching,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.catalog = catalog
         self.trails = trails
+        self.cache = cache
         self.analytics = analytics
         self.crashes = crashes
     }
@@ -38,12 +41,13 @@ final class AppDependencies {
         return AppDependencies(
             catalog: TrailCatalogClient(),
             trails: TrailStore(),
+            cache: CatalogCache(),
             analytics: analytics,
             crashes: crashes
         )
     }
 
     func makeTrailsViewModel() -> TrailsViewModel {
-        TrailsViewModel(store: trails)
+        TrailsViewModel(store: trails, catalog: catalog, cache: cache)
     }
 }
