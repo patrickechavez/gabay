@@ -106,11 +106,18 @@ final class RouteCasing: MKPolyline {}
 // zero sized view does nothing, and that is the state at make time.
 final class RouteMapView: MKMapView {
 
-    var routeToFrame: MKMapRect?
+    // The route usually arrives after the first layout, because reading the
+    // file is asynchronous, so framing has to be driven from both sides.
+    var routeToFrame: MKMapRect? {
+        didSet { frameRouteIfPossible() }
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        frameRouteIfPossible()
+    }
 
+    private func frameRouteIfPossible() {
         guard let rect = routeToFrame, bounds.width > 0 else { return }
         routeToFrame = nil
 
