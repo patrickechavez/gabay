@@ -46,6 +46,32 @@ struct SignUpViewModelTests {
         #expect(viewModel.passwordError == nil)
     }
 
+    @Test func aPasswordOneCharacterBelowTheMinimumShowsAnError() {
+        let viewModel = makeViewModel()
+        viewModel.password = "abcdefg"
+        #expect(viewModel.passwordError != nil)
+    }
+
+    @Test func aPasswordOneCharacterBelowTheMinimumCannotSubmit() {
+        let viewModel = makeViewModel()
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "abcdefg"
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aPasswordAtTheMinimumLengthShowsNoError() {
+        let viewModel = makeViewModel()
+        viewModel.password = "abcdefgh"
+        #expect(viewModel.passwordError == nil)
+    }
+
+    @Test func aPasswordAtTheMinimumLengthCanSubmit() {
+        let viewModel = makeViewModel()
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "abcdefgh"
+        #expect(viewModel.canSubmit)
+    }
+
     @Test func cannotSubmitAnEmptyForm() {
         #expect(makeViewModel().canSubmit == false)
     }
@@ -69,5 +95,50 @@ struct SignUpViewModelTests {
         viewModel.email = "hiker@example.com"
         viewModel.password = "longenough"
         #expect(viewModel.canSubmit)
+    }
+
+    @Test func registerDoesNothingWhenTheFormCannotBeSubmitted() async {
+        let viewModel = makeViewModel()
+        let result = await viewModel.register()
+        #expect(result == false)
+    }
+
+    @Test func registerReturnsTrueOnASuccessfulRegistration() async {
+        let auth = StubAuthenticating()
+        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
+
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        #expect(await viewModel.register())
+    }
+
+    @Test func registerReturnsFalseAndSetsAnErrorMessageOnFailure() async {
+        let viewModel = makeViewModel()
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        let result = await viewModel.register()
+
+        #expect(result == false)
+        #expect(viewModel.signUpErrorMessage != nil)
+    }
+
+    @Test func aSecondRegisterAttemptClearsTheFailureFromTheFirst() async {
+        let auth = StubAuthenticating()
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        _ = await viewModel.register()
+        #expect(viewModel.signUpErrorMessage != nil)
+
+        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
+        _ = await viewModel.register()
+
+        #expect(viewModel.signUpErrorMessage == nil)
     }
 }
