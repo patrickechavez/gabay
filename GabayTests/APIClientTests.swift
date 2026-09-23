@@ -105,4 +105,27 @@ struct APIClientTests {
             let _: Payload = try await client.get("thing")
         }
     }
+
+    @Test func sendsAMultipartUploadAndDecodesTheResponse() async throws {
+        let client = makeClient()
+        StubURLProtocol.queue(.init(status: 200, body: Data("{\"value\":3}".utf8)))
+
+        let fileURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).gpx")
+        try Data("<gpx></gpx>".utf8).write(to: fileURL)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        let payload: Payload = try await client.postMultipart(
+            "thing",
+            fileURL: fileURL,
+            fieldName: "gpx",
+            filename: "route.gpx",
+            mimeType: "application/gpx+xml",
+            fields: ["distanceM": "500"]
+        )
+
+        #expect(payload == Payload(value: 3))
+        #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
+        #expect(StubURLProtocol.asked.first?.value(forHTTPHeaderField: "Content-Type")?
+            .hasPrefix("multipart/form-data; boundary=") == true)
+    }
 }

@@ -50,6 +50,41 @@ struct APIClient: Sendable {
         _ = try await sendRaw(makeRequest(path: path, method: "POST"))
     }
 
+    // For a file plus a handful of plain fields, like an organizer's GPX
+    // upload alongside its computed stats. Everything else in this client
+    // is JSON, this is the one exception, since a file cannot ride in a
+    // JSON body without base64 bloat.
+    func postMultipart<Response: Decodable>(
+        _ path: String,
+        fileURL: URL,
+        fieldName: String,
+        filename: String,
+        mimeType: String,
+        fields: [String: String] = [:]
+    ) async throws -> Response {
+        let boundary = UUID().uuidString
+        var request = makeRequest(path: path, method: "POST")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        for (name, value) in fields {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append(
+            "Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(filename)\"\r\n"
+                .data(using: .utf8)!
+        )
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(try Data(contentsOf: fileURL))
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        return try await send(request)
+    }
+
     private func makeRequest(path: String, method: String) -> URLRequest {
         var request = URLRequest(url: base.appending(path: path))
         request.httpMethod = method
