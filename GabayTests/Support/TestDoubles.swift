@@ -34,3 +34,67 @@ final class StubTokenStore: TokenStoring, @unchecked Sendable {
     func load() -> String? { saved }
     func clear() { saved = nil }
 }
+
+final class StubEventFetching: EventFetching, @unchecked Sendable {
+    var eventsResult: Result<[Event], any Error> = .success([])
+    var mineResult: Result<[Event], any Error> = .success([])
+    var createResult: Result<Event, any Error> = .failure(APIError.forbidden)
+    var uploadGPXResult: Result<Event, any Error> = .failure(APIError.forbidden)
+    var joinResult: Result<Void, any Error> = .success(())
+    private(set) var joinedIds: [String] = []
+    private(set) var uploadedGPXEventIds: [String] = []
+
+    func events() async throws -> [Event] { try eventsResult.get() }
+    func event(id: String) async throws -> Event { try eventsResult.get().first { $0.id == id }! }
+    func create(_ draft: EventDraft) async throws -> Event { try createResult.get() }
+
+    func uploadGPX(
+        eventID: String,
+        fileURL: URL,
+        distanceM: Int,
+        ascentM: Int?,
+        estimatedMinutes: Int
+    ) async throws -> Event {
+        uploadedGPXEventIds.append(eventID)
+        return try uploadGPXResult.get()
+    }
+
+    func join(_ id: String) async throws {
+        joinedIds.append(id)
+        try joinResult.get()
+    }
+
+    func mine() async throws -> [Event] { try mineResult.get() }
+}
+
+extension Event {
+
+    static func fixture(
+        id: String = "hike-for-pawssion",
+        title: String = "Hike for Pawssion Project",
+        gpxURL: URL? = nil,
+        distanceM: Int? = nil,
+        ascentM: Int? = nil,
+        estimatedMinutes: Int? = nil,
+        status: Status = .published
+    ) -> Event {
+        Event(
+            id: id,
+            title: title,
+            cause: "Pawssion Project Cebu",
+            date: Date(timeIntervalSince1970: 1_760_000_000),
+            meetingPoint: "Budlaan barangay hall",
+            meetingCoordinate: Coordinate(latitude: 10.398, longitude: 123.887),
+            feePHP: 250,
+            capacity: 25,
+            joinURL: URL(string: "https://m.me/pawssionprojectcebu")!,
+            description: "A hike up Budlaan to Kang-Irag.",
+            photoURL: nil,
+            gpxURL: gpxURL,
+            distanceM: distanceM,
+            ascentM: ascentM,
+            estimatedMinutes: estimatedMinutes,
+            status: status
+        )
+    }
+}
