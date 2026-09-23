@@ -1,5 +1,5 @@
 //
-//  RouteMapView.swift
+//  RoutePreviewMap.swift
 //  Gabay
 //  Created by John Patrick Echavez on 9/23/26.
 //
@@ -9,8 +9,10 @@ import SwiftUI
 
 // A read-only drawing of a route: no live position, no following, no
 // compass. Used both for an organizer confirming an upload and for a
-// hiker deciding whether to show up.
-struct RouteMapView: UIViewRepresentable {
+// hiker deciding whether to show up. Named apart from the free-trail
+// app's still-present TrailMapView/RouteMapView/RouteCasing, which share
+// this target until Task 12 removes them.
+struct RoutePreviewMap: UIViewRepresentable {
 
     let points: [TrackPoint]
 
@@ -42,7 +44,7 @@ struct RouteMapView: UIViewRepresentable {
         let route = MKPolyline(coordinates: coordinates, count: coordinates.count)
 
         // A white casing, so the line reads against forest and rock alike.
-        view.addOverlay(RouteCasing(coordinates: coordinates, count: coordinates.count))
+        view.addOverlay(RouteLineCasing(coordinates: coordinates, count: coordinates.count))
         view.addOverlay(route)
         view.frame(route: route.boundingMapRect)
     }
@@ -53,7 +55,7 @@ struct RouteMapView: UIViewRepresentable {
             guard let line = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
 
             let renderer = MKPolylineRenderer(polyline: line)
-            let isCasing = overlay is RouteCasing
+            let isCasing = overlay is RouteLineCasing
 
             // Named: converting Color.accentColor gives the system accent instead.
             renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
@@ -66,7 +68,7 @@ struct RouteMapView: UIViewRepresentable {
 }
 
 // The wider line drawn underneath the route.
-final class RouteCasing: MKPolyline {}
+final class RouteLineCasing: MKPolyline {}
 
 // Frames the route the first time the map has a size. Setting a map rect
 // on a zero sized view does nothing, and that is the state at make time.

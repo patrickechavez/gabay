@@ -77,8 +77,14 @@ struct LocationPicker: View {
 
 // A single current-location read, nothing held past that. No background
 // mode, no continuous updates, just "where am I right now."
-@MainActor
-final class OneShotLocator: NSObject, CLLocationManagerDelegate {
+//
+// Not @MainActor: CLLocationManagerDelegate is a plain, non-isolated
+// protocol, and Swift 6 refuses a main-actor-isolated conformance to it
+// (the delegate callbacks are not guaranteed to land on the main actor).
+// @unchecked Sendable is the same escape hatch StubURLProtocol already
+// uses elsewhere in this codebase for the same kind of delegate bridging,
+// there is never more than one in-flight request per instance.
+final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
 
     private let manager = CLLocationManager()
     private var continuation: CheckedContinuation<CLLocationCoordinate2D?, Never>?
