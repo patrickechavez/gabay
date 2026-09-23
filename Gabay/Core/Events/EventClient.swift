@@ -6,12 +6,15 @@
 
 import Foundation
 
-struct Coordinate: Codable, Equatable, Sendable {
+struct Coordinate: Codable, Hashable, Sendable {
     let latitude: Double
     let longitude: Double
 }
 
-struct Event: Codable, Identifiable, Equatable, Sendable {
+// Hashable, not merely Equatable: `.navigationDestination(item:)` in the
+// events list requires it, the same reason the free-trail app's Trail was
+// declared Hashable.
+struct Event: Codable, Identifiable, Hashable, Sendable {
     let id: String
     let title: String
     let cause: String
