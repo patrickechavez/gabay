@@ -29,7 +29,7 @@ final class SignUpViewModel {
     // An empty field is never an inline error. It shows as the required
     // marker and a disabled button, so only a filled-in field can be wrong.
     var emailError: String? {
-        guard !email.isEmpty, !email.trimmed.isValidEmail else { return nil }
+        guard !email.trimmed.isEmpty, !email.trimmed.isValidEmail else { return nil }
         return String(
             localized: "Enter a valid email address.",
             comment: "Validation message shown for a malformed email address"
@@ -128,8 +128,4 @@ struct SignUpView: View {
             }
         }
     }
-}
-
-private extension String {
-    var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }

@@ -197,6 +197,13 @@ struct PostEventViewModelTests {
         #expect(viewModel.canSubmit)
     }
 
+    @Test func aNegativeFeeShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.feePHP = "-100"
+        #expect(viewModel.feeError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
     @Test func aCapacityOfZeroShowsAnError() {
         let viewModel = makeValidViewModel()
         viewModel.capacity = "0"
@@ -242,6 +249,20 @@ struct PostEventViewModelTests {
         let viewModel = makeValidViewModel()
         viewModel.joinURLText = "https://m.me/pawssionprojectcebu"
         #expect(viewModel.joinURLError == nil)
+    }
+
+    @Test func aJoinLinkWithNoHostShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.joinURLText = "https://"
+        #expect(viewModel.joinURLError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aNonWebSchemeJoinLinkShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.joinURLText = "mailto:organizer@example.com"
+        #expect(viewModel.joinURLError != nil)
+        #expect(viewModel.canSubmit == false)
     }
 
     @Test func anEmptyPhotoLinkShowsNoError() {

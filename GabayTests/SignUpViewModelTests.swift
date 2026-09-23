@@ -30,6 +30,12 @@ struct SignUpViewModelTests {
         #expect(viewModel.emailError == nil)
     }
 
+    @Test func aWhitespaceOnlyEmailShowsNoError() {
+        let viewModel = makeViewModel()
+        viewModel.email = "   "
+        #expect(viewModel.emailError == nil)
+    }
+
     @Test func anUntouchedPasswordShowsNoError() {
         #expect(makeViewModel().passwordError == nil)
     }

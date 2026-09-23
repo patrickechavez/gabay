@@ -49,10 +49,10 @@ final class PostEventViewModel {
     // an inline error always means "what you typed is not usable".
 
     var feeError: String? {
-        guard !feePHP.trimmed.isEmpty, Int(feePHP.trimmed) == nil else { return nil }
+        guard !feePHP.trimmed.isEmpty, (Int(feePHP.trimmed) ?? -1) < 0 else { return nil }
         return String(
-            localized: "Enter the fee as a whole number of pesos.",
-            comment: "Validation message shown for a fee that is not a number"
+            localized: "Enter the fee as a whole number of pesos, 0 or more.",
+            comment: "Validation message shown for a fee that is not a whole non-negative number"
         )
     }
 
@@ -107,7 +107,7 @@ final class PostEventViewModel {
             && !meetingPoint.trimmed.isEmpty
             && meetingCoordinate != nil
             && !eventDescription.trimmed.isEmpty
-            && Int(feePHP.trimmed) != nil
+            && (Int(feePHP.trimmed) ?? -1) >= 0
             && (Int(capacity.trimmed) ?? 0) > 0
             && joinURLText.trimmed.isFullLink
             && (photoURLText.trimmed.isEmpty || photoURLText.trimmed.isFullLink)
@@ -188,8 +188,10 @@ final class PostEventViewModel {
 
 private extension String {
 
-    var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
-
-    // A link the app can actually open, not a bare host the organizer typed.
-    var isFullLink: Bool { URL(string: self)?.scheme != nil }
+    // A link the app can actually open: a web scheme with somewhere to go,
+    // not just any string URL(string:) is willing to parse.
+    var isFullLink: Bool {
+        guard let url = URL(string: self), let scheme = url.scheme?.lowercased() else { return false }
+        return (scheme == "http" || scheme == "https") && !(url.host?.isEmpty ?? true)
+    }
 }
