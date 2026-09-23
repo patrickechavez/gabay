@@ -123,7 +123,7 @@ struct PostEventViewModelTests {
     @Test func submitWithAPickedGPXAlsoUploadsIt() async throws {
         let events = StubEventFetching()
         events.createResult = .success(.fixture(status: .pending))
-        events.uploadGPXResult = .success(.fixture(status: .pending, gpxURL: URL(string: "https://example.test/r.gpx")))
+        events.uploadGPXResult = .success(.fixture(gpxURL: URL(string: "https://example.test/r.gpx"), status: .pending))
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
