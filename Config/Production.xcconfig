@@ -25,6 +25,14 @@ CATALOG_URL = https:/$()/patrickechavez.github.io/gabay/trails
 
 
 
+// Seconds before a request gives up
+
+// Retries for flaky mobile connections
+
+// Must stay NO, logs leak user data to the device console
+
+
+
 // Events/auth API
 
 // Placeholder until the C# backend is deployed

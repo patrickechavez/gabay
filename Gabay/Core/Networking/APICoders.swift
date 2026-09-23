@@ -1,5 +1,5 @@
 //
-//  JSONCoders.swift
+//  APICoders.swift
 //  Gabay
 //  Created by John Patrick Echavez on 9/23/26.
 //

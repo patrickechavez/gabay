@@ -7,6 +7,13 @@ import Foundation
 
 // Answers requests from a queue, and keeps what it was asked. Shared by
 // every test that stubs a network call instead of talking to a server.
+//
+// The lock makes each read or write atomic, but does not make a whole
+// reset-then-queue-then-request sequence atomic across suites: two
+// different test suites running concurrently could still interleave their
+// sequences and steal each other's queued reply. Suites sharing this stub
+// should stay `@Suite(.serialized)` internally; true cross-suite isolation
+// would need per-client reply routing, not attempted here.
 final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
     struct Reply {
@@ -15,17 +22,28 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         var headers: [String: String] = [:]
     }
 
-    nonisolated(unsafe) private static var replies: [Reply] = []
+    private static let lock = NSLock()
 
-    nonisolated(unsafe) private(set) static var asked: [URLRequest] = []
+    nonisolated(unsafe) private static var _replies: [Reply] = []
+    nonisolated(unsafe) private static var _asked: [URLRequest] = []
+
+    static var asked: [URLRequest] {
+        lock.lock()
+        defer { lock.unlock() }
+        return _asked
+    }
 
     static func reset() {
-        replies = []
-        asked = []
+        lock.lock()
+        defer { lock.unlock() }
+        _replies = []
+        _asked = []
     }
 
     static func queue(_ reply: Reply) {
-        replies.append(reply)
+        lock.lock()
+        defer { lock.unlock() }
+        _replies.append(reply)
     }
 
     override class func canInit(with request: URLRequest) -> Bool { true }
@@ -33,14 +51,18 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
-        Self.asked.append(request)
+        Self.lock.lock()
+        Self._asked.append(request)
+        let reply = Self._replies.isEmpty ? nil : Self._replies.removeFirst()
+        Self.lock.unlock()
 
-        guard !Self.replies.isEmpty else {
+        // Safe to force-unwrap: `request.url` and `reply.status` are always
+        // set by the tests that construct them, never derived from external input.
+        guard let reply else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
         }
 
-        let reply = Self.replies.removeFirst()
         let response = HTTPURLResponse(
             url: request.url!,
             statusCode: reply.status,

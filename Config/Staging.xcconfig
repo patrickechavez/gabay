@@ -23,6 +23,14 @@ CATALOG_URL = https:/$()/patrickechavez.github.io/gabay/trails
 
 
 
+// Seconds before a request gives up
+
+// Retries for flaky connections
+
+// Off, so TestFlight behaves like the real thing
+
+
+
 // Events/auth API
 
 // Placeholder until the C# backend has a staging URL
