@@ -1,5 +1,7 @@
 # Gabay
 
+[![Tests](https://github.com/patrickechavez/gabay/actions/workflows/tests.yml/badge.svg)](https://github.com/patrickechavez/gabay/actions/workflows/tests.yml)
+
 An iPhone app that shows you a trail on a map and shows where you are on it. Free, no account, no subscription.
 
 Gabay is Filipino for guide.
@@ -119,6 +121,9 @@ Views hold no logic. A view model owns the state, and everything below it sits b
 ```bash
 xcodebuild test -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
+
+Every push and pull request runs the same suite on CI, against whichever Xcode
+and simulator the runner happens to carry.
 
 ## Not built yet
 

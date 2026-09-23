@@ -57,10 +57,10 @@ struct TrailCatalogClient: TrailCatalogFetching {
 
     private let session: URLSession
 
-    init(base: URL = AppConfig.catalogURL) {
+    // The configuration is a parameter so a test can hand it a stub protocol.
+    init(base: URL = AppConfig.catalogURL, configuration: URLSessionConfiguration = .default) {
         self.base = base
 
-        let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = Self.timeout
         configuration.waitsForConnectivity = false
         session = URLSession(configuration: configuration)

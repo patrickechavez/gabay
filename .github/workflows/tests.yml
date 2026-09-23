@@ -1,0 +1,59 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push supersedes the run before it.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Runner images carry several Xcodes. Take the newest rather than pin one.
+      - name: Use the newest Xcode
+        run: |
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$latest"
+          xcodebuild -version
+
+      # Device names change with every Xcode, so ask for one that exists.
+      - name: Pick a simulator
+        run: |
+          udid=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          runtimes = json.load(sys.stdin)["devices"]
+          for runtime in sorted(runtimes, reverse=True):
+              for device in runtimes[runtime]:
+                  if "iPhone" in device["name"]:
+                      print(device["udid"])
+                      sys.exit()
+          sys.exit("no iPhone simulator on this runner")
+          ')
+          echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+          xcrun simctl list devices | grep "$udid"
+
+      # SwiftLint is a build tool plugin, which xcodebuild will not run unattended
+      # without this.
+      - name: Test
+        run: |
+          xcodebuild test \
+            -scheme Development \
+            -destination "id=$SIMULATOR" \
+            -resultBundlePath Tests.xcresult \
+            -skipPackagePluginValidation
+
+      - name: Keep the result bundle when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tests.xcresult
+          path: Tests.xcresult
