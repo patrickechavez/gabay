@@ -12,7 +12,10 @@ final class PostEventViewModel {
 
     var title = ""
     var cause = ""
-    var date = Date()
+    // Optional and required, rather than defaulted to now. A pre-filled date
+    // lets an organizer post a hike starting the instant they tap Submit
+    // without ever noticing the field.
+    var date: Date?
     var meetingPoint = ""
     var meetingCoordinate: Coordinate?
     var feePHP = ""
@@ -20,6 +23,8 @@ final class PostEventViewModel {
     var joinURLText = ""
     var eventDescription = ""
     var photoURLText = ""
+
+    var alert: AlertState?
 
     private(set) var isSubmitting = false
     private(set) var failure: LoadFailure?
@@ -39,19 +44,56 @@ final class PostEventViewModel {
         self.parser = parser
     }
 
-    var isShowingFailure: Bool {
-        get { failure != nil }
-        set { if !newValue { failure = nil } }
+    // Every rule below guards on the field being non-empty first. An empty
+    // required field shows as the required marker and a disabled button, so
+    // an inline error always means "what you typed is not usable".
+
+    var feeError: String? {
+        guard !feePHP.trimmed.isEmpty, Int(feePHP.trimmed) == nil else { return nil }
+        return String(
+            localized: "Enter the fee as a whole number of pesos.",
+            comment: "Validation message shown for a fee that is not a number"
+        )
     }
 
-    var isShowingConfirmation: Bool {
-        get { didSubmit }
-        set { if !newValue { didSubmit = false } }
+    var capacityError: String? {
+        guard !capacity.trimmed.isEmpty, (Int(capacity.trimmed) ?? 0) <= 0 else { return nil }
+        return String(
+            localized: "Enter how many hikers can join, at least 1.",
+            comment: "Validation message shown for a capacity that is not a positive number"
+        )
     }
 
-    var isShowingGPXFailure: Bool {
-        get { gpxError != nil }
-        set { if !newValue { gpxError = nil } }
+    var joinURLError: String? {
+        guard !joinURLText.trimmed.isEmpty, !joinURLText.trimmed.isFullLink else { return nil }
+        return String(
+            localized: "Enter a full link, starting with https://",
+            comment: "Validation message shown for a link with no scheme"
+        )
+    }
+
+    var photoURLError: String? {
+        guard !photoURLText.trimmed.isEmpty, !photoURLText.trimmed.isFullLink else { return nil }
+        return String(
+            localized: "Enter a full link, starting with https://",
+            comment: "Validation message shown for a link with no scheme"
+        )
+    }
+
+    var gpxErrorMessage: String? {
+        guard let gpxError, gpxError.isUserFacing else { return nil }
+        return String(
+            localized: "That file could not be read. Try a different GPX, or leave the route out, it's optional.",
+            comment: "Shown when an attached GPX cannot be parsed"
+        )
+    }
+
+    var submitErrorMessage: String? {
+        guard let failure, failure.isUserFacing else { return nil }
+        return String(
+            localized: "Check the form and try again.",
+            comment: "Shown when posting an event fails"
+        )
     }
 
     // No image upload endpoint exists yet, so a photo is an already-hosted
@@ -61,13 +103,14 @@ final class PostEventViewModel {
         !isSubmitting
             && !title.trimmed.isEmpty
             && !cause.trimmed.isEmpty
+            && date != nil
             && !meetingPoint.trimmed.isEmpty
             && meetingCoordinate != nil
             && !eventDescription.trimmed.isEmpty
-            && Int(feePHP) != nil
-            && (Int(capacity) ?? 0) > 0
-            && URL(string: joinURLText)?.scheme != nil
-            && (photoURLText.trimmed.isEmpty || URL(string: photoURLText.trimmed)?.scheme != nil)
+            && Int(feePHP.trimmed) != nil
+            && (Int(capacity.trimmed) ?? 0) > 0
+            && joinURLText.trimmed.isFullLink
+            && (photoURLText.trimmed.isEmpty || photoURLText.trimmed.isFullLink)
     }
 
     func pickGPX(at url: URL) {
@@ -93,11 +136,13 @@ final class PostEventViewModel {
 
     func submit() async {
         guard canSubmit,
-              let fee = Int(feePHP),
-              let capacity = Int(capacity),
-              let joinURL = URL(string: joinURLText),
+              let date,
+              let fee = Int(feePHP.trimmed),
+              let capacity = Int(capacity.trimmed),
+              let joinURL = URL(string: joinURLText.trimmed),
               let meetingCoordinate else { return }
 
+        failure = nil
         isSubmitting = true
         defer { isSubmitting = false }
 
@@ -128,6 +173,13 @@ final class PostEventViewModel {
             }
 
             didSubmit = true
+            alert = .notice(
+                String(localized: "Submitted", comment: "Title confirming an event was submitted"),
+                String(
+                    localized: "Your event is pending review before it appears publicly.",
+                    comment: "Shown after an organizer submits a new event"
+                )
+            )
         } catch {
             failure = LoadFailure.classify(error)
         }
@@ -135,5 +187,9 @@ final class PostEventViewModel {
 }
 
 private extension String {
+
     var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    // A link the app can actually open, not a bare host the organizer typed.
+    var isFullLink: Bool { URL(string: self)?.scheme != nil }
 }

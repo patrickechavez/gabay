@@ -15,118 +15,30 @@ struct PostEventView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(
-                        "Title",
-                        text: $viewModel.title,
-                        prompt: Text("Title", comment: "Placeholder for the event title field")
-                    )
-                    TextField(
-                        "Cause",
-                        text: $viewModel.cause,
-                        prompt: Text("Cause", comment: "Placeholder for the beneficiary/cause field")
-                    )
-                    DatePicker(selection: $viewModel.date) {
-                        Text("Date", comment: "Label for the event date and time picker")
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+                    basicsSection
+                    meetingPointSection
+                    registrationSection
+                    routeSection
+                    photoSection
+                    descriptionSection
+
+                    if let message = viewModel.submitErrorMessage {
+                        InlineErrorText(message)
                     }
-                } header: {
-                    Text("Basics", comment: "Section header for an event's core details")
-                }
 
-                Section {
-                    TextField(
-                        "Meeting point",
-                        text: $viewModel.meetingPoint,
-                        prompt: Text("Meeting point", comment: "Placeholder for the meeting point label field")
+                    AsyncButton(
+                        title: Text("Submit for Review",
+                                    comment: "Button that submits a new event for moderation"),
+                        isRunning: viewModel.isSubmitting,
+                        action: { await viewModel.submit() }
                     )
-
-                    Button {
-                        isPickingLocation = true
-                    } label: {
-                        if viewModel.meetingCoordinate != nil {
-                            Label {
-                                Text("Pin set", comment: "Shown once a meeting point pin has been dropped")
-                            } icon: {
-                                Image(systemName: "checkmark.circle.fill")
-                            }
-                        } else {
-                            Text("Choose on Map", comment: "Opens the meeting point pin-drop picker")
-                        }
-                    }
-                } header: {
-                    Text("Meeting Point", comment: "Section header for the meeting point label and pin")
-                }
-
-                Section {
-                    TextField(
-                        "Fee",
-                        text: $viewModel.feePHP,
-                        prompt: Text("Fee in pesos", comment: "Placeholder for the registration fee field")
-                    )
-                    .keyboardType(.numberPad)
-
-                    TextField(
-                        "Capacity",
-                        text: $viewModel.capacity,
-                        prompt: Text("Capacity", comment: "Placeholder for the hiker capacity field")
-                    )
-                    .keyboardType(.numberPad)
-
-                    TextField(
-                        "Join link",
-                        text: $viewModel.joinURLText,
-                        prompt: Text("https://", comment: "Placeholder for the external join/payment link field")
-                    )
-                    .keyboardType(.URL)
-                    .textInputAutocapitalization(.never)
-                } header: {
-                    Text("Registration", comment: "Section header for fee, capacity, and join link")
-                }
-
-                gpxSection
-
-                Section {
-                    TextField(
-                        "Photo link",
-                        text: $viewModel.photoURLText,
-                        prompt: Text("https:// (optional)",
-                                     comment: "Placeholder for the optional event photo link field")
-                    )
-                    .keyboardType(.URL)
-                    .textInputAutocapitalization(.never)
-                } header: {
-                    Text("Photo", comment: "Section header for the optional event photo")
-                } footer: {
-                    Text("Link to a photo already hosted somewhere, such as one you've posted elsewhere.",
-                         comment: "Explains the photo link field, since there's no photo upload yet")
-                }
-
-                Section {
-                    TextField(
-                        "Description",
-                        text: $viewModel.eventDescription,
-                        prompt: Text("Description", comment: "Placeholder for the event description field"),
-                        axis: .vertical
-                    )
-                    .lineLimit(4...8)
-                } header: {
-                    Text("Description", comment: "Section header for the event description")
-                }
-
-                Section {
-                    Button {
-                        Task { await viewModel.submit() }
-                    } label: {
-                        if viewModel.isSubmitting {
-                            ProgressView()
-                        } else {
-                            Text("Submit for Review", comment: "Button that submits a new event for moderation")
-                        }
-                    }
                     .disabled(!viewModel.canSubmit)
                 }
+                .padding(Theme.Spacing.lg)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(Text("Post a Hike", comment: "Title of the organizer event-creation form"))
             .sheet(isPresented: $isPickingLocation) {
                 LocationPicker(coordinate: $viewModel.meetingCoordinate)
@@ -136,75 +48,190 @@ struct PostEventView: View {
                     viewModel.pickGPX(at: url)
                 }
             }
-            .alert(
-                Text("Submitted", comment: "Title confirming an event was submitted"),
-                isPresented: $viewModel.isShowingConfirmation
-            ) {
-                Button {
-                } label: {
-                    Text("OK", comment: "Dismisses the submission confirmation")
-                }
-            } message: {
-                Text("Your event is pending review before it appears publicly.",
-                     comment: "Shown after an organizer submits a new event")
-            }
-            .alert(
-                Text("Couldn't submit", comment: "Title when posting an event fails"),
-                isPresented: $viewModel.isShowingFailure
-            ) {
-                Button {
-                } label: {
-                    Text("OK", comment: "Dismisses the submission failure alert")
-                }
-            } message: {
-                Text("Check the form and try again.", comment: "Shown when posting an event fails")
-            }
-            .alert(
-                Text("Couldn't read that file", comment: "Title when an attached GPX fails to parse"),
-                isPresented: $viewModel.isShowingGPXFailure
-            ) {
-                Button {
-                } label: {
-                    Text("OK", comment: "Dismisses the GPX read failure alert")
-                }
-            } message: {
-                Text("Try a different GPX file, or leave the route out, it's optional.",
-                     comment: "Shown when an attached GPX cannot be parsed")
-            }
+            .appAlert($viewModel.alert)
         }
     }
 
     @ViewBuilder
-    private var gpxSection: some View {
-        Section {
-            if let route = viewModel.route {
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Label {
-                        Text("Route attached", comment: "Shown once a GPX has been parsed successfully")
-                    } icon: {
-                        Image(systemName: "checkmark.circle.fill")
-                    }
+    private var basicsSection: some View {
+        sectionHeader(Text("Basics", comment: "Section header for an event's core details"))
 
-                    Text(routeSummary(route))
-                        .font(Theme.Font.caption)
-                        .foregroundStyle(Theme.Color.secondaryText)
-                }
+        AppTextField(
+            text: $viewModel.title,
+            placeholder: String(localized: "Title", comment: "Placeholder for the event title field"),
+            label: String(localized: "Title", comment: "Label for the event title field"),
+            isRequired: true,
+            capitalization: .words
+        )
 
-                Button(role: .destructive) {
-                    viewModel.removeGPX()
-                } label: {
-                    Text("Remove Route", comment: "Removes the attached GPX from the form")
+        AppTextField(
+            text: $viewModel.cause,
+            placeholder: String(localized: "Cause", comment: "Placeholder for the beneficiary/cause field"),
+            label: String(localized: "Cause", comment: "Label for the beneficiary/cause field"),
+            isRequired: true,
+            capitalization: .words
+        )
+
+        DateField(
+            label: String(localized: "Date", comment: "Label for the event date and time field"),
+            date: $viewModel.date,
+            format: .monthDayYearTime12,
+            isRequired: true
+        )
+    }
+
+    @ViewBuilder
+    private var meetingPointSection: some View {
+        sectionHeader(Text("Meeting Point", comment: "Section header for the meeting point label and pin"))
+
+        AppTextField(
+            text: $viewModel.meetingPoint,
+            placeholder: String(localized: "Meeting point",
+                                comment: "Placeholder for the meeting point label field"),
+            label: String(localized: "Meeting point", comment: "Label for the meeting point label field"),
+            isRequired: true
+        )
+
+        Button {
+            isPickingLocation = true
+        } label: {
+            if viewModel.meetingCoordinate != nil {
+                Label {
+                    Text("Pin set", comment: "Shown once a meeting point pin has been dropped")
+                } icon: {
+                    Image(systemName: "checkmark.circle.fill")
                 }
             } else {
-                Button {
-                    isPickingGPX = true
-                } label: {
-                    Text("Attach a GPX (Optional)", comment: "Opens the file picker for an optional route")
-                }
+                Text("Choose on Map", comment: "Opens the meeting point pin-drop picker")
             }
-        } header: {
-            Text("Route", comment: "Section header for the optional GPX route")
         }
+        .buttonStyle(.bordered)
+    }
+
+    @ViewBuilder
+    private var registrationSection: some View {
+        sectionHeader(Text("Registration", comment: "Section header for fee, capacity, and join link"))
+
+        AppTextField(
+            text: $viewModel.feePHP,
+            placeholder: String(localized: "Fee in pesos",
+                                comment: "Placeholder for the registration fee field"),
+            label: String(localized: "Fee", comment: "Label for the registration fee field"),
+            error: viewModel.feeError,
+            isRequired: true,
+            keyboard: .numberPad
+        )
+
+        AppTextField(
+            text: $viewModel.capacity,
+            placeholder: String(localized: "Capacity", comment: "Placeholder for the hiker capacity field"),
+            label: String(localized: "Capacity", comment: "Label for the hiker capacity field"),
+            error: viewModel.capacityError,
+            isRequired: true,
+            keyboard: .numberPad
+        )
+
+        AppTextField(
+            text: $viewModel.joinURLText,
+            placeholder: String(localized: "https://",
+                                comment: "Placeholder for the external join/payment link field"),
+            label: String(localized: "Join link", comment: "Label for the external join/payment link field"),
+            error: viewModel.joinURLError,
+            isRequired: true,
+            keyboard: .URL,
+            capitalization: .never,
+            contentType: .URL,
+            disableAutocorrection: true
+        )
+    }
+
+    @ViewBuilder
+    private var routeSection: some View {
+        sectionHeader(Text("Route", comment: "Section header for the optional GPX route"))
+
+        if let route = viewModel.route {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                Label {
+                    Text("Route attached", comment: "Shown once a GPX has been parsed successfully")
+                } icon: {
+                    Image(systemName: "checkmark.circle.fill")
+                }
+
+                Text(routeSummary(route))
+                    .font(Theme.Font.caption)
+                    .foregroundStyle(Theme.Color.secondaryText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(role: .destructive) {
+                viewModel.removeGPX()
+            } label: {
+                Text("Remove Route", comment: "Removes the attached GPX from the form")
+            }
+            .buttonStyle(.bordered)
+        } else {
+            Button {
+                isPickingGPX = true
+            } label: {
+                Text("Attach a GPX (Optional)", comment: "Opens the file picker for an optional route")
+            }
+            .buttonStyle(.bordered)
+        }
+
+        if let message = viewModel.gpxErrorMessage {
+            InlineErrorText(message)
+        }
+    }
+
+    @ViewBuilder
+    private var photoSection: some View {
+        sectionHeader(Text("Photo", comment: "Section header for the optional event photo"))
+
+        AppTextField(
+            text: $viewModel.photoURLText,
+            placeholder: String(localized: "https:// (optional)",
+                                comment: "Placeholder for the optional event photo link field"),
+            label: String(localized: "Photo link", comment: "Label for the optional event photo link field"),
+            error: viewModel.photoURLError,
+            keyboard: .URL,
+            capitalization: .never,
+            contentType: .URL,
+            disableAutocorrection: true
+        )
+
+        Text("Link to a photo already hosted somewhere, such as one you've posted elsewhere.",
+             comment: "Explains the photo link field, since there's no photo upload yet")
+            .font(Theme.Font.caption)
+            .foregroundStyle(Theme.Color.secondaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var descriptionSection: some View {
+        sectionHeader(Text("Description", comment: "Section header for the event description"))
+
+        FieldContainer(
+            label: String(localized: "Description", comment: "Label for the event description field"),
+            isRequired: true,
+            error: nil
+        ) {
+            TextField(
+                String(localized: "Description", comment: "Placeholder for the event description field"),
+                text: $viewModel.eventDescription,
+                axis: .vertical
+            )
+            .lineLimit(4...8)
+        }
+    }
+
+    // Section headers are identical everywhere, so they are built once here
+    // rather than repeated with their styling at each of the six call sites.
+    private func sectionHeader(_ text: Text) -> some View {
+        text
+            .font(Theme.Font.sectionTitle)
+            .foregroundStyle(Theme.Color.primaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, Theme.Spacing.sm)
     }
 
     private func routeSummary(_ route: RouteStats) -> String {
@@ -226,9 +253,7 @@ struct PostEventView: View {
 private extension UTType {
 
     // GPX is not one of Apple's declared types, so the app names it itself.
-    // Named `gpxFile`, not `gpx`: the free-trail app's still-present
-    // TrailsView.swift declares an internal `UTType.gpx` (deleted only in
-    // Task 12), and a same-named member visible in this file would be
-    // ambiguous at best.
+    // Named `gpxFile`, not `gpx`, to stay clear of any other GPX type
+    // declaration elsewhere in the target.
     static let gpxFile = UTType(filenameExtension: "gpx") ?? .xml
 }

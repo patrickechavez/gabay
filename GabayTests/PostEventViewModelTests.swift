@@ -20,6 +20,7 @@ struct PostEventViewModelTests {
         viewModel.capacity = "25"
         viewModel.joinURLText = "https://m.me/pawssionprojectcebu"
         viewModel.eventDescription = "A hike up Budlaan to Kang-Irag."
+        viewModel.date = Date(timeIntervalSince1970: 1_800_000_000)
         return viewModel
     }
 
@@ -144,5 +145,75 @@ struct PostEventViewModelTests {
 
         #expect(viewModel.didSubmit == false)
         #expect(viewModel.failure != nil)
+    }
+
+    @Test func cannotSubmitWithoutADate() {
+        let viewModel = makeValidViewModel()
+        viewModel.date = nil
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func anUntouchedFeeShowsNoError() {
+        #expect(PostEventViewModel(events: StubEventFetching()).feeError == nil)
+    }
+
+    @Test func aNonNumericFeeShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.feePHP = "two hundred"
+        #expect(viewModel.feeError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aNumericFeeShowsNoError() {
+        let viewModel = makeValidViewModel()
+        viewModel.feePHP = "250"
+        #expect(viewModel.feeError == nil)
+    }
+
+    @Test func aFreeHikeIsAllowed() {
+        let viewModel = makeValidViewModel()
+        viewModel.feePHP = "0"
+        #expect(viewModel.feeError == nil)
+        #expect(viewModel.canSubmit)
+    }
+
+    @Test func aCapacityOfZeroShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.capacity = "0"
+        #expect(viewModel.capacityError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aPositiveCapacityShowsNoError() {
+        let viewModel = makeValidViewModel()
+        viewModel.capacity = "25"
+        #expect(viewModel.capacityError == nil)
+    }
+
+    @Test func aJoinLinkWithNoSchemeShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.joinURLText = "m.me/pawssionprojectcebu"
+        #expect(viewModel.joinURLError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aFullJoinLinkShowsNoError() {
+        let viewModel = makeValidViewModel()
+        viewModel.joinURLText = "https://m.me/pawssionprojectcebu"
+        #expect(viewModel.joinURLError == nil)
+    }
+
+    @Test func anEmptyPhotoLinkShowsNoError() {
+        let viewModel = makeValidViewModel()
+        viewModel.photoURLText = ""
+        #expect(viewModel.photoURLError == nil)
+        #expect(viewModel.canSubmit)
+    }
+
+    @Test func aPhotoLinkWithNoSchemeShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.photoURLText = "example.com/hike.jpg"
+        #expect(viewModel.photoURLError != nil)
+        #expect(viewModel.canSubmit == false)
     }
 }
