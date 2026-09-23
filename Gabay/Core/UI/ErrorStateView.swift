@@ -39,9 +39,9 @@ struct ErrorStateView: View {
 
     private var message: LocalizedStringKey {
         switch error {
-        case .offline: "Trails already on your phone still work."
-        case .timedOut: "The trail did not finish downloading."
-        case .unavailable: "That trail is not where the catalogue said it was."
+        case .offline: "Check your connection and try again."
+        case .timedOut: "The request did not finish in time."
+        case .unavailable: "That's not available right now."
         default: "Try again in a moment."
         }
     }
