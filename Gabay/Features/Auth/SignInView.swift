@@ -22,18 +22,25 @@ final class SignInViewModel {
         self.session = session
     }
 
-    var isShowingFailure: Bool {
-        get { failure != nil }
-        set { if !newValue { failure = nil } }
-    }
-
+    // Sign-in deliberately has no inline field validation. A local rule here
+    // would gate canSubmit, and a false negative would lock someone out of
+    // their own account over an unusual but legal address. The server decides.
     var canSubmit: Bool {
         !email.isEmpty && !password.isEmpty && !isSigningIn
+    }
+
+    var signInErrorMessage: String? {
+        guard let failure, failure.isUserFacing else { return nil }
+        return String(
+            localized: "Check your email and password, then try again.",
+            comment: "Shown when sign-in fails"
+        )
     }
 
     func signIn() async {
         guard canSubmit else { return }
 
+        failure = nil
         isSigningIn = true
         defer { isSigningIn = false }
 
@@ -59,38 +66,32 @@ struct SignInView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(
-                        "Email",
+            ScrollView {
+                VStack(spacing: Theme.Spacing.lg) {
+                    EmailField(
                         text: $viewModel.email,
-                        prompt: Text("Email", comment: "Placeholder for the sign-in email field")
+                        isRequired: true
                     )
-                    .textContentType(.username)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
 
-                    SecureField(
-                        "Password",
+                    PasswordField(
                         text: $viewModel.password,
-                        prompt: Text("Password", comment: "Placeholder for the sign-in password field")
+                        isRequired: true
                     )
-                    .textContentType(.password)
-                }
 
-                Section {
-                    Button {
-                        Task { await viewModel.signIn() }
-                    } label: {
-                        if viewModel.isSigningIn {
-                            ProgressView()
-                        } else {
-                            Text("Sign In", comment: "Button that submits the sign-in form")
-                        }
+                    if let message = viewModel.signInErrorMessage {
+                        InlineErrorText(message)
                     }
+
+                    AsyncButton(
+                        title: Text("Sign In", comment: "Button that submits the sign-in form"),
+                        isRunning: viewModel.isSigningIn,
+                        action: { await viewModel.signIn() }
+                    )
                     .disabled(!viewModel.canSubmit)
                 }
+                .padding(Theme.Spacing.lg)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(Text("Gabay", comment: "Title of the sign-in screen"))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -103,18 +104,6 @@ struct SignInView: View {
             }
             .sheet(isPresented: $isShowingSignUp) {
                 SignUpView(viewModel: makeSignUpViewModel())
-            }
-            .alert(
-                Text("Couldn't sign in", comment: "Title when sign-in fails"),
-                isPresented: $viewModel.isShowingFailure
-            ) {
-                Button {
-                } label: {
-                    Text("OK", comment: "Dismisses the sign-in failure alert")
-                }
-            } message: {
-                Text("Check your email and password, then try again.",
-                     comment: "Shown when sign-in fails")
             }
         }
     }
