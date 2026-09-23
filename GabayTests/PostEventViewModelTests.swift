@@ -147,6 +147,26 @@ struct PostEventViewModelTests {
         #expect(viewModel.failure != nil)
     }
 
+    @Test func aSuccessfulSubmitShowsAConfirmationAlert() async {
+        let events = StubEventFetching()
+        events.createResult = .success(.fixture(status: .pending))
+        let viewModel = makeValidViewModel(events: events)
+
+        await viewModel.submit()
+
+        #expect(viewModel.alert != nil)
+    }
+
+    @Test func aFailedSubmitDoesNotShowAConfirmationAlert() async {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.validationFailed)
+        let viewModel = makeValidViewModel(events: events)
+
+        await viewModel.submit()
+
+        #expect(viewModel.alert == nil)
+    }
+
     @Test func cannotSubmitWithoutADate() {
         let viewModel = makeValidViewModel()
         viewModel.date = nil
@@ -180,6 +200,27 @@ struct PostEventViewModelTests {
     @Test func aCapacityOfZeroShowsAnError() {
         let viewModel = makeValidViewModel()
         viewModel.capacity = "0"
+        #expect(viewModel.capacityError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aNegativeCapacityShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.capacity = "-5"
+        #expect(viewModel.capacityError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aDecimalCapacityShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.capacity = "3.5"
+        #expect(viewModel.capacityError != nil)
+        #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aNonNumericCapacityShowsAnError() {
+        let viewModel = makeValidViewModel()
+        viewModel.capacity = "abc"
         #expect(viewModel.capacityError != nil)
         #expect(viewModel.canSubmit == false)
     }
