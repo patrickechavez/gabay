@@ -23,6 +23,13 @@ CATALOG_URL = https:/$()/patrickechavez.github.io/gabay/trails
 
 
 
+// Events/auth API
+
+// No backend yet; point at a local one while developing
+API_BASE_URL = http:/$()/localhost:5000
+
+
+
 // Force update — scaffolding, no code reads these yet
 
 // Where the Update button sends the user

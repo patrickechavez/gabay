@@ -17,6 +17,14 @@ enum AppConfig {
         return url
     }()
 
+    // Where the events/auth API lives.
+    static let apiBaseURL: URL = {
+        guard let value = string("API_BASE_URL"), let url = URL(string: value) else {
+            fatalError("API_BASE_URL is missing. Set it in Config/<Environment>.xcconfig.")
+        }
+        return url
+    }()
+
     private static func string(_ key: String) -> String? {
         guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
               !value.isEmpty else { return nil }
