@@ -850,8 +850,8 @@ git commit -m "Add sign-in and sign-up screens"
 
 **Interfaces:**
 - Consumes: `APIClient`, `APIError` (Task 1).
-- Produces: `struct Coordinate: Codable, Equatable, Sendable { let latitude: Double; let longitude: Double }`.
-- Produces: `struct Event: Codable, Identifiable, Equatable, Sendable` with `id, title, cause, date, meetingPoint, meetingCoordinate, feePHP, capacity, joinURL, description, photoURL, gpxURL, distanceM, ascentM, estimatedMinutes, status` (`status: Event.Status`, `enum Status: String, Codable, Sendable { case pending, published }`). `struct EventDraft: Encodable, Sendable` with the same fields except `id, status, gpxURL, distanceM, ascentM, estimatedMinutes` (those four are server-assigned by the GPX upload, never sent at creation).
+- Produces: `struct Coordinate: Codable, Hashable, Sendable { let latitude: Double; let longitude: Double }`.
+- Produces: `struct Event: Codable, Identifiable, Hashable, Sendable` with `id, title, cause, date, meetingPoint, meetingCoordinate, feePHP, capacity, joinURL, description, photoURL, gpxURL, distanceM, ascentM, estimatedMinutes, status` (`status: Event.Status`, `enum Status: String, Codable, Sendable { case pending, published }`). `Hashable`, not just `Equatable`, because Task 9's `EventsListView` drives navigation with `.navigationDestination(item:)`, whose only overload requires `D: Hashable`. The free-trail app's `Trail` model is declared `Identifiable, Hashable, Sendable` for exactly the same reason. `Coordinate` must be `Hashable` too, or `Event`'s synthesis fails. `struct EventDraft: Encodable, Sendable` with the same fields except `id, status, gpxURL, distanceM, ascentM, estimatedMinutes` (those four are server-assigned by the GPX upload, never sent at creation).
 - Produces: `protocol EventFetching: Sendable { func events() async throws -> [Event]; func event(id: String) async throws -> Event; func create(_ draft: EventDraft) async throws -> Event; func uploadGPX(eventID: String, fileURL: URL, distanceM: Int, ascentM: Int?, estimatedMinutes: Int) async throws -> Event; func join(_ id: String) async throws; func mine() async throws -> [Event] }`, `struct EventClient: EventFetching`.
 - Produces (APIClient addition): `func postMultipart<Response: Decodable>(_ path: String, fileURL: URL, fieldName: String, filename: String, mimeType: String, fields: [String: String] = [:]) async throws -> Response`.
 
@@ -1131,12 +1131,15 @@ struct EventClientTests {
 
 import Foundation
 
-struct Coordinate: Codable, Equatable, Sendable {
+struct Coordinate: Codable, Hashable, Sendable {
     let latitude: Double
     let longitude: Double
 }
 
-struct Event: Codable, Identifiable, Equatable, Sendable {
+// Hashable, not merely Equatable: `.navigationDestination(item:)` in the
+// events list requires it, the same reason the free-trail app's Trail was
+// declared Hashable.
+struct Event: Codable, Identifiable, Hashable, Sendable {
     let id: String
     let title: String
     let cause: String
