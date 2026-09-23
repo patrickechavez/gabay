@@ -14,6 +14,7 @@ final class StubAuthenticating: Authenticating, @unchecked Sendable {
     var loginResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized)
     var meResult: Result<Account, any Error> = .failure(APIError.unauthorized)
     private(set) var registeredEmail: String?
+    private(set) var loggedInEmail: String?
 
     func register(email: String, password: String) async throws -> AuthResult {
         registeredEmail = email
@@ -21,7 +22,8 @@ final class StubAuthenticating: Authenticating, @unchecked Sendable {
     }
 
     func login(email: String, password: String) async throws -> AuthResult {
-        try loginResult.get()
+        loggedInEmail = email
+        return try loginResult.get()
     }
 
     func me() async throws -> Account {

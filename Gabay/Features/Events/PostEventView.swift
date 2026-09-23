@@ -92,20 +92,26 @@ struct PostEventView: View {
             isRequired: true
         )
 
-        Button {
-            isPickingLocation = true
-        } label: {
-            if viewModel.meetingCoordinate != nil {
-                Label {
-                    Text("Pin set", comment: "Shown once a meeting point pin has been dropped")
-                } icon: {
-                    Image(systemName: "checkmark.circle.fill")
+        FieldContainer(
+            label: String(localized: "Meeting point pin", comment: "Label for the meeting point pin picker"),
+            isRequired: true,
+            error: nil
+        ) {
+            Button {
+                isPickingLocation = true
+            } label: {
+                if viewModel.meetingCoordinate != nil {
+                    Label {
+                        Text("Pin set", comment: "Shown once a meeting point pin has been dropped")
+                    } icon: {
+                        Image(systemName: "checkmark.circle.fill")
+                    }
+                } else {
+                    Text("Choose on Map", comment: "Opens the meeting point pin-drop picker")
                 }
-            } else {
-                Text("Choose on Map", comment: "Opens the meeting point pin-drop picker")
             }
+            .buttonStyle(.bordered)
         }
-        .buttonStyle(.bordered)
     }
 
     @ViewBuilder
@@ -221,6 +227,7 @@ struct PostEventView: View {
                 axis: .vertical
             )
             .lineLimit(4...8)
+            .accessibilityLabel(Text("Description", comment: "Label for the event description field"))
         }
     }
 
