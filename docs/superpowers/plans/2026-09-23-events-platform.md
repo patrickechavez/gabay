@@ -1694,27 +1694,29 @@ git commit -m "Move GPXParser and TrackPoint into Core/Route, add RouteStats"
 
 ---
 
-### Task 8: Features/Route (RouteMapView and LocationPicker)
+### Task 8: Features/Route (RoutePreviewMap and LocationPicker)
 
 **Files:**
-- Create: `Gabay/Features/Route/RouteMapView.swift`
+- Create: `Gabay/Features/Route/RoutePreviewMap.swift`
 - Create: `Gabay/Features/Route/LocationPicker.swift`
 
 **Interfaces:**
 - Consumes: `TrackPoint` (Task 7), `Coordinate` (Task 5).
-- Produces: `struct RouteMapView: UIViewRepresentable` (takes `let points: [TrackPoint]`, draws a static route, no live position, no following). `struct LocationPicker: View` (takes `@Binding var coordinate: Coordinate?`, a pin-drop map that opens on the organizer's current location). Task 9's `EventDetailView` uses `RouteMapView`; Task 11's `PostEventView` uses `LocationPicker`.
+- Produces: `struct RoutePreviewMap: UIViewRepresentable` (takes `let points: [TrackPoint]`, draws a static route, no live position, no following). `struct LocationPicker: View` (takes `@Binding var coordinate: Coordinate?`, a pin-drop map that opens on the organizer's current location). Task 9's `EventDetailView` uses `RoutePreviewMap`; Task 11's `PostEventView` uses `LocationPicker`.
 
 This is UI-only, like Tasks 4 and 9, no test cycle of its own.
 
 This is a deliberate simplification of the free-trail app's `TrailMapView`, not a straight move: the old view tracked a live walker's position, heading, and a "follow me" mode (`WalkerAnnotationView`, `CLLocationManager.startUpdatingHeading()`, `MKUserTrackingMode`). None of that applies here, this is a static, view-only drawing of a route already walked or planned. `WalkerAnnotationView.swift` is not kept, it has no role without live tracking.
 
-- [ ] **Step 1: Implement RouteMapView**
+**Naming note:** the free-trail app's still-present, untouched `Gabay/Features/Trail/TrailMapView.swift` (deleted only in Task 12) already declares `final class RouteMapView: MKMapView` and `final class RouteCasing: MKPolyline {}` at file scope. Since both files compile into the same target, this task's new types must not reuse either name, or the build fails with "invalid redeclaration" until Task 12 runs. This task names its SwiftUI wrapper `RoutePreviewMap` (not `RouteMapView`) and its casing type `RouteLineCasing` (not `RouteCasing`) specifically to avoid that collision. Its `MKMapView` subclass is named `FramedMapView`, which does not collide with anything.
 
-`Gabay/Features/Route/RouteMapView.swift`:
+- [ ] **Step 1: Implement RoutePreviewMap**
+
+`Gabay/Features/Route/RoutePreviewMap.swift`:
 
 ```swift
 //
-//  RouteMapView.swift
+//  RoutePreviewMap.swift
 //  Gabay
 //  Created by John Patrick Echavez on 9/23/26.
 //
@@ -1724,8 +1726,10 @@ import SwiftUI
 
 // A read-only drawing of a route: no live position, no following, no
 // compass. Used both for an organizer confirming an upload and for a
-// hiker deciding whether to show up.
-struct RouteMapView: UIViewRepresentable {
+// hiker deciding whether to show up. Named apart from the free-trail
+// app's still-present TrailMapView/RouteMapView/RouteCasing, which share
+// this target until Task 12 removes them.
+struct RoutePreviewMap: UIViewRepresentable {
 
     let points: [TrackPoint]
 
@@ -1757,7 +1761,7 @@ struct RouteMapView: UIViewRepresentable {
         let route = MKPolyline(coordinates: coordinates, count: coordinates.count)
 
         // A white casing, so the line reads against forest and rock alike.
-        view.addOverlay(RouteCasing(coordinates: coordinates, count: coordinates.count))
+        view.addOverlay(RouteLineCasing(coordinates: coordinates, count: coordinates.count))
         view.addOverlay(route)
         view.frame(route: route.boundingMapRect)
     }
@@ -1768,7 +1772,7 @@ struct RouteMapView: UIViewRepresentable {
             guard let line = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
 
             let renderer = MKPolylineRenderer(polyline: line)
-            let isCasing = overlay is RouteCasing
+            let isCasing = overlay is RouteLineCasing
 
             // Named: converting Color.accentColor gives the system accent instead.
             renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
@@ -1781,7 +1785,7 @@ struct RouteMapView: UIViewRepresentable {
 }
 
 // The wider line drawn underneath the route.
-final class RouteCasing: MKPolyline {}
+final class RouteLineCasing: MKPolyline {}
 
 // Frames the route the first time the map has a size. Setting a map rect
 // on a zero sized view does nothing, and that is the state at make time.
@@ -1894,8 +1898,14 @@ struct LocationPicker: View {
 
 // A single current-location read, nothing held past that. No background
 // mode, no continuous updates, just "where am I right now."
-@MainActor
-final class OneShotLocator: NSObject, CLLocationManagerDelegate {
+//
+// Not @MainActor: CLLocationManagerDelegate is a plain, non-isolated
+// protocol, and Swift 6 refuses a main-actor-isolated conformance to it
+// (the delegate callbacks are not guaranteed to land on the main actor).
+// @unchecked Sendable is the same escape hatch StubURLProtocol already
+// uses elsewhere in this codebase for the same kind of delegate bridging,
+// there is never more than one in-flight request per instance.
+final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
 
     private let manager = CLLocationManager()
     private var continuation: CheckedContinuation<CLLocationCoordinate2D?, Never>?
@@ -1957,7 +1967,7 @@ final class OneShotLocator: NSObject, CLLocationManagerDelegate {
 
 ```bash
 git add Gabay/Features/Route
-git commit -m "Add RouteMapView and LocationPicker"
+git commit -m "Add RoutePreviewMap and LocationPicker"
 ```
 
 ---
@@ -1971,10 +1981,10 @@ git commit -m "Add RouteMapView and LocationPicker"
 - Modify: `Gabay/Core/UI/ErrorStateView.swift`
 
 **Interfaces:**
-- Consumes: `EventsViewModel`, `Event` (Task 6/5), `Theme` (existing `DesignSystem/Theme.swift`), `ErrorStateView`/`LoadState` (existing `Core/UI`), `RouteMapView` (Task 8), `GPXParser`, `TrackPoint` (Task 7).
+- Consumes: `EventsViewModel`, `Event` (Task 6/5), `Theme` (existing `DesignSystem/Theme.swift`), `ErrorStateView`/`LoadState` (existing `Core/UI`), `RoutePreviewMap` (Task 8), `GPXParser`, `TrackPoint` (Task 7).
 - Produces: `struct EventsListView: View`, `struct EventDetailView: View`, `struct MyEventsView: View`. Task 12's `SignedInView` wires these into a `TabView`.
 
-UI only, same rationale as Task 4. `EventDetailView` fetches and parses `event.gpxURL` itself when present (a small `.task` with a local `LoadState<[TrackPoint]>`, matching the existing `LoadState` pattern rather than inventing a new one), this is view glue around already-tested pieces (`GPXParser`, `RouteMapView`), not new business logic, so it stays untested like the rest of this task's views.
+UI only, same rationale as Task 4. `EventDetailView` fetches and parses `event.gpxURL` itself when present (a small `.task` with a local `LoadState<[TrackPoint]>`, matching the existing `LoadState` pattern rather than inventing a new one), this is view glue around already-tested pieces (`GPXParser`, `RoutePreviewMap`), not new business logic, so it stays untested like the rest of this task's views.
 
 - [ ] **Step 1: Generalize ErrorStateView's copy away from trails**
 
@@ -2194,7 +2204,7 @@ struct EventDetailView: View {
             EmptyView()
         case let .loaded(points):
             VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                RouteMapView(points: points)
+                RoutePreviewMap(points: points)
                     .frame(height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.lg))
 
@@ -2936,7 +2946,7 @@ git commit -m "Add the Post a Hike screen with pin-drop and GPX attach"
 - Modify: `Gabay.xcodeproj/project.pbxproj` (build settings only, not file references)
 - Delete: `Gabay/Core/Trails/TrailCatalogClient.swift`, `Gabay/Core/Trails/CatalogCache.swift`, `Gabay/Core/Trails/TrailStore.swift`, `Gabay/Core/Trails/Trail.swift`
 - Delete: `Gabay/Core/Trails/JSONCoders.swift` and `GabayTests/JSONCodersTests.swift`. `TrailCatalogClient` and `CatalogCache` were the only two consumers of the `.trails` `JSONEncoder`/`JSONDecoder` coder (used to read/cache `catalog.json`); once both are gone, `.trails` has no caller anywhere in the app (`GPXParser` parses XML, not JSON; `EventClient` uses the unrelated `.api` coder from Task 1). Deleting both leaves `Gabay/Core/Trails/` empty, remove the directory too.
-- Delete: `Gabay/Features/Trail/` (all 4 files: `TrailsView.swift`, `TrailDetailView.swift`, `TrailMapView.swift`, `WalkerAnnotationView.swift`, the route-drawing logic was already extracted into `Features/Route/RouteMapView.swift` in Task 8)
+- Delete: `Gabay/Features/Trail/` (all 4 files: `TrailsView.swift`, `TrailDetailView.swift`, `TrailMapView.swift`, `WalkerAnnotationView.swift`, the route-drawing logic was already extracted, under different names to avoid a redeclaration clash with this directory, into `Features/Route/RoutePreviewMap.swift` in Task 8)
 - Delete: `trails/` (repo root)
 - Delete: `GabayTests/TrailsViewModelTests.swift`, `GabayTests/TrailStoreTests.swift`, `GabayTests/CatalogCacheTests.swift`, `GabayTests/TrailCatalogClientTests.swift`
 - Keep, do not delete: `GabayTests/GPXParserTests.swift` (moved to test `Core/Route/GPXParser.swift` in Task 7), `GabayTests/Fixtures/` (still used by it)
