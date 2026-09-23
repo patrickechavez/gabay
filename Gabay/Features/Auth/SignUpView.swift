@@ -18,29 +18,52 @@ final class SignUpViewModel {
 
     @ObservationIgnored private let session: Session
 
+    // A backend-defined minimum; the form just avoids an obviously-too-short
+    // password making a wasted round trip.
+    private static let minimumPasswordLength = 8
+
     init(session: Session) {
         self.session = session
     }
 
-    var isShowingFailure: Bool {
-        get { failure != nil }
-        set { if !newValue { failure = nil } }
+    // An empty field is never an inline error. It shows as the required
+    // marker and a disabled button, so only a filled-in field can be wrong.
+    var emailError: String? {
+        guard !email.isEmpty, !email.trimmed.isValidEmail else { return nil }
+        return String(
+            localized: "Enter a valid email address.",
+            comment: "Validation message shown for a malformed email address"
+        )
     }
 
-    // A backend-defined minimum; the form just avoids an obviously-too-short
-    // password making a wasted round trip.
+    var passwordError: String? {
+        guard !password.isEmpty, password.count < Self.minimumPasswordLength else { return nil }
+        return String(
+            localized: "Use at least \(Self.minimumPasswordLength) characters.",
+            comment: "Validation message shown when a password is too short"
+        )
+    }
+
+    var signUpErrorMessage: String? {
+        guard let failure, failure.isUserFacing else { return nil }
+        return String(localized: "Try again in a moment.", comment: "Shown when sign-up fails")
+    }
+
     var canSubmit: Bool {
-        !email.isEmpty && password.count >= 8 && !isRegistering
+        email.trimmed.isValidEmail
+            && password.count >= Self.minimumPasswordLength
+            && !isRegistering
     }
 
     func register() async -> Bool {
         guard canSubmit else { return false }
 
+        failure = nil
         isRegistering = true
         defer { isRegistering = false }
 
         do {
-            try await session.register(email: email, password: password)
+            try await session.register(email: email.trimmed, password: password)
             return true
         } catch {
             failure = LoadFailure.classify(error)
@@ -60,42 +83,39 @@ struct SignUpView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(
-                        "Email",
+            ScrollView {
+                VStack(spacing: Theme.Spacing.lg) {
+                    EmailField(
                         text: $viewModel.email,
-                        prompt: Text("Email", comment: "Placeholder for the sign-up email field")
+                        error: viewModel.emailError,
+                        isRequired: true
                     )
-                    .textContentType(.username)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
 
-                    SecureField(
-                        "Password",
+                    PasswordField(
                         text: $viewModel.password,
-                        prompt: Text("Password", comment: "Placeholder for the sign-up password field")
+                        error: viewModel.passwordError,
+                        isRequired: true,
+                        isNewPassword: true
                     )
-                    .textContentType(.newPassword)
-                } footer: {
-                    Text("At least 8 characters.", comment: "Password requirement shown under the field")
-                }
 
-                Section {
-                    Button {
-                        Task {
-                            if await viewModel.register() { dismiss() }
-                        }
-                    } label: {
-                        if viewModel.isRegistering {
-                            ProgressView()
-                        } else {
-                            Text("Create Account", comment: "Button that submits the sign-up form")
-                        }
+                    if let message = viewModel.signUpErrorMessage {
+                        InlineErrorText(message)
                     }
+
+                    AsyncButton(
+                        title: Text("Create Account", comment: "Button that submits the sign-up form"),
+                        isRunning: viewModel.isRegistering,
+                        action: {
+                            if await viewModel.register() {
+                                await MainActor.run { dismiss() }
+                            }
+                        }
+                    )
                     .disabled(!viewModel.canSubmit)
                 }
+                .padding(Theme.Spacing.lg)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle(Text("Sign Up", comment: "Title of the account creation screen"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -106,17 +126,10 @@ struct SignUpView: View {
                     }
                 }
             }
-            .alert(
-                Text("Couldn't create account", comment: "Title when sign-up fails"),
-                isPresented: $viewModel.isShowingFailure
-            ) {
-                Button {
-                } label: {
-                    Text("OK", comment: "Dismisses the sign-up failure alert")
-                }
-            } message: {
-                Text("Try again in a moment.", comment: "Shown when sign-up fails")
-            }
         }
     }
+}
+
+private extension String {
+    var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
