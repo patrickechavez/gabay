@@ -98,9 +98,30 @@ struct SignUpViewModelTests {
     }
 
     @Test func registerDoesNothingWhenTheFormCannotBeSubmitted() async {
-        let viewModel = makeViewModel()
+        let auth = StubAuthenticating()
+        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
+        let tokenStore = StubTokenStore()
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: tokenStore))
+
         let result = await viewModel.register()
+
         #expect(result == false)
+        #expect(viewModel.failure == nil)
+        #expect(tokenStore.saved == nil)
+    }
+
+    @Test func registerTrimsTheEmailBeforeSendingIt() async {
+        let auth = StubAuthenticating()
+        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
+
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        viewModel.email = "  hiker@example.com  "
+        viewModel.password = "longenough"
+
+        #expect(await viewModel.register())
+        #expect(auth.registeredEmail == "hiker@example.com")
     }
 
     @Test func registerReturnsTrueOnASuccessfulRegistration() async {
