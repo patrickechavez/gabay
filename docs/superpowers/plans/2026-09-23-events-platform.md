@@ -2489,7 +2489,7 @@ struct PostEventViewModelTests {
     @Test func submitWithAPickedGPXAlsoUploadsIt() async throws {
         let events = StubEventFetching()
         events.createResult = .success(.fixture(status: .pending))
-        events.uploadGPXResult = .success(.fixture(status: .pending, gpxURL: URL(string: "https://example.test/r.gpx")))
+        events.uploadGPXResult = .success(.fixture(gpxURL: URL(string: "https://example.test/r.gpx"), status: .pending))
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
@@ -2826,7 +2826,7 @@ struct PostEventView: View {
             .sheet(isPresented: $isPickingLocation) {
                 LocationPicker(coordinate: $viewModel.meetingCoordinate)
             }
-            .fileImporter(isPresented: $isPickingGPX, allowedContentTypes: [.gpx, .xml, .data]) { result in
+            .fileImporter(isPresented: $isPickingGPX, allowedContentTypes: [.gpxFile, .xml, .data]) { result in
                 if case let .success(url) = result {
                     viewModel.pickGPX(at: url)
                 }
@@ -2921,7 +2921,11 @@ struct PostEventView: View {
 private extension UTType {
 
     // GPX is not one of Apple's declared types, so the app names it itself.
-    static let gpx = UTType(filenameExtension: "gpx") ?? .xml
+    // Named `gpxFile`, not `gpx`: the free-trail app's still-present
+    // TrailsView.swift declares an internal `UTType.gpx` (deleted only in
+    // Task 12), and a same-named member visible in this file would be
+    // ambiguous at best.
+    static let gpxFile = UTType(filenameExtension: "gpx") ?? .xml
 }
 ```
 
