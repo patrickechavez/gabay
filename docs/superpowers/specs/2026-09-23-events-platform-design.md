@@ -3,7 +3,7 @@
 ## Why
 
 Gabay was a free GPX trail viewer: no accounts, no server, no payments. The
-new goal is different in kind, not degree — a platform where hikers pay a
+new goal is different in kind, not degree - a platform where hikers pay a
 small registration fee (₱200-300) to join an organized hike, with the fee
 going to an animal shelter or a person needing medical help. That requires
 accounts, organizers, and money changing hands, none of which the free-trail
@@ -34,9 +34,9 @@ committed before this pivot began):
 The entire free-trail feature, since there is no longer a free trail list
 and recording was explicitly dropped too:
 
-- `Gabay/Core/Trails/` — `TrailCatalogClient`, `CatalogCache`, `TrailStore`,
+- `Gabay/Core/Trails/` - `TrailCatalogClient`, `CatalogCache`, `TrailStore`,
   `GPXParser`, `Trail.swift`, `TrackPoint.swift`
-- `Gabay/Features/Trail/` — `TrailsView`, `TrailDetailView`, `TrailMapView`,
+- `Gabay/Features/Trail/` - `TrailsView`, `TrailDetailView`, `TrailMapView`,
   `WalkerAnnotationView`
 - `trails/` at the repo root (catalog.json, the GPX files, its README) and
   its GitHub Pages hosting
@@ -48,7 +48,7 @@ and recording was explicitly dropped too:
 
 `Gabay/Core/Trails/JSONCoders.swift` is kept, moved to
 `Gabay/Core/Networking/JSONCoders.swift`, and renamed from `.trails` to
-`.api` — its flexible ISO8601 date decoding (plain and fractional-second) is
+`.api` - its flexible ISO8601 date decoding (plain and fractional-second) is
 generic JSON-coding behavior, not trail-specific, and `Event.date` needs the
 same handling. `GabayTests/JSONCodersTests.swift` moves and renames with it.
 
@@ -61,7 +61,7 @@ same handling. `GabayTests/JSONCodersTests.swift` moves and renames with it.
   since offering third-party sign-in later would require adding it).
 - Every account has a role: `hiker` or `organizer`. Roles are set outside
   the app (directly by whoever administers the backend) after vetting a
-  shelter/cause partner — there is no self-service way to become an
+  shelter/cause partner - there is no self-service way to become an
   organizer inside the app.
 - Session token lives in the Keychain. A `401` from any endpoint clears the
   session and returns to sign-in.
@@ -71,12 +71,12 @@ same handling. `GabayTests/JSONCodersTests.swift` moves and renames with it.
 - Hikers see a list of published events: title, cause, date, meeting point,
   fee, capacity.
 - "Join" opens an external link (the organizer's payment/coordination
-  channel — GCash, Messenger, a payment page, whatever the organizer
+  channel - GCash, Messenger, a payment page, whatever the organizer
   controls) and marks the event as joined on the account. This is a soft
   RSVP, not proof of payment; reconciling who actually paid is the
   organizer's job, off-app.
 - "My Events" shows what the signed-in hiker has joined.
-- Events are informational only in phase 1 — no route, no GPX, no map.
+- Events are informational only in phase 1 - no route, no GPX, no map.
   Following an event's actual route on the day is coordinated by the
   organizer, not the app.
 - Organizer-flagged accounts additionally see "Post a hike": a form
@@ -116,8 +116,8 @@ uniformly: clear the session, show sign-in.
 
 ## iOS architecture
 
-Mirrors the pattern the free-trail code already used — protocol-based
-client → store → view model → view, views holding no logic — applied to the
+Mirrors the pattern the free-trail code already used - protocol-based
+client → store → view model → view, views holding no logic - applied to the
 new domain instead of inventing a new one.
 
 ```
@@ -125,7 +125,7 @@ Core/
 ├── Networking/   APIClient (shared URLSession + JSON coding + auth header +
 │                 error mapping), JSONCoders (moved/renamed, see above)
 ├── Auth/         AuthClient (protocol), TokenStore (Keychain-backed),
-│                 Session (@Observable — signed-in state, role)
+│                 Session (@Observable - signed-in state, role)
 └── Events/       EventClient (protocol: list, detail, create, join, mine),
                   EventStore (@Observable)
 
@@ -137,7 +137,7 @@ Features/
 ```
 
 `AuthClient` and `EventClient` both build on the shared `APIClient` rather
-than each rolling their own URLSession/error-handling — one place for
+than each rolling their own URLSession/error-handling - one place for
 timeout, status-code, and decode-error behavior, reused by both.
 
 The composition root shows `SignInView` or the events tab view based on
@@ -168,14 +168,14 @@ new ones.
 - `Session` and `EventStore` state-transition tests (signed out → signed in
   → role-gated UI, list loading → loaded/error).
 - CI (`tests.yml`, already in place on `main`) runs the same suite
-  unchanged — no workflow changes needed for this pivot.
+  unchanged - no workflow changes needed for this pivot.
 
 ## Out of scope (phase 2 or later)
 
-- The C# backend itself — separate project, separate spec.
+- The C# backend itself - separate project, separate spec.
 - DSWD / local-government partnership and solicitation permits.
 - In-app payment.
 - Event route/GPX/map following.
-- Linking a recorded walk to a joined event (moot in phase 1 — recording
+- Linking a recorded walk to a joined event (moot in phase 1 - recording
   itself is removed).
 - Sign in with Apple.
