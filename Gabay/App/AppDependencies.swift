@@ -12,21 +12,21 @@ final class AppDependencies {
     let analytics: any AnalyticsTracking
     let crashes: any CrashReporting
 
-    let catalog: any TrailCatalogFetching
+    let session: Session
+    let eventsViewModel: EventsViewModel
 
-    private let trails: any TrailStoring
-    private let cache: any CatalogCaching
+    private let events: any EventFetching
 
     init(
-        catalog: any TrailCatalogFetching,
-        trails: any TrailStoring,
-        cache: any CatalogCaching,
+        session: Session,
+        events: any EventFetching,
+        eventsViewModel: EventsViewModel,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
-        self.catalog = catalog
-        self.trails = trails
-        self.cache = cache
+        self.session = session
+        self.events = events
+        self.eventsViewModel = eventsViewModel
         self.analytics = analytics
         self.crashes = crashes
     }
@@ -38,16 +38,29 @@ final class AppDependencies {
 
         Observability.install(analytics: analytics, crashes: crashes)
 
+        let tokenStore = TokenStore()
+        let api = APIClient(base: AppConfig.apiBaseURL, tokenProvider: { tokenStore.load() })
+        let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)
+        let events = EventClient(api: api)
+
         return AppDependencies(
-            catalog: TrailCatalogClient(),
-            trails: TrailStore(),
-            cache: CatalogCache(),
+            session: session,
+            events: events,
+            eventsViewModel: EventsViewModel(events: events, session: session),
             analytics: analytics,
             crashes: crashes
         )
     }
 
-    func makeTrailsViewModel() -> TrailsViewModel {
-        TrailsViewModel(store: trails, catalog: catalog, cache: cache)
+    func makeSignInViewModel() -> SignInViewModel {
+        SignInViewModel(session: session)
+    }
+
+    func makeSignUpViewModel() -> SignUpViewModel {
+        SignUpViewModel(session: session)
+    }
+
+    func makePostEventViewModel() -> PostEventViewModel {
+        PostEventViewModel(events: events)
     }
 }

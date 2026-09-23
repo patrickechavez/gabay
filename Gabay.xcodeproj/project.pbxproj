@@ -296,8 +296,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay centers the map on you when you drop a pin for a meeting point.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -394,8 +393,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay centers the map on you when you drop a pin for a meeting point.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -493,8 +491,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Gabay follows your position along the trail, and keeps recording with the screen off so your track has no gaps.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay shows where you are on the trail.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gabay centers the map on you when you drop a pin for a meeting point.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
