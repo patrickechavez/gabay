@@ -26,7 +26,7 @@ final class SignInViewModel {
     // would gate canSubmit, and a false negative would lock someone out of
     // their own account over an unusual but legal address. The server decides.
     var canSubmit: Bool {
-        !email.isEmpty && !password.isEmpty && !isSigningIn
+        !email.trimmed.isEmpty && !password.isEmpty && !isSigningIn
     }
 
     var signInErrorMessage: String? {
@@ -45,7 +45,7 @@ final class SignInViewModel {
         defer { isSigningIn = false }
 
         do {
-            try await session.login(email: email, password: password)
+            try await session.login(email: email.trimmed, password: password)
         } catch {
             failure = LoadFailure.classify(error)
         }
