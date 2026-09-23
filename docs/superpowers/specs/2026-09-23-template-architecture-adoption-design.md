@@ -269,15 +269,22 @@ for the same flaw. Three stale prose comments and two orphaned
   behaves exactly as today. Scope is Analytics and Crashlytics only, matching
   the template.
 
-  This is a deliberate exception to a standing constraint. Both the
+  This is a deliberate, decided exception to a standing constraint. Both the
   events-platform spec and its implementation plan state "no third-party
   dependencies" as a global rule, and Firebase breaks it: the template pins
-  `firebase-ios-sdk` 12.17.0 plus eight transitive packages. Adopting it means
-  amending that constraint in both documents and in the README, rather than
-  quietly contradicting them. If the cost is judged too high for what is only
-  Analytics and Crashlytics, Slice 5 can keep `NetworkMonitor`, `OfflineBanner`
-  and the navigation stack and drop Firebase alone; nothing else in this spec
-  depends on it.
+  `firebase-ios-sdk` 12.17.0 plus eight transitive packages. Firebase is
+  adopted anyway, so that constraint is amended in both documents and in the
+  README as part of this slice rather than quietly contradicted. The amended
+  wording is "no third-party dependencies other than the Firebase SDK."
+
+  The deciding reason is push notifications. Firebase Cloud Messaging is
+  planned as a near-term follow-on so organizers can reach the hikers who
+  joined an event, which makes the SDK a dependency this app was going to take
+  regardless. Slice 5 adds the SDK and the Analytics and Crashlytics wiring
+  only. FCM itself, the push entitlement, the `APNs` registration and the
+  notification permission prompt are out of scope here and get their own spec;
+  this slice just stops that work from having to introduce the dependency
+  under time pressure.
 - **Offline awareness.** Port `NetworkMonitor` and `OfflineBanner`. A hiker
   checking an event at a trailhead with no signal is a real case for this app.
 - **Navigation.** Port `Router`, `AppRoute` and `DeepLink`, replacing the
@@ -330,5 +337,8 @@ state.
   events-platform spec.
 - Live route following. The route view remains look-before-you-go.
 - Sign in with Apple.
+- Push notifications. Slice 5 adds the Firebase SDK partly so the planned FCM
+  work has it already, but no messaging, entitlement, device-token
+  registration or permission prompt is built here.
 - Extracting the template's networking into a shared package. The files are
   copied, which is how the template is meant to be used. Gabay may diverge.
