@@ -12,6 +12,15 @@ PLUGIN="$(dirname "$(xcrun --find swift)")/../lib/swift/host/plugins/testing/lib
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
+# Flattened into one directory, so a basename appearing in both targets would
+# silently overwrite the other and drop a file from the check. Fail loudly instead.
+COLLISIONS=$(find Gabay GabayTests -name '*.swift' -exec basename {} \; | sort | uniq -d)
+if [ -n "$COLLISIONS" ]; then
+  echo "Duplicate basenames, cannot typecheck as one module:" >&2
+  echo "$COLLISIONS" >&2
+  exit 1
+fi
+
 find Gabay GabayTests -name '*.swift' -exec cp {} "$WORK"/ \;
 
 # The two targets compile separately in Xcode, so the test files import the app
@@ -20,6 +29,10 @@ perl -pi -e 's/^\@testable import Gabay$//; s/^import Gabay$//' "$WORK"/*.swift
 
 echo "Typechecking $(ls "$WORK"/*.swift | wc -l | tr -d ' ') files..."
 
+# The project sets SWIFT_APPROACHABLE_CONCURRENCY = YES. Of the features that
+# expands to, InferSendableFromCaptures and GlobalActorIsolatedTypesUsability are
+# already on under -swift-version 6, so only NonisolatedNonsendingByDefault needs
+# naming here. MemberImportVisibility mirrors the project's own upcoming-feature flag.
 swiftc -swift-version 6 -typecheck -module-name Gabay \
   -sdk "$SDK" -target arm64-apple-ios17.0-simulator \
   -F "$SDK/../../Library/Frameworks" \

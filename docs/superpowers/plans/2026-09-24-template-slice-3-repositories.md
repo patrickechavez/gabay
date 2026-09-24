@@ -684,10 +684,10 @@ Run each and expect no output:
 ```bash
 grep -rn 'Authenticating\|AuthClient\|EventFetching\|EventClient' Gabay GabayTests docs/superpowers/specs
 grep -rnP '\x{2014}' Gabay GabayTests scripts docs/superpowers/plans/2026-09-24-template-slice-3-repositories.md
-awk 'length > 100 {print FILENAME":"FNR}' $(find Gabay GabayTests -name '*.swift')
+awk 'length > 100 && $0 ~ /^[[:space:]]*\/\// {print FILENAME":"FNR}' $(find Gabay GabayTests -name '*.swift')
 ```
 
-The first catches missed renames including in prose, the second catches em dashes, the third catches comment lines that regressed past 100 columns.
+The first catches missed renames including in prose, the second catches em dashes, the third catches comment lines that regressed past 100 columns. It checks comments only: the branch has 122 pre-existing CODE lines over 100 columns, mostly long test setup expressions, and the Slice 2 sweep deliberately covered comments alone. Do not go chasing those.
 
 Then confirm no commit on the branch carries an attribution trailer:
 
