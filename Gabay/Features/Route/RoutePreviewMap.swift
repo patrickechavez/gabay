@@ -79,6 +79,11 @@ final class FramedMapView: MKMapView {
     private var pending: MKMapRect?
 
     func frame(route rect: MKMapRect) {
+        // MKPolyline over non-finite coordinates yields a non-finite rect,
+        // and setVisibleMapRect with one leaves the map in a broken state.
+        guard rect.origin.x.isFinite, rect.origin.y.isFinite,
+              rect.size.width.isFinite, rect.size.height.isFinite else { return }
+
         pending = rect
         applyPendingFrame()
     }

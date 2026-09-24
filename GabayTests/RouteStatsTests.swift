@@ -50,4 +50,49 @@ struct RouteStatsTests {
 
         #expect(stats.estimatedMinutes >= 55 && stats.estimatedMinutes <= 65)
     }
+
+    @Test func survivesANonFiniteCoordinate() {
+        let broken = [
+            TrackPoint(latitude: .nan, longitude: 123.3878, elevation: nil, time: nil),
+            TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: nil, time: nil)
+        ]
+
+        let stats = RouteStats(points: broken)
+
+        #expect(stats.estimatedMinutes == 0)
+        #expect(stats.distanceM.isFinite)
+    }
+
+    @Test func survivesAnInfiniteCoordinate() {
+        let broken = [
+            TrackPoint(latitude: .infinity, longitude: 123.3878, elevation: nil, time: nil),
+            TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: nil, time: nil)
+        ]
+
+        let stats = RouteStats(points: broken)
+
+        #expect(stats.estimatedMinutes == 0)
+        #expect(stats.distanceM.isFinite)
+    }
+
+    @Test func survivesANonFiniteElevation() {
+        let broken = [
+            TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: .nan, time: nil),
+            TrackPoint(latitude: 9.8137, longitude: 123.3878, elevation: .infinity, time: nil)
+        ]
+
+        let stats = RouteStats(points: broken)
+
+        #expect(stats.estimatedMinutes >= 0)
+        #expect(stats.ascentM == nil || stats.ascentM?.isFinite == true)
+    }
+
+    @Test func leavesAWellFormedRouteUnchanged() {
+        // A regression guard: the new arithmetic must not alter a valid route.
+        let stats = RouteStats(points: points([100, 150, 200]))
+
+        #expect(stats.distanceM.isFinite)
+        #expect(stats.ascentM == 100)
+        #expect(stats.estimatedMinutes > 0)
+    }
 }
