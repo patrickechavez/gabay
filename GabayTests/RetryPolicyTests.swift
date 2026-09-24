@@ -137,20 +137,27 @@ struct RetryPolicyTests {
         #expect(delay == .seconds(8))
     }
 
-    // Would fail if jitter were not applied at all (every sample would
-    // equal the base delay) or if it could push the result outside the
-    // configured range in either direction. Asserts bounds, not an exact
-    // value, since the multiplier is random.
+    // Would fail if it could push the result outside the configured range
+    // in either direction (bounds), and would fail if jitter were not
+    // applied at all (distinctCount): with `* Double.random(in: jitter)`
+    // deleted from `delay(afterAttempt:error:)`, every one of the 200
+    // samples collapses to the same base delay, 500ms sits inside the
+    // asserted 400-600ms band regardless, so only the distinct-value
+    // assertion, not the bounds alone, catches a dropped multiplier.
     @Test func delayStaysWithinTheConfiguredJitterBounds() {
         let policy = RetryPolicy(baseDelay: .milliseconds(500), maxDelay: .seconds(60), jitter: 0.8...1.2)
         let lowerBound = Duration.milliseconds(400)
         let upperBound = Duration.milliseconds(600)
 
+        var samples: Set<Duration> = []
         for _ in 0..<200 {
             let delay = policy.delay(afterAttempt: 1, error: .timedOut)
             #expect(delay >= lowerBound)
             #expect(delay <= upperBound)
+            samples.insert(delay)
         }
+
+        #expect(samples.count > 1)
     }
 
     // Would fail if maxAttempts: 0 (or a negative value) were stored as-is,

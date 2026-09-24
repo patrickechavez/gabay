@@ -35,6 +35,14 @@ private actor GatedTokenRefresher: TokenRefreshing {
     private var entryWaiters: [CheckedContinuation<Void, Never>] = []
     private var gateWaiters: [CheckedContinuation<Void, Never>] = []
 
+    // Tracks callers that have reached the point of calling into the
+    // coordinator, not calls into `refresh(using:)` itself: a correctly
+    // single-flighted follower never reaches this actor at all, so this is
+    // how the test knows every concurrent caller has actually arrived at
+    // `coordinator.refresh`, rather than merely having been scheduled.
+    private var callersArrived = 0
+    private var callerWaiters: [(threshold: Int, continuation: CheckedContinuation<Void, Never>)] = []
+
     init(tokens: AuthTokens) {
         self.tokens = tokens
     }
@@ -64,6 +72,23 @@ private actor GatedTokenRefresher: TokenRefreshing {
         isOpen = true
         for waiter in gateWaiters { waiter.resume() }
         gateWaiters = []
+    }
+
+    /// Called by a test caller immediately before it calls into the
+    /// coordinator, so `waitForCallers(_:)` can tell arrival from scheduling.
+    func callerArrived() {
+        callersArrived += 1
+        let ready = callerWaiters.filter { callersArrived >= $0.threshold }
+        callerWaiters.removeAll { callersArrived >= $0.threshold }
+        for waiter in ready { waiter.continuation.resume() }
+    }
+
+    /// Suspends until `count` callers have reached `callerArrived()`.
+    func waitForCallers(_ count: Int) async {
+        if callersArrived >= count { return }
+        await withCheckedContinuation { continuation in
+            callerWaiters.append((count, continuation))
+        }
     }
 }
 
@@ -180,6 +205,22 @@ struct TokenRefreshCoordinatorTests {
     // released, so a coordinator that doesn't single-flight would show more
     // than one call while the callers are still pending, not just after they
     // all finish.
+    //
+    // Each caller marks its arrival via `callerArrived()` immediately before
+    // calling into the coordinator, and the test waits for all three marks
+    // before checking `callCount`. This closes the gap in the previous
+    // version of this test, where `waitForEntry()` only confirmed the
+    // leader had reached the refresher; the second and third callers could
+    // still not have reached `coordinator.refresh` yet, so `callCount == 1`
+    // held trivially, true regardless of whether single-flighting actually
+    // worked. Waiting for all three arrivals, plus yielding to let the
+    // coordinator actor's brief, await-free `inFlight` check run for each
+    // of them, makes the mid-flight assertion below meaningfully test the
+    // in-progress state, not just the eventual one. It still leans on the
+    // cooperative executor running that tiny synchronous step promptly
+    // after resumption, which is not a language-level guarantee; the
+    // assertion after all three results are collected does not have that
+    // dependency and is the fully deterministic half of this test.
     @Test func concurrentRefreshesSingleFlight() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let renewed = AuthTokens(accessToken: "renewed456", refreshToken: "refresh2")
@@ -187,11 +228,22 @@ struct TokenRefreshCoordinatorTests {
         let link = SessionLink()
         let coordinator = TokenRefreshCoordinator(store: store, refresher: refresher, link: link)
 
-        async let first = coordinator.refresh(staleAccessToken: "abc123")
-        async let second = coordinator.refresh(staleAccessToken: "abc123")
-        async let third = coordinator.refresh(staleAccessToken: "abc123")
+        async let first: AuthTokens = {
+            await refresher.callerArrived()
+            return try await coordinator.refresh(staleAccessToken: "abc123")
+        }()
+        async let second: AuthTokens = {
+            await refresher.callerArrived()
+            return try await coordinator.refresh(staleAccessToken: "abc123")
+        }()
+        async let third: AuthTokens = {
+            await refresher.callerArrived()
+            return try await coordinator.refresh(staleAccessToken: "abc123")
+        }()
 
-        await refresher.waitForEntry()
+        await refresher.waitForCallers(3)
+        for _ in 0..<20 { await Task.yield() }
+
         #expect(await refresher.callCount == 1)
 
         await refresher.openGate()

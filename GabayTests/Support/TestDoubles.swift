@@ -39,8 +39,12 @@ final class StubEventFetching: EventFetching, @unchecked Sendable {
     var joinResult: Result<Void, any Error> = .success(())
     private(set) var joinedIds: [String] = []
     private(set) var uploadedGPXEventIds: [String] = []
+    private(set) var eventsCallCount = 0
 
-    func events() async throws -> [Event] { try eventsResult.get() }
+    func events() async throws -> [Event] {
+        eventsCallCount += 1
+        return try eventsResult.get()
+    }
     func event(id: String) async throws -> Event { try eventsResult.get().first { $0.id == id }! }
     func create(_ draft: EventDraft) async throws -> Event { try createResult.get() }
 

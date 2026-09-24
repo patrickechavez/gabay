@@ -174,6 +174,8 @@ struct EventClientTests {
         #expect(event.distanceM == 4761)
         #expect(StubURLProtocol.asked.first?.url?.absoluteString
             == "https://example.test/api/events/hike-for-pawssion/gpx")
+        #expect(StubURLProtocol.asked.first?.value(forHTTPHeaderField: "Content-Type")?
+            .hasPrefix("multipart/form-data; boundary=") == true)
     }
 
     // Would fail if the filename reverted to the caller's local file name

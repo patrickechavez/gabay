@@ -51,7 +51,7 @@ struct EventsViewModelTests {
         await viewModel.load()
         await viewModel.load()
 
-        #expect(viewModel.state.value?.count == 1)
+        #expect(events.eventsCallCount == 1)
     }
 
     @Test func joinMarksTheEventAsJoined() async {
