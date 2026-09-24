@@ -74,6 +74,106 @@ struct GPXParserTests {
             try parse("not-gpx")
         }
     }
+
+    @Test func dropsAPointWithANonNumericLatitude() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"/>
+        <trkpt lat="nan" lon="123.38"/>
+        <trkpt lat="9.82" lon="123.38"/>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        #expect(document.points.count == 2)
+        #expect(document.points.allSatisfy { $0.latitude.isFinite })
+    }
+
+    @Test func dropsAPointWithAnInfiniteCoordinate() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"/>
+        <trkpt lat="inf" lon="123.38"/>
+        <trkpt lat="9.82" lon="-inf"/>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        #expect(document.points.count == 1)
+    }
+
+    @Test func dropsAPointOutsideTheCoordinateRange() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"/>
+        <trkpt lat="91" lon="123.38"/>
+        <trkpt lat="9.82" lon="181"/>
+        <trkpt lat="-90.5" lon="123.38"/>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        #expect(document.points.count == 1)
+    }
+
+    @Test func keepsTheExtremesOfTheCoordinateRange() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="90" lon="180"/>
+        <trkpt lat="-90" lon="-180"/>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        #expect(document.points.count == 2)
+    }
+
+    @Test func keepsTheOrderOfTheSurvivingPoints() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"/>
+        <trkpt lat="nan" lon="123.38"/>
+        <trkpt lat="9.83" lon="123.38"/>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        #expect(document.points.map(\.latitude) == [9.81, 9.83])
+    }
+
+    @Test func keepsAPointWhoseElevationIsNotFinite() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"><ele>nan</ele></trkpt>
+        <trkpt lat="9.82" lon="123.38"><ele>120</ele></trkpt>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        // The position is usable, so the point survives; only the climb is lost.
+        #expect(document.points.count == 2)
+        #expect(document.points.first?.elevation == nil)
+        #expect(document.points.last?.elevation == 120)
+    }
+
+    @Test func refusesAFileWhereEveryPointIsUnusable() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="nan" lon="123.38"/>
+        <trkpt lat="9.81" lon="inf"/>
+        </trkseg></trk></gpx>
+        """
+
+        #expect(throws: GPXError.noPoints) {
+            try GPXParser().parse(Data(xml.utf8))
+        }
+    }
 }
 
 struct TrackMathTests {

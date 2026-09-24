@@ -165,14 +165,14 @@ private extension GPXParser {
         }
 
         private func append(_ point: PartialPoint?) {
-            guard let point else { return }
-
-            let track = TrackPoint(
-                latitude: point.latitude,
-                longitude: point.longitude,
-                elevation: point.elevation,
-                time: point.time
-            )
+            guard let point,
+                  let track = TrackPoint.validated(
+                      latitude: point.latitude,
+                      longitude: point.longitude,
+                      elevation: point.elevation,
+                      time: point.time
+                  )
+            else { return }
 
             // Points outside any track still count: some writers omit <trk>.
             if currentTrack == nil { currentTrack = Track(name: nil, points: []) }
