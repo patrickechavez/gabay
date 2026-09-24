@@ -22,10 +22,28 @@ enum LogFormat {
         "cookie", "set-cookie", "x-api-key", "proxy-authorization", "authorization"
     ]
 
+    // Divergence from the template: entries below are spelled snake_case
+    // for readability, but Gabay's coders (see APICoders.swift) do not
+    // convert between snake_case and camelCase, so a key can arrive on
+    // the wire in either spelling depending on the endpoint - AuthResult's
+    // "accessToken" and "refreshToken" are camelCase, for example. Matching
+    // must therefore be spelling-agnostic rather than assuming one
+    // convention, which is what `normalizedRedactedBodyKeys` and
+    // `normalize(_:)` below are for.
     private static let redactedBodyKeys: Set<String> = [
         "password", "current_password", "new_password", "password_confirmation",
         "token", "access_token", "refresh_token", "secret", "otp", "pin", "code"
     ]
+
+    // Precomputed once so redaction doesn't re-normalize every entry in
+    // `redactedBodyKeys` for every key of every logged body.
+    private static let normalizedRedactedBodyKeys: Set<String> = Set(redactedBodyKeys.map(normalize))
+
+    // Lowercases and strips underscores so "access_token", "accessToken",
+    // "AccessToken" and "ACCESS_TOKEN" all normalize to the same string.
+    private static func normalize(_ key: String) -> String {
+        key.lowercased().replacingOccurrences(of: "_", with: "")
+    }
 
     private static let maxBodyBytes = 4_000
 
@@ -77,7 +95,7 @@ enum LogFormat {
     private static func redact(_ value: Any) -> Any {
         if let dictionary = value as? [String: Any] {
             return dictionary.reduce(into: [String: Any]()) { result, entry in
-                result[entry.key] = redactedBodyKeys.contains(entry.key.lowercased())
+                result[entry.key] = normalizedRedactedBodyKeys.contains(normalize(entry.key))
                     ? "<redacted>"
                     : redact(entry.value)
             }
