@@ -181,23 +181,40 @@ final class PostEventViewModel {
         gpxError = nil
         action.clear()
 
+        // A file from Files or iCloud Drive is security scoped: without this the read fails, which
+        // is most real picks. The scope ends when this method returns, so the bytes are copied into
+        // our own container rather than held by URL until submit uploads them.
+        let isScoped = url.startAccessingSecurityScopedResource()
+        defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
+
         do {
             let data = try Data(contentsOf: url)
             let points = try parser.parse(data).points
+
+            let local = FileManager.default.temporaryDirectory
+                .appending(path: "\(UUID().uuidString).gpx")
+            try data.write(to: local)
+
+            discardCopiedGPX()
             route = RouteStats(points: points)
-            gpxFileURL = url
+            gpxFileURL = local
         } catch {
             route = nil
-            gpxFileURL = nil
+            discardCopiedGPX()
             gpxError = APIError.classify(error)
         }
     }
 
     func removeGPX() {
         route = nil
-        gpxFileURL = nil
+        discardCopiedGPX()
         gpxError = nil
         action.clear()
+    }
+
+    private func discardCopiedGPX() {
+        if let gpxFileURL { try? FileManager.default.removeItem(at: gpxFileURL) }
+        gpxFileURL = nil
     }
 
     func submit() async {
