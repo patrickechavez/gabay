@@ -40,6 +40,8 @@ final class StubEventRepository: EventBrowsingRepository, EventPublishingReposit
     private(set) var joinedIds: [String] = []
     private(set) var uploadedGPXEventIds: [String] = []
     private(set) var eventsCallCount = 0
+    var gpxResult: Result<Data, any Error> = .failure(APIError.notFound())
+    private(set) var requestedGPXEventIds: [String] = []
 
     func events() async throws -> [Event] {
         eventsCallCount += 1
@@ -65,6 +67,11 @@ final class StubEventRepository: EventBrowsingRepository, EventPublishingReposit
     }
 
     func mine() async throws -> [Event] { try mineResult.get() }
+
+    func gpx(eventID: String) async throws -> Data {
+        requestedGPXEventIds.append(eventID)
+        return try gpxResult.get()
+    }
 }
 
 extension Event {

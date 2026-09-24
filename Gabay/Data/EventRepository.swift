@@ -15,6 +15,8 @@ protocol EventBrowsingRepository: Sendable {
     func mine() async throws -> [Event]
 
     func join(_ id: String) async throws
+
+    func gpx(eventID: String) async throws -> Data
 }
 
 protocol EventPublishingRepository: Sendable {
@@ -49,6 +51,14 @@ struct LiveEventRepository: EventBrowsingRepository, EventPublishingRepository {
 
     func join(_ id: String) async throws {
         try await api.send(Endpoint(APIRoute.Events.join(id), method: .post))
+    }
+
+    // Fetched from the route the app knows, not from `Event.gpxURL`. A URL the server hands back
+    // could point anywhere, and this request carries the user's bearer token.
+    func gpx(eventID: String) async throws -> Data {
+        try await api.data(
+            Endpoint(APIRoute.Events.gpx(eventID), headers: ["Accept": "application/gpx+xml"])
+        )
     }
 
     func create(_ draft: EventDraft) async throws -> Event {
