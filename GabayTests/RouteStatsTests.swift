@@ -76,15 +76,34 @@ struct RouteStatsTests {
     }
 
     @Test func survivesANonFiniteElevation() {
-        let broken = [
-            TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: .nan, time: nil),
-            TrackPoint(latitude: 9.8137, longitude: 123.3878, elevation: .infinity, time: nil)
-        ]
+        // A finite elevation followed by an infinite one drives ascent()
+        // itself non-finite: change = .infinity - 100 = .infinity, which
+        // accumulates straight into total. The ascentM guard must turn
+        // that into nil rather than let it propagate into the estimate.
+        let broken = points([100, .infinity])
+        let flat = points([100, 100])
 
         let stats = RouteStats(points: broken)
+        let flatStats = RouteStats(points: flat)
 
-        #expect(stats.estimatedMinutes >= 0)
-        #expect(stats.ascentM == nil || stats.ascentM?.isFinite == true)
+        #expect(stats.ascentM == nil)
+        #expect(stats.estimatedMinutes == flatStats.estimatedMinutes)
+    }
+
+    @Test func treatsNaNElevationAsNoClimbRatherThanCrashing() {
+        // The fixture the old test used never reaches the ascentM guard:
+        // reference becomes NaN on the first point, and NaN compares false
+        // against both the climb and drop thresholds in ascent(), so
+        // nothing ever accumulates. The route is scored as flat, not
+        // crashed.
+        let broken = points([.nan, .infinity])
+        let flat = points([100, 100])
+
+        let stats = RouteStats(points: broken)
+        let flatStats = RouteStats(points: flat)
+
+        #expect(stats.ascentM == 0)
+        #expect(stats.estimatedMinutes == flatStats.estimatedMinutes)
     }
 
     @Test func leavesAWellFormedRouteUnchanged() {
