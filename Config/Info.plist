@@ -11,5 +11,26 @@
 
 	<key>API_BASE_URL</key>
 	<string>$(API_BASE_URL)</string>
+
+	<key>API_TIMEOUT_SECONDS</key>
+	<string>$(API_TIMEOUT_SECONDS)</string>
+
+	<key>API_MAX_RETRIES</key>
+	<string>$(API_MAX_RETRIES)</string>
+
+	<key>API_LOGGING_ENABLED</key>
+	<string>$(API_LOGGING_ENABLED)</string>
+
+	<key>CERT_PINNING_ENABLED</key>
+	<string>$(CERT_PINNING_ENABLED)</string>
+
+	<key>PINNED_PUBLIC_KEY_HASHES</key>
+	<string>$(PINNED_PUBLIC_KEY_HASHES)</string>
+
+	<key>FORCE_UPDATE_ENABLED</key>
+	<string>$(FORCE_UPDATE_ENABLED)</string>
+
+	<key>UPDATE_URL</key>
+	<string>$(UPDATE_URL)</string>
 </dict>
 </plist>

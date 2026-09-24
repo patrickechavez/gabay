@@ -16,6 +16,19 @@ APP_DISPLAY_NAME = Development
 
 
 
+// Request tuning
+
+// A generous timeout while stepping through breakpoints
+API_TIMEOUT_SECONDS = 30
+
+// Two attempts is plenty against a local server
+API_MAX_RETRIES = 2
+
+// On, so every request and response shows up in the console
+API_LOGGING_ENABLED = YES
+
+
+
 // Events/auth API
 
 // No backend yet; point at a local one while developing

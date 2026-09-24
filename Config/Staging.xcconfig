@@ -17,10 +17,13 @@ APP_DISPLAY_NAME = Staging
 
 
 // Seconds before a request gives up
+API_TIMEOUT_SECONDS = 30
 
 // Retries for flaky connections
+API_MAX_RETRIES = 2
 
 // Off, so TestFlight behaves like the real thing
+API_LOGGING_ENABLED = NO
 
 
 

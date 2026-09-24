@@ -41,18 +41,29 @@ final class AppDependencies {
         let tokenStore = KeychainTokenStore()
         let sessionLink = SessionLink()
 
+        // Both clients below talk to the same host, so both go through the
+        // same pinner. A refresh client left off pinning would be a hole:
+        // it carries the refresh token, which is worth just as much as the
+        // access token to whoever is sitting in the middle.
+        let pinner = CertificatePinner(pinnedHashes: APIConfig.pinnedPublicKeyHashes)
+        let pinnedSession = URLSession(configuration: .default, delegate: pinner, delegateQueue: nil)
+
         // A bare client with no interceptors, used only by the refresher: if
         // it shared the intercepted client below, a failing refresh would
         // recurse into the interceptor that triggered it.
-        let refreshClient = URLSessionAPIClient(baseURL: APIConfig.baseURL)
+        let refreshClient = URLSessionAPIClient(baseURL: APIConfig.baseURL, session: pinnedSession)
         let coordinator = TokenRefreshCoordinator(
             store: tokenStore,
             refresher: LiveTokenRefresher(api: refreshClient),
             link: sessionLink
         )
 
+        // LoggingInterceptor is deliberately not wired in here: the ported
+        // LogFormat.headers(_:) does not redact "Authorization", so turning
+        // this on would print bearer tokens to the device console.
         let api = URLSessionAPIClient(
             baseURL: APIConfig.baseURL,
+            session: pinnedSession,
             interceptors: [AuthInterceptor(coordinator: coordinator)]
         )
         let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)

@@ -19,10 +19,13 @@ APP_DISPLAY_NAME = Gabay
 
 
 // Seconds before a request gives up
+API_TIMEOUT_SECONDS = 30
 
 // Retries for flaky mobile connections
+API_MAX_RETRIES = 2
 
 // Must stay NO, logs leak user data to the device console
+API_LOGGING_ENABLED = NO
 
 
 
