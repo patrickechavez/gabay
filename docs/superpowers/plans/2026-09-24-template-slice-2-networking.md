@@ -541,7 +541,11 @@ Fix headers and remove the two em dashes in the coordinator (lines 50 and 74 on 
 
 - `SessionLink` holds `weak var session: SessionManager?`. Gabay's type is `Session`. Change it and keep the file's comment, which explains why the reference is weak: `Session` owns `AuthClient`, which owns the client, which owns the interceptor, which owns the coordinator. A strong reference back would be a cycle.
 - `TokenRefreshCoordinator.invalidate()` calls `await link.session?.expire()`. Gabay's `Session` has `signOut()`, which after Task 5 is `async` and does the same job. Call that instead. Do not add an `expire()` alias.
-- `LiveTokenRefresher.refresh(using:)` decodes an `AuthResponse` that lives in the template's `Data/AuthRepository.swift`, which is Slice 3 and not ported. Gabay already has the right type after Task 5: use `AuthResult` and its `tokens` property. The request body is `RefreshRequest(refreshToken:)`, which does not exist in Gabay either; define it as a small `private struct` in this file.
+- `LiveTokenRefresher.refresh(using:)` decodes an `AuthResponse` that lives in the template's `Data/AuthRepository.swift`, which is Slice 3 and not ported.
+
+  **This plan originally said to use `AuthResult` here. That was wrong and it was caught in Task 6's review.** `AuthResult` carries a non-optional `role`, because `/auth/register` and `/auth/login` return one. `/auth/refresh` does not, per this spec's own contract. Decoding `AuthResult` from a refresh response therefore fails with `keyNotFound: role`, which becomes `APIError.decodingFailed`, which the coordinator treats as a failed refresh, which clears the Keychain and signs the user out. Every single refresh would have ended in a sign-out, which is exactly the behaviour this task exists to remove, reinstated one layer down. No coordinator test caught it because they all stub `TokenRefreshing` and nothing constructs `LiveTokenRefresher`.
+
+  Define a `private struct RefreshResponse` beside `RefreshRequest` instead, matching the contract exactly: `accessToken`, optional `refreshToken`, optional `expiresAt`, and a `tokens` property. Do not make `AuthResult.role` optional to accommodate this; that would weaken the type for the two endpoints that genuinely return a role. The request body is `RefreshRequest(refreshToken:)`, which does not exist in Gabay either; define it as a small `private struct` in this file.
 
   The call keeps `requiresAuth: false`, which matters: refreshing must not go through the interceptor that is asking for the refresh.
 
