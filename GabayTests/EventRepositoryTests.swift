@@ -68,10 +68,10 @@ struct EventRepositoryTests {
     }
 
     @Test func listsPublishedEvents() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: Data("[\(String(data: eventJSON, encoding: .utf8)!)]".utf8)))
 
-        let events = try await client.events()
+        let events = try await repository.events()
 
         #expect(events.count == 1)
         #expect(events.first?.title == "Hike for Pawssion Project")
@@ -80,7 +80,7 @@ struct EventRepositoryTests {
     }
 
     @Test func createsAnEvent() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: eventJSON))
 
         let draft = EventDraft(
@@ -96,7 +96,7 @@ struct EventRepositoryTests {
             photoURL: nil
         )
 
-        let event = try await client.create(draft)
+        let event = try await repository.create(draft)
 
         #expect(event.status == .published)
         #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
@@ -104,7 +104,7 @@ struct EventRepositoryTests {
 
     // A hiker-role account hitting the endpoint anyway: the server refuses it.
     @Test func refusesCreatingAnEventWithoutTheOrganizerRole() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         StubURLProtocol.queue(.init(status: 403, body: Data()))
 
         let draft = EventDraft(
@@ -115,12 +115,12 @@ struct EventRepositoryTests {
         )
 
         await #expect(throws: APIError.forbidden()) {
-            try await client.create(draft)
+            try await repository.create(draft)
         }
     }
 
     @Test func uploadsAGPXAndReturnsTheUpdatedEvent() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         let withRoute = Data("""
         {
           "id": "hike-for-pawssion",
@@ -147,7 +147,7 @@ struct EventRepositoryTests {
         try Data("<gpx></gpx>".utf8).write(to: fileURL)
         defer { try? FileManager.default.removeItem(at: fileURL) }
 
-        let event = try await client.uploadGPX(
+        let event = try await repository.uploadGPX(
             eventID: "hike-for-pawssion",
             fileURL: fileURL,
             distanceM: 4761,
@@ -167,14 +167,14 @@ struct EventRepositoryTests {
     // event id, or any plain field were dropped or renamed en route to `MultipartFormData`.
     @Test func uploadGPXBuildsTheFilenameFromTheEventIDAndKeepsEveryField() async throws {
         let spy = BodySpy()
-        let client = LiveEventRepository(api: makeAPIClient(interceptors: [spy]))
+        let repository = LiveEventRepository(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(status: 200, body: eventJSON))
 
         let fileURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).gpx")
         try Data("<gpx></gpx>".utf8).write(to: fileURL)
         defer { try? FileManager.default.removeItem(at: fileURL) }
 
-        _ = try await client.uploadGPX(
+        _ = try await repository.uploadGPX(
             eventID: "hike-for-pawssion",
             fileURL: fileURL,
             distanceM: 4761,
@@ -191,10 +191,10 @@ struct EventRepositoryTests {
     }
 
     @Test func joinsAnEvent() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         StubURLProtocol.queue(.init(status: 204, body: Data()))
 
-        try await client.join("hike-for-pawssion")
+        try await repository.join("hike-for-pawssion")
 
         #expect(StubURLProtocol.asked.first?.url?.absoluteString
             == "https://example.test/api/events/hike-for-pawssion/join")
@@ -202,10 +202,10 @@ struct EventRepositoryTests {
     }
 
     @Test func listsJoinedEvents() async throws {
-        let client = makeRepository()
+        let repository = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: Data("[\(String(data: eventJSON, encoding: .utf8)!)]".utf8)))
 
-        let mine = try await client.mine()
+        let mine = try await repository.mine()
 
         #expect(mine.count == 1)
         #expect(StubURLProtocol.asked.first?.url?.absoluteString == "https://example.test/api/me/events")
