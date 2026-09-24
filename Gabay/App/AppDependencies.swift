@@ -39,7 +39,7 @@ final class AppDependencies {
         Observability.install(analytics: analytics, crashes: crashes)
 
         let tokenStore = TokenStore()
-        let api = APIClient(base: AppConfig.apiBaseURL, tokenProvider: { tokenStore.load() })
+        let api = APIClient(base: APIConfig.baseURL, tokenProvider: { tokenStore.load() })
         let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)
         let events = EventClient(api: api)
 
