@@ -134,7 +134,7 @@ This is recorded because the spec's version is wrong, not because the spec was v
 | `Gabay/Core/Networking/APIErrorBody.swift` | `AppTemplate/Core/Networking/APIErrorBody.swift` |
 | `Gabay/Core/Networking/Endpoint.swift` | `AppTemplate/Core/Networking/Endpoint.swift` |
 | `Gabay/Core/Networking/HTTPMethod.swift` | `AppTemplate/Core/Networking/HTTPMethod.swift` |
-| `Gabay/Core/Networking/MultipartFormData.swift` | `AppTemplate/Core/Networking/MultipartFormData.swift` |
+| `Gabay/Core/Networking/MultipartFormData.swift` | `AppTemplate/Core/Networking/MultipartFormData.swift`, minus its `addImage` helper (see Task 2) |
 | `Gabay/Core/Networking/RetryPolicy.swift` | `AppTemplate/Core/Networking/RetryPolicy.swift` |
 | `Gabay/Core/Networking/APIConfig.swift` | `AppTemplate/Core/Networking/APIConfig.swift` |
 | `Gabay/Core/Networking/RequestInterceptor.swift` | `AppTemplate/Core/Networking/RequestInterceptor.swift` |
@@ -241,6 +241,8 @@ done
 ```
 
 Fix headers. None of these three contained an em dash at plan time; re-check anyway.
+
+**One correction found during execution.** The template's `MultipartFormData` carries an `addImage(_:name:filename:compression:)` helper depending on `ImageCompression` and a `UIImage.jpegData(for:)` extension, neither of which is in this slice's port list. This plan originally called the file a verbatim port without checking its dependencies, which was wrong. Delete `addImage` on port and change its import from `UIKit` to `Foundation`. Gabay uploads no images: the events spec makes an event photo an already-hosted link precisely because there is no image upload endpoint, and the only multipart upload in the app is a GPX file going through `addFile`. Porting `ImageCompression` to satisfy a method nothing calls would be worse than dropping it.
 
 - [ ] **Step 2: Reconcile the JSON coders, do not port a second pair**
 
