@@ -1,5 +1,5 @@
 //
-//  EventClientTests.swift
+//  EventRepositoryTests.swift
 //  GabayTests
 //
 
@@ -10,7 +10,7 @@ import Testing
 extension SharedStubProtocolSuite {
 
 @Suite(.serialized)
-struct EventClientTests {
+struct EventRepositoryTests {
 
     private let base = URL(string: "https://example.test/api")!
 
@@ -40,8 +40,8 @@ struct EventClientTests {
         )
     }
 
-    private func makeClient(interceptors: [any RequestInterceptor] = []) -> EventClient {
-        EventClient(api: makeAPIClient(interceptors: interceptors))
+    private func makeRepository(interceptors: [any RequestInterceptor] = []) -> LiveEventRepository {
+        LiveEventRepository(api: makeAPIClient(interceptors: interceptors))
     }
 
     private var eventJSON: Data {
@@ -68,7 +68,7 @@ struct EventClientTests {
     }
 
     @Test func listsPublishedEvents() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: Data("[\(String(data: eventJSON, encoding: .utf8)!)]".utf8)))
 
         let events = try await client.events()
@@ -79,20 +79,8 @@ struct EventClientTests {
         #expect(StubURLProtocol.asked.first?.url?.absoluteString == "https://example.test/api/events")
     }
 
-    @Test func readsOneEvent() async throws {
-        let client = makeClient()
-        StubURLProtocol.queue(.init(status: 200, body: eventJSON))
-
-        let event = try await client.event(id: "hike-for-pawssion")
-
-        #expect(event.feePHP == 250)
-        #expect(event.gpxURL == nil)
-        #expect(StubURLProtocol.asked.first?.url?.absoluteString
-            == "https://example.test/api/events/hike-for-pawssion")
-    }
-
     @Test func createsAnEvent() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: eventJSON))
 
         let draft = EventDraft(
@@ -116,7 +104,7 @@ struct EventClientTests {
 
     // A hiker-role account hitting the endpoint anyway: the server refuses it.
     @Test func refusesCreatingAnEventWithoutTheOrganizerRole() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 403, body: Data()))
 
         let draft = EventDraft(
@@ -132,7 +120,7 @@ struct EventClientTests {
     }
 
     @Test func uploadsAGPXAndReturnsTheUpdatedEvent() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         let withRoute = Data("""
         {
           "id": "hike-for-pawssion",
@@ -179,7 +167,7 @@ struct EventClientTests {
     // event id, or any plain field were dropped or renamed en route to `MultipartFormData`.
     @Test func uploadGPXBuildsTheFilenameFromTheEventIDAndKeepsEveryField() async throws {
         let spy = BodySpy()
-        let client = EventClient(api: makeAPIClient(interceptors: [spy]))
+        let client = LiveEventRepository(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(status: 200, body: eventJSON))
 
         let fileURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).gpx")
@@ -203,7 +191,7 @@ struct EventClientTests {
     }
 
     @Test func joinsAnEvent() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 204, body: Data()))
 
         try await client.join("hike-for-pawssion")
@@ -214,7 +202,7 @@ struct EventClientTests {
     }
 
     @Test func listsJoinedEvents() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 200, body: Data("[\(String(data: eventJSON, encoding: .utf8)!)]".utf8)))
 
         let mine = try await client.mine()

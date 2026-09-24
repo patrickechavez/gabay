@@ -88,10 +88,10 @@ final class PostEventViewModel {
     private(set) var gpxError: APIError?
     @ObservationIgnored private var gpxFileURL: URL?
 
-    @ObservationIgnored private let events: any EventFetching
+    @ObservationIgnored private let events: any EventPublishingRepository
     @ObservationIgnored private let parser: GPXParser
 
-    init(events: any EventFetching, parser: GPXParser = GPXParser()) {
+    init(events: any EventPublishingRepository, parser: GPXParser = GPXParser()) {
         self.events = events
         self.parser = parser
     }

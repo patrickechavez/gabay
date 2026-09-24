@@ -20,10 +20,10 @@ final class EventsViewModel: LoadableViewModel {
     // Join is tapped, without waiting on a refresh.
     private(set) var joined: Set<String> = []
 
-    @ObservationIgnored let events: any EventFetching
+    @ObservationIgnored private let events: any EventBrowsingRepository
     @ObservationIgnored private var hasLoaded = false
 
-    init(events: any EventFetching) {
+    init(events: any EventBrowsingRepository) {
         self.events = events
     }
 

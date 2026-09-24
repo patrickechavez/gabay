@@ -11,7 +11,7 @@ import Testing
 struct EventsViewModelTests {
 
     private func makeViewModel(
-        events: StubEventFetching = StubEventFetching()
+        events: StubEventRepository = StubEventRepository()
     ) -> EventsViewModel {
         EventsViewModel(events: events)
     }
@@ -22,7 +22,7 @@ struct EventsViewModelTests {
     }
 
     @Test func loadPopulatesTheList() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .success([.fixture()])
         let viewModel = makeViewModel(events: events)
 
@@ -32,7 +32,7 @@ struct EventsViewModelTests {
     }
 
     @Test func loadAlsoPopulatesMine() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .success([.fixture()])
         events.mineResult = .success([.fixture()])
         let viewModel = makeViewModel(events: events)
@@ -44,7 +44,7 @@ struct EventsViewModelTests {
     }
 
     @Test func loadOnlyFetchesOnce() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .success([.fixture()])
         let viewModel = makeViewModel(events: events)
 
@@ -55,7 +55,7 @@ struct EventsViewModelTests {
     }
 
     @Test func joinMarksTheEventAsJoined() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         let viewModel = makeViewModel(events: events)
 
         await viewModel.join(.fixture())
@@ -65,7 +65,7 @@ struct EventsViewModelTests {
     }
 
     @Test func aFailedMineFetchReportsTheFailureSeparatelyFromTheList() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .success([.fixture()])
         events.mineResult = .failure(APIError.server(status: 500))
         let viewModel = makeViewModel(events: events)
@@ -77,7 +77,7 @@ struct EventsViewModelTests {
     }
 
     @Test func aFailedMineFetchCanBeRetried() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.mineResult = .failure(APIError.server(status: 500))
         let viewModel = makeViewModel(events: events)
 
@@ -92,7 +92,7 @@ struct EventsViewModelTests {
     }
 
     @Test func aFailedLoadReportsTheFailure() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .failure(APIError.server(status: 500))
         let viewModel = makeViewModel(events: events)
 
@@ -105,7 +105,7 @@ struct EventsViewModelTests {
     // fails), so this just checks the list lands in `.failed` instead of stalling, and that a retry
     // can still succeed.
     @Test func anUnauthorizedLoadEndsInFailedAndCanBeRetried() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.eventsResult = .failure(APIError.unauthorized())
         let viewModel = makeViewModel(events: events)
 

@@ -31,7 +31,7 @@ final class StubAuthRepository: AuthRepository, @unchecked Sendable {
     }
 }
 
-final class StubEventFetching: EventFetching, @unchecked Sendable {
+final class StubEventRepository: EventBrowsingRepository, EventPublishingRepository, @unchecked Sendable {
     var eventsResult: Result<[Event], any Error> = .success([])
     var mineResult: Result<[Event], any Error> = .success([])
     var createResult: Result<Event, any Error> = .failure(APIError.forbidden())
@@ -45,7 +45,7 @@ final class StubEventFetching: EventFetching, @unchecked Sendable {
         eventsCallCount += 1
         return try eventsResult.get()
     }
-    func event(id: String) async throws -> Event { try eventsResult.get().first { $0.id == id }! }
+
     func create(_ draft: EventDraft) async throws -> Event { try createResult.get() }
 
     func uploadGPX(

@@ -11,7 +11,7 @@ import Testing
 // reset-then-queue-then-request sequence across suites, which Swift Testing still runs in parallel
 // even with `@Suite(.serialized)` on each suite alone. So every suite driving a request through
 // this stub nests under `SharedStubProtocolSuite` below, whose `.serialized` trait serializes them
-// all against each other (see APIClientTests, AuthRepositoryTests, EventClientTests,
+// all against each other (see APIClientTests, AuthRepositoryTests, EventRepositoryTests,
 // AuthInterceptorTests, LiveTokenRefresherTests).
 final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 

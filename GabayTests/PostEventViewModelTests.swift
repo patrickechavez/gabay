@@ -10,7 +10,7 @@ import Testing
 @MainActor
 struct PostEventViewModelTests {
 
-    private func makeValidViewModel(events: StubEventFetching = StubEventFetching()) -> PostEventViewModel {
+    private func makeValidViewModel(events: StubEventRepository = StubEventRepository()) -> PostEventViewModel {
         let viewModel = PostEventViewModel(events: events)
         viewModel.title = "Hike for Pawssion Project"
         viewModel.cause = "Pawssion Project Cebu"
@@ -31,7 +31,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func cannotSubmitAnEmptyForm() {
-        let viewModel = PostEventViewModel(events: StubEventFetching())
+        let viewModel = PostEventViewModel(events: StubEventRepository())
         #expect(viewModel.canSubmit == false)
     }
 
@@ -112,7 +112,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func submitCreatesTheEventAndMarksItSubmitted() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .success(.fixture(status: .pending))
         let viewModel = makeValidViewModel(events: events)
 
@@ -122,7 +122,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func submitWithAPickedGPXAlsoUploadsIt() async throws {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .success(.fixture(status: .pending))
         events.uploadGPXResult = .success(.fixture(gpxURL: URL(string: "https://example.test/r.gpx"), status: .pending))
         let viewModel = makeValidViewModel(events: events)
@@ -137,7 +137,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aFailedSubmitReportsTheFailureAndDoesNotMarkSubmitted() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.validation(ValidationErrors(fields: [:], summary: nil)))
         let viewModel = makeValidViewModel(events: events)
 
@@ -148,7 +148,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aSuccessfulSubmitShowsAConfirmationAlert() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .success(.fixture(status: .pending))
         let viewModel = makeValidViewModel(events: events)
 
@@ -158,7 +158,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aFailedSubmitDoesNotShowAConfirmationAlert() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.validation(ValidationErrors(fields: [:], summary: nil)))
         let viewModel = makeValidViewModel(events: events)
 
@@ -174,7 +174,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func anUntouchedFeeShowsNoError() {
-        #expect(PostEventViewModel(events: StubEventFetching()).feeError == nil)
+        #expect(PostEventViewModel(events: StubEventRepository()).feeError == nil)
     }
 
     @Test func aNonNumericFeeShowsAnError() {
@@ -280,7 +280,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aServerFieldMessageWinsOverTheLocalRule() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.validation(ValidationErrors(
             fields: ["feePHP": ["Fee must not exceed 5000."]],
             summary: nil
@@ -295,7 +295,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aValidationErrorOnAFieldWithNoSlotShowsTheWholeFormMessage() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.validation(ValidationErrors(
             fields: ["title": ["That title is already taken."]],
             summary: nil
@@ -308,7 +308,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func aValidationErrorOnlyOnFieldsWithSlotsSuppressesTheWholeFormMessage() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.validation(ValidationErrors(
             fields: ["feePHP": ["Fee must not exceed 5000."], "capacity": ["Too many hikers."]],
             summary: nil
@@ -321,7 +321,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func pickingAGPXAfterAFailedSubmitClearsTheStaleMessage() async throws {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.server(status: 500))
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
@@ -336,7 +336,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func removingAGPXAfterAFailedSubmitClearsTheStaleMessage() async throws {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
@@ -352,7 +352,7 @@ struct PostEventViewModelTests {
     }
 
     @Test func editingAFieldAfterAFailedSubmitClearsTheStaleMessage() async {
-        let events = StubEventFetching()
+        let events = StubEventRepository()
         events.createResult = .failure(APIError.server(status: 500))
         let viewModel = makeValidViewModel(events: events)
 

@@ -15,17 +15,20 @@ final class AppDependencies {
     let session: Session
     let eventsViewModel: EventsViewModel
 
-    private let events: any EventFetching
+    private let browsing: any EventBrowsingRepository
+    private let publishing: any EventPublishingRepository
 
     init(
         session: Session,
-        events: any EventFetching,
+        browsing: any EventBrowsingRepository,
+        publishing: any EventPublishingRepository,
         eventsViewModel: EventsViewModel,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.session = session
-        self.events = events
+        self.browsing = browsing
+        self.publishing = publishing
         self.eventsViewModel = eventsViewModel
         self.analytics = analytics
         self.crashes = crashes
@@ -69,11 +72,12 @@ final class AppDependencies {
         )
         let session = Session(auth: LiveAuthRepository(api: api), tokenStore: tokenStore)
         sessionLink.session = session
-        let events = EventClient(api: api)
+        let events = LiveEventRepository(api: api)
 
         return AppDependencies(
             session: session,
-            events: events,
+            browsing: events,
+            publishing: events,
             eventsViewModel: EventsViewModel(events: events),
             analytics: analytics,
             crashes: crashes
@@ -89,6 +93,6 @@ final class AppDependencies {
     }
 
     func makePostEventViewModel() -> PostEventViewModel {
-        PostEventViewModel(events: events)
+        PostEventViewModel(events: publishing)
     }
 }

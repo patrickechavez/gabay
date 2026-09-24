@@ -1,16 +1,23 @@
 //
-//  EventClient.swift
+//  EventRepository.swift
 //  Gabay
-//  Created by John Patrick Echavez on 9/23/26.
+//  Created by John Patrick Echavez on 9/24/26.
 //
 
 import Foundation
 
-protocol EventFetching: Sendable {
+// Split in two so neither consumer sees methods it cannot use: the browsing screens cannot
+// publish an event, and the organizer form cannot list or join one.
+protocol EventBrowsingRepository: Sendable {
 
     func events() async throws -> [Event]
 
-    func event(id: String) async throws -> Event
+    func mine() async throws -> [Event]
+
+    func join(_ id: String) async throws
+}
+
+protocol EventPublishingRepository: Sendable {
 
     func create(_ draft: EventDraft) async throws -> Event
 
@@ -21,13 +28,10 @@ protocol EventFetching: Sendable {
         ascentM: Int?,
         estimatedMinutes: Int
     ) async throws -> Event
-
-    func join(_ id: String) async throws
-
-    func mine() async throws -> [Event]
 }
 
-struct EventClient: EventFetching {
+// One backend, so one implementation conforms to both; the split is for the consumers.
+struct LiveEventRepository: EventBrowsingRepository, EventPublishingRepository {
 
     private let api: any APIClient
 
@@ -39,8 +43,12 @@ struct EventClient: EventFetching {
         try await api.get(APIRoute.Events.list)
     }
 
-    func event(id: String) async throws -> Event {
-        try await api.get(APIRoute.Events.detail(id))
+    func mine() async throws -> [Event] {
+        try await api.get(APIRoute.Events.mine)
+    }
+
+    func join(_ id: String) async throws {
+        try await api.send(Endpoint(APIRoute.Events.join(id), method: .post))
     }
 
     func create(_ draft: EventDraft) async throws -> Event {
@@ -69,13 +77,5 @@ struct EventClient: EventFetching {
         )
 
         return try await api.upload(APIRoute.Events.gpx(eventID), form: form)
-    }
-
-    func join(_ id: String) async throws {
-        try await api.send(Endpoint(APIRoute.Events.join(id), method: .post))
-    }
-
-    func mine() async throws -> [Event] {
-        try await api.get(APIRoute.Events.mine)
     }
 }
