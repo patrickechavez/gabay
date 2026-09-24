@@ -17,7 +17,6 @@ enum APIRoute {
     enum Events {
         static let list = "events"
         static let mine = "me/events"
-        static func detail(_ id: String) -> String { "events/\(id)" }
         static func gpx(_ id: String) -> String { "events/\(id)/gpx" }
         static func join(_ id: String) -> String { "events/\(id)/join" }
     }

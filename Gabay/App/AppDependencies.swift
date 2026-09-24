@@ -15,19 +15,18 @@ final class AppDependencies {
     let session: Session
     let eventsViewModel: EventsViewModel
 
-    private let browsing: any EventBrowsingRepository
+    // Only the publishing repository is held: the browsing one is handed straight to
+    // `eventsViewModel` at construction and nothing else asks for it.
     private let publishing: any EventPublishingRepository
 
     init(
         session: Session,
-        browsing: any EventBrowsingRepository,
         publishing: any EventPublishingRepository,
         eventsViewModel: EventsViewModel,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.session = session
-        self.browsing = browsing
         self.publishing = publishing
         self.eventsViewModel = eventsViewModel
         self.analytics = analytics
@@ -76,7 +75,6 @@ final class AppDependencies {
 
         return AppDependencies(
             session: session,
-            browsing: events,
             publishing: events,
             eventsViewModel: EventsViewModel(events: events),
             analytics: analytics,
