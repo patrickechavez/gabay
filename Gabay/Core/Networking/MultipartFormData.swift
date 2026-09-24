@@ -3,10 +3,8 @@
 //  Gabay
 //
 
-import Foundation
+import UIKit
 
-// This type differs from the template's copy: the template's addImage(_:name:filename:compression:)
-// method was omitted because Gabay does not upload images (event photos are already-hosted links).
 struct MultipartFormData {
     let boundary: String
     private var body = Data()
@@ -31,6 +29,14 @@ struct MultipartFormData {
         append("Content-Type: \(mimeType)\r\n\r\n")
         body.append(data)
         append("\r\n")
+    }
+
+    mutating func addImage(_ image: UIImage,
+                           name: String,
+                           filename: String = "image.jpg",
+                           compression: ImageCompression = .fullScreen) {
+        guard let data = image.jpegData(for: compression) else { return }
+        addFile(name, filename: filename, mimeType: "image/jpeg", data: data)
     }
 
     func encoded() -> Data {
