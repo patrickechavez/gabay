@@ -620,7 +620,23 @@ Fix headers. Remove the three em dashes in `CertificatePinner.swift` (lines 45, 
 
 Values: a 30 second timeout everywhere; 2 retries in Development and Staging and 2 in Production; logging `YES` in Development only and `NO` in Staging and Production. `CERT_PINNING_ENABLED` and `PINNED_PUBLIC_KEY_HASHES` already exist in all three and stay exactly as they are, pinning off and hashes blank.
 
-Add all three keys to `Config/Info.plist` as `$(KEY)` entries, matching how `API_BASE_URL` is already declared there.
+**The `Info.plist` gap is larger than three keys, and Task 3's review found it.** `Config/Info.plist` currently bridges exactly one key, `API_BASE_URL`. `APIConfig` reads eight. An xcconfig value that is not surfaced in `Info.plist` never reaches `Bundle.main.object(forInfoDictionaryKey:)`, so it silently returns the default.
+
+Add all seven missing keys to `Config/Info.plist` as `$(KEY)` entries, matching how `API_BASE_URL` is already declared there:
+
+| Key | Already in the xcconfigs? |
+| --- | --- |
+| `API_TIMEOUT_SECONDS` | no, add it in Step 2 |
+| `API_MAX_RETRIES` | no, add it in Step 2 |
+| `API_LOGGING_ENABLED` | no, add it in Step 2 |
+| `CERT_PINNING_ENABLED` | yes, in all three |
+| `PINNED_PUBLIC_KEY_HASHES` | yes, in all three |
+| `FORCE_UPDATE_ENABLED` | yes, in all three |
+| `UPDATE_URL` | yes, in all three |
+
+The last four were added to the xcconfigs by earlier events-platform work as scaffolding and have never been readable from code, which is why nothing noticed. Their defaults are all benign (pinning off, force update off, no update URL), so this is inert rather than dangerous, but leaving it half-wired would mean `CERT_PINNING_ENABLED = YES` silently doing nothing the day someone sets it.
+
+Verify the result rather than assuming: after editing, every key `APIConfig` reads should appear in `Info.plist`. Cross-check them.
 
 - [ ] **Step 3: Wire both into the composition root, behind their flags**
 
