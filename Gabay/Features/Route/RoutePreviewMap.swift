@@ -7,11 +7,7 @@
 import MapKit
 import SwiftUI
 
-// A read-only drawing of a route: no live position, no following, no
-// compass. Used both for an organizer confirming an upload and for a
-// hiker deciding whether to show up. Named apart from the free-trail
-// app's still-present TrailMapView/RouteMapView/RouteCasing, which share
-// this target until Task 12 removes them.
+// A read-only drawing of a route: no live position, no following, no compass, used both by an organizer confirming an upload and a hiker deciding whether to show up. Named apart from the free-trail app's TrailMapView/RouteMapView/RouteCasing, which still share this target until Task 12 removes them.
 struct RoutePreviewMap: UIViewRepresentable {
 
     let points: [TrackPoint]
@@ -70,8 +66,7 @@ struct RoutePreviewMap: UIViewRepresentable {
 // The wider line drawn underneath the route.
 final class RouteLineCasing: MKPolyline {}
 
-// Frames the route the first time the map has a size. Setting a map rect
-// on a zero sized view does nothing, and that is the state at make time.
+// Frames the route the first time the map has a size: setting a map rect on a zero sized view does nothing, which is the state at make time.
 final class FramedMapView: MKMapView {
 
     private static let padding = UIEdgeInsets(top: 40, left: 24, bottom: 40, right: 24)
@@ -79,8 +74,7 @@ final class FramedMapView: MKMapView {
     private var pending: MKMapRect?
 
     func frame(route rect: MKMapRect) {
-        // MKPolyline over non-finite coordinates yields a non-finite rect,
-        // and setVisibleMapRect with one leaves the map in a broken state.
+        // MKPolyline over non-finite coordinates yields a non-finite rect, and setVisibleMapRect with one leaves the map in a broken state.
         guard rect.origin.x.isFinite, rect.origin.y.isFinite,
               rect.size.width.isFinite, rect.size.height.isFinite else { return }
 

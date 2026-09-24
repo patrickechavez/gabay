@@ -41,16 +41,11 @@ final class AppDependencies {
         let tokenStore = KeychainTokenStore()
         let sessionLink = SessionLink()
 
-        // Both clients below talk to the same host, so both go through the
-        // same pinner. A refresh client left off pinning would be a hole:
-        // it carries the refresh token, which is worth just as much as the
-        // access token to whoever is sitting in the middle.
+        // Both clients share this pinner: an unpinned refresh client would leak the refresh token, which is worth as much as the access token to a man in the middle.
         let pinner = CertificatePinner(pinnedHashes: APIConfig.pinnedPublicKeyHashes)
         let pinnedSession = URLSession(configuration: .default, delegate: pinner, delegateQueue: nil)
 
-        // A bare client with no interceptors, used only by the refresher: if
-        // it shared the intercepted client below, a failing refresh would
-        // recurse into the interceptor that triggered it.
+        // Bare client with no interceptors, used only by the refresher: sharing the intercepted client below would make a failing refresh recurse into the interceptor that triggered it.
         let refreshClient = URLSessionAPIClient(baseURL: APIConfig.baseURL, session: pinnedSession)
         let coordinator = TokenRefreshCoordinator(
             store: tokenStore,
@@ -58,10 +53,7 @@ final class AppDependencies {
             link: sessionLink
         )
 
-        // LoggingInterceptor must come after AuthInterceptor: interceptors
-        // run in array order, so this logs the request as actually sent,
-        // with the Authorization header already attached (and redacted by
-        // LogFormat before anything reaches the console).
+        // LoggingInterceptor must come after AuthInterceptor: interceptors run in array order, so this logs the request as actually sent, with Authorization attached (redacted by LogFormat before it reaches the console).
         var interceptors: [any RequestInterceptor] = [AuthInterceptor(coordinator: coordinator)]
         if APIConfig.isLoggingEnabled {
             interceptors.append(LoggingInterceptor())

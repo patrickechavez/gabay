@@ -8,9 +8,7 @@ import CoreLocation
 import MapKit
 import SwiftUI
 
-// Pin-drop for a meeting point: opens on the organizer's current location
-// if they allow it, otherwise a fixed region around Cebu, tap anywhere to
-// move the pin.
+// Pin-drop for a meeting point: opens on the organizer's current location if they allow it, otherwise a fixed region around Cebu, tap anywhere to move the pin.
 struct LocationPicker: View {
 
     @Binding var coordinate: Coordinate?
@@ -75,15 +73,11 @@ struct LocationPicker: View {
     }
 }
 
-// A single current-location read, nothing held past that. No background
-// mode, no continuous updates, just "where am I right now."
+// A single current-location read, nothing held past that: no background mode, no continuous updates, just "where am I right now."
 //
-// Not @MainActor: CLLocationManagerDelegate is a plain, non-isolated
-// protocol, and Swift 6 refuses a main-actor-isolated conformance to it
-// (the delegate callbacks are not guaranteed to land on the main actor).
-// @unchecked Sendable is the same escape hatch StubURLProtocol already
-// uses elsewhere in this codebase for the same kind of delegate bridging,
-// there is never more than one in-flight request per instance.
+// Not @MainActor: CLLocationManagerDelegate is a non-isolated protocol and Swift 6 refuses a main-actor-isolated
+// conformance to it. @unchecked Sendable is safe since there's never more than one in-flight request per instance,
+// the same escape hatch StubURLProtocol uses elsewhere in this codebase for the same kind of delegate bridging.
 final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
 
     private let manager = CLLocationManager()
@@ -121,8 +115,7 @@ final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Send
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // A permission decision made while a request is pending: ask again
-        // now that we know the answer, or give up if it was denied.
+        // A permission decision made while a request is pending: ask again now that we know the answer, or give up if it was denied.
         guard continuation != nil else { return }
 
         switch manager.authorizationStatus {

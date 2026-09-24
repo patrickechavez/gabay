@@ -12,13 +12,10 @@ final class EventsViewModel: LoadableViewModel {
 
     var state: LoadState<[Event]> = .idle
 
-    // Its own `LoadState`, not just an array, so `MyEventsView` can tell
-    // "still loading" and "failed to load" apart from "loaded and empty"
-    // instead of showing the empty copy for all three.
+    // Its own `LoadState`, not just an array, so `MyEventsView` can tell loading/failed/empty apart instead of showing the empty copy for all three.
     private(set) var mineState: LoadState<[Event]> = .idle
 
-    // Ids the hiker has joined, kept alongside `mineState` so a row's button
-    // updates the moment Join is tapped, without waiting on a refresh.
+    // Ids the hiker has joined, kept alongside `mineState` so a row's button updates the moment Join is tapped, without waiting on a refresh.
     private(set) var joined: Set<String> = []
 
     @ObservationIgnored let events: any EventFetching
@@ -48,8 +45,7 @@ final class EventsViewModel: LoadableViewModel {
             try await events.join(event.id)
             joined.insert(event.id)
         } catch {
-            // A soft RSVP; a failure here isn't worth blocking the hiker,
-            // who is about to leave the app for the payment link anyway.
+            // A soft RSVP; a failure here isn't worth blocking the hiker, who is about to leave the app for the payment link anyway.
         }
     }
 

@@ -8,39 +8,26 @@ import Foundation
 // Shared by the network and offline logs so both print identically.
 enum LogFormat {
 
-    // Authorization carries a bearer token, the same kind of secret
-    // `redactedBodyKeys` below already redacts when it shows up in a
-    // request body (as "token", "access_token", "refresh_token"). Gabay
-    // also stores a refresh token, which lives longer and does more damage
-    // if it leaks than an access token does. Redacting it here costs
-    // nothing for debugging - you can still see that the header was
-    // attached, just not its value - and the auth interceptor tests
-    // already assert attachment without needing it in the console.
-    //
-    // Divergence from the template: upstream logs Authorization in full.
+    // Authorization carries a bearer token, and Gabay's refresh token does more damage than an
+    // access token if it leaks. Redacting it here is free for debugging (attachment is still
+    // visible, just not the value) and the auth interceptor tests don't need it in the console.
+    // Diverges from the template, which logs Authorization in full.
     private static let redactedHeaders: Set<String> = [
         "cookie", "set-cookie", "x-api-key", "proxy-authorization", "authorization"
     ]
 
-    // Divergence from the template: entries below are spelled snake_case
-    // for readability, but Gabay's coders (see APICoders.swift) do not
-    // convert between snake_case and camelCase, so a key can arrive on
-    // the wire in either spelling depending on the endpoint - AuthResult's
-    // "accessToken" and "refreshToken" are camelCase, for example. Matching
-    // must therefore be spelling-agnostic rather than assuming one
-    // convention, which is what `normalizedRedactedBodyKeys` and
-    // `normalize(_:)` below are for.
+    // Spelled snake_case for readability, but Gabay's coders (APICoders.swift) don't convert
+    // case, so a key can arrive on the wire in either spelling. `normalizedRedactedBodyKeys`
+    // and `normalize(_:)` below make matching spelling-agnostic instead of assuming one.
     private static let redactedBodyKeys: Set<String> = [
         "password", "current_password", "new_password", "password_confirmation",
         "token", "access_token", "refresh_token", "secret", "otp", "pin", "code"
     ]
 
-    // Precomputed once so redaction doesn't re-normalize every entry in
-    // `redactedBodyKeys` for every key of every logged body.
+    // Precomputed once so redaction doesn't re-normalize `redactedBodyKeys` on every logged body.
     private static let normalizedRedactedBodyKeys: Set<String> = Set(redactedBodyKeys.map(normalize))
 
-    // Lowercases and strips underscores so "access_token", "accessToken",
-    // "AccessToken" and "ACCESS_TOKEN" all normalize to the same string.
+    // Lowercases and strips underscores so "access_token", "accessToken", "AccessToken" and "ACCESS_TOKEN" all normalize the same.
     private static func normalize(_ key: String) -> String {
         key.lowercased().replacingOccurrences(of: "_", with: "")
     }

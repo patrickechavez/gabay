@@ -5,16 +5,14 @@
 
 import SwiftUI
 
-// An alert a view model can raise without knowing anything about SwiftUI's
-// presentation machinery. Setting it to nil dismisses.
+// An alert a view model can raise without knowing about SwiftUI's presentation machinery; nil dismisses it.
 struct AlertState: Identifiable {
     let id = UUID()
     let title: String
     var message: String?
     var buttons: [AlertButton]
 
-    // One button that only dismisses. Covers both a confirmation and a
-    // failure, which is why it is not called `error`.
+    // One button that only dismisses; covers both confirmation and failure, hence not called `error`.
     static func notice(_ title: String, _ message: String? = nil) -> AlertState {
         AlertState(
             title: title,

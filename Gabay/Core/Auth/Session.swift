@@ -6,8 +6,7 @@
 
 import Foundation
 
-// The signed-in hiker, or the lack of one. Every screen that needs to know
-// who's signed in, or what they're allowed to do, reads this.
+// The signed-in hiker, or lack of one. Every screen that cares who's signed in reads this.
 @Observable
 @MainActor
 final class Session {
@@ -24,20 +23,17 @@ final class Session {
         self.tokenStore = tokenStore
     }
 
-    // Called once at launch. Picks up a token already in the Keychain, or
-    // does nothing if there isn't one.
+    // Called once at launch; picks up a token already in the Keychain, or does nothing if there isn't one.
     func restore() async {
         guard await tokenStore.load() != nil else { return }
 
         do {
             account = try await auth.me()
         } catch {
-            // A transport failure (offline, timed out, a 5xx) must not cost
-            // the user their session; only clear the store when the token
-            // itself is genuinely rejected. A 401 is normally handled a
-            // layer down by AuthInterceptor and TokenRefreshCoordinator,
-            // which already clear the store and sign out, but classify
-            // here too in case `me()` surfaces the rejection directly.
+            // A transport failure (offline, timeout, 5xx) must not cost the user their session, so
+            // only clear the store when the token is genuinely rejected. A 401 is normally handled
+            // downstream by AuthInterceptor and TokenRefreshCoordinator, but classify here too in
+            // case `me()` surfaces the rejection directly.
             if APIError.classify(error).invalidatesSession {
                 await tokenStore.clear()
             }
@@ -56,9 +52,8 @@ final class Session {
         account = try await auth.me()
     }
 
-    // Called by `TokenRefreshCoordinator.invalidate()` when a refresh fails
-    // or there is no refresh token to try, so the session always reflects a
-    // rejected token no matter where the rejection happened.
+    // Called by `TokenRefreshCoordinator.invalidate()` when a refresh fails or there's no refresh
+    // token, so the session always reflects a rejected token no matter where it happened.
     func signOut() async {
         await tokenStore.clear()
         account = nil

@@ -231,8 +231,7 @@ struct PostEventView: View {
         }
     }
 
-    // Section headers are identical everywhere, so they are built once here
-    // rather than repeated with their styling at each of the six call sites.
+    // Section headers are identical everywhere, so they are built once here rather than repeated at each of the six call sites.
     private func sectionHeader(_ text: Text) -> some View {
         text
             .font(Theme.Font.sectionTitle)
@@ -259,8 +258,6 @@ struct PostEventView: View {
 
 private extension UTType {
 
-    // GPX is not one of Apple's declared types, so the app names it itself.
-    // Named `gpxFile`, not `gpx`, to stay clear of any other GPX type
-    // declaration elsewhere in the target.
+    // GPX is not one of Apple's declared types, so the app names it itself; called `gpxFile`, not `gpx`, to stay clear of any other GPX type declared elsewhere in the target.
     static let gpxFile = UTType(filenameExtension: "gpx") ?? .xml
 }

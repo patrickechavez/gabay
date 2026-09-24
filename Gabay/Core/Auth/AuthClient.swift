@@ -27,7 +27,6 @@ struct AuthResult: Codable, Equatable, Sendable {
     }
 }
 
-// Registers, signs in, and reads the signed-in account.
 protocol Authenticating: Sendable {
 
     func register(email: String, password: String) async throws -> AuthResult
