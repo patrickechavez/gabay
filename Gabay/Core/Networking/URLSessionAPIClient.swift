@@ -13,6 +13,10 @@ struct EmptyResponse: Decodable, Sendable, Equatable {
 
 protocol APIClient: Sendable {
     func send<T: Decodable & Sendable>(_ endpoint: Endpoint, as type: T.Type) async throws -> T
+
+    // Raw bytes, for a response that is not JSON: a GPX file, an image. Goes through the same
+    // interceptors, retries and pinning as everything else.
+    func data(_ endpoint: Endpoint) async throws -> Data
 }
 
 extension APIClient {
@@ -116,6 +120,10 @@ nonisolated final class URLSessionAPIClient: APIClient {
             )
             throw APIError.decodingFailed(detail: detail)
         }
+    }
+
+    func data(_ endpoint: Endpoint) async throws -> Data {
+        try await perform(endpoint)
     }
 
     private func perform(_ endpoint: Endpoint) async throws -> Data {
