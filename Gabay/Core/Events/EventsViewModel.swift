@@ -19,12 +19,10 @@ final class EventsViewModel: LoadableViewModel {
     private(set) var joined: Set<String> = []
 
     @ObservationIgnored let events: any EventFetching
-    @ObservationIgnored private let session: Session
     @ObservationIgnored private var hasLoaded = false
 
-    init(events: any EventFetching, session: Session) {
+    init(events: any EventFetching) {
         self.events = events
-        self.session = session
     }
 
     func load() async {
@@ -44,8 +42,6 @@ final class EventsViewModel: LoadableViewModel {
         do {
             try await events.join(event.id)
             joined.insert(event.id)
-        } catch APIError.unauthorized {
-            await session.signOut()
         } catch {
             // A soft RSVP; a failure here isn't worth blocking the hiker,
             // who is about to leave the app for the payment link anyway.
@@ -53,20 +49,13 @@ final class EventsViewModel: LoadableViewModel {
     }
 
     private func fetchEvents() async throws -> [Event] {
-        do {
-            return try await events.events()
-        } catch APIError.unauthorized {
-            await session.signOut()
-            throw CancellationError()
-        }
+        try await events.events()
     }
 
     private func loadMine() async {
         do {
             mine = try await events.mine()
             joined = Set(mine.map(\.id))
-        } catch APIError.unauthorized {
-            await session.signOut()
         } catch {
             // Left as-is; `state` already reports the list's own failure.
         }

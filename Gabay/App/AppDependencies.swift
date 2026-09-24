@@ -39,14 +39,30 @@ final class AppDependencies {
         Observability.install(analytics: analytics, crashes: crashes)
 
         let tokenStore = KeychainTokenStore()
-        let api = URLSessionAPIClient(baseURL: APIConfig.baseURL)
+        let sessionLink = SessionLink()
+
+        // A bare client with no interceptors, used only by the refresher: if
+        // it shared the intercepted client below, a failing refresh would
+        // recurse into the interceptor that triggered it.
+        let refreshClient = URLSessionAPIClient(baseURL: APIConfig.baseURL)
+        let coordinator = TokenRefreshCoordinator(
+            store: tokenStore,
+            refresher: LiveTokenRefresher(api: refreshClient),
+            link: sessionLink
+        )
+
+        let api = URLSessionAPIClient(
+            baseURL: APIConfig.baseURL,
+            interceptors: [AuthInterceptor(coordinator: coordinator)]
+        )
         let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)
+        sessionLink.session = session
         let events = EventClient(api: api)
 
         return AppDependencies(
             session: session,
             events: events,
-            eventsViewModel: EventsViewModel(events: events, session: session),
+            eventsViewModel: EventsViewModel(events: events),
             analytics: analytics,
             crashes: crashes
         )

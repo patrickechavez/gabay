@@ -11,22 +11,20 @@ import Testing
 struct EventsViewModelTests {
 
     private func makeViewModel(
-        events: StubEventFetching = StubEventFetching(),
-        auth: StubAuthenticating = StubAuthenticating()
-    ) -> (EventsViewModel, Session) {
-        let session = Session(auth: auth, tokenStore: InMemoryTokenStore())
-        return (EventsViewModel(events: events, session: session), session)
+        events: StubEventFetching = StubEventFetching()
+    ) -> EventsViewModel {
+        EventsViewModel(events: events)
     }
 
     @Test func startsIdle() {
-        let (viewModel, _) = makeViewModel()
+        let viewModel = makeViewModel()
         #expect(viewModel.state == .idle)
     }
 
     @Test func loadPopulatesTheList() async {
         let events = StubEventFetching()
         events.eventsResult = .success([.fixture()])
-        let (viewModel, _) = makeViewModel(events: events)
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.load()
 
@@ -37,7 +35,7 @@ struct EventsViewModelTests {
         let events = StubEventFetching()
         events.eventsResult = .success([.fixture()])
         events.mineResult = .success([.fixture()])
-        let (viewModel, _) = makeViewModel(events: events)
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.load()
 
@@ -48,7 +46,7 @@ struct EventsViewModelTests {
     @Test func loadOnlyFetchesOnce() async {
         let events = StubEventFetching()
         events.eventsResult = .success([.fixture()])
-        let (viewModel, _) = makeViewModel(events: events)
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.load()
         await viewModel.load()
@@ -58,7 +56,7 @@ struct EventsViewModelTests {
 
     @Test func joinMarksTheEventAsJoined() async {
         let events = StubEventFetching()
-        let (viewModel, _) = makeViewModel(events: events)
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.join(.fixture())
 
@@ -69,24 +67,31 @@ struct EventsViewModelTests {
     @Test func aFailedLoadReportsTheFailure() async {
         let events = StubEventFetching()
         events.eventsResult = .failure(APIError.server(status: 500))
-        let (viewModel, _) = makeViewModel(events: events)
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.load()
 
         #expect(viewModel.state.error != nil)
     }
 
-    @Test func anUnauthorizedLoadSignsOut() async {
+    // The interceptor owns 401 handling now: it refreshes and retries, and
+    // only signs the session out once a refresh genuinely fails. By the time
+    // an unauthorized error reaches the view model, that has already
+    // happened one layer down, so all that's left to verify here is that the
+    // list lands in `.failed` instead of stalling in `.idle` behind a
+    // spinner, and that a retry can still succeed.
+    @Test func anUnauthorizedLoadEndsInFailedAndCanBeRetried() async {
         let events = StubEventFetching()
         events.eventsResult = .failure(APIError.unauthorized())
-        let auth = StubAuthenticating()
-        auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
-        auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
-        let (viewModel, session) = makeViewModel(events: events, auth: auth)
-        try? await session.login(email: "hiker@example.test", password: "secret123")
+        let viewModel = makeViewModel(events: events)
 
         await viewModel.load()
 
-        #expect(session.isSignedIn == false)
+        #expect(viewModel.state.error != nil)
+
+        events.eventsResult = .success([.fixture()])
+        await viewModel.refresh()
+
+        #expect(viewModel.state.value?.first?.title == "Hike for Pawssion Project")
     }
 }
