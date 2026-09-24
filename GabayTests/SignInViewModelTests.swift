@@ -11,7 +11,7 @@ import Testing
 struct SignInViewModelTests {
 
     private func makeViewModel() -> SignInViewModel {
-        SignInViewModel(session: Session(auth: StubAuthenticating(), tokenStore: InMemoryTokenStore()))
+        SignInViewModel(session: Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore()))
     }
 
     @Test func cannotSubmitAnEmptyForm() {
@@ -52,7 +52,7 @@ struct SignInViewModelTests {
     }
 
     @Test func aSecondSignInAttemptClearsTheFailureFromTheFirst() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         let viewModel = SignInViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
         viewModel.email = "hiker@example.com"
         viewModel.password = "whatever"
@@ -83,7 +83,7 @@ struct SignInViewModelTests {
     }
 
     @Test func signInTrimsTheEmailBeforeSendingIt() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
 

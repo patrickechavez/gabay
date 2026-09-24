@@ -11,7 +11,7 @@ import Testing
 struct SignUpViewModelTests {
 
     private func makeViewModel() -> SignUpViewModel {
-        SignUpViewModel(session: Session(auth: StubAuthenticating(), tokenStore: InMemoryTokenStore()))
+        SignUpViewModel(session: Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore()))
     }
 
     @Test func anUntouchedEmailShowsNoError() {
@@ -104,7 +104,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func registerDoesNothingWhenTheFormCannotBeSubmitted() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
         let tokenStore = InMemoryTokenStore()
@@ -118,7 +118,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func registerTrimsTheEmailBeforeSendingIt() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
 
@@ -131,7 +131,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func registerReturnsTrueOnASuccessfulRegistration() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
 
@@ -154,7 +154,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func aSecondRegisterAttemptClearsTheFailureFromTheFirst() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
         viewModel.email = "hiker@example.com"
         viewModel.password = "longenough"
@@ -170,7 +170,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func aServerFieldMessageWinsOverTheLocalRule() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .failure(APIError.validation(ValidationErrors(
             fields: ["email": ["That email is already registered."]],
             summary: nil
@@ -186,7 +186,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func aValidationErrorOnAFieldWithNoSlotShowsTheWholeFormMessage() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .failure(APIError.validation(ValidationErrors(
             fields: ["captcha": ["Please complete the challenge."]],
             summary: nil
@@ -201,7 +201,7 @@ struct SignUpViewModelTests {
     }
 
     @Test func aValidationErrorOnlyOnFieldsWithSlotsSuppressesTheWholeFormMessage() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.registerResult = .failure(APIError.validation(ValidationErrors(
             fields: ["email": ["That email is already registered."]],
             summary: nil

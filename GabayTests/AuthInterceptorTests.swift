@@ -56,7 +56,7 @@ struct AuthInterceptorTests {
     }
 
     private func makeSignedInSession() async throws -> Session {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.loginResult = .success(
             AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker)
         )

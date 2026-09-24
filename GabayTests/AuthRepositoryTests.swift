@@ -1,5 +1,5 @@
 //
-//  AuthClientTests.swift
+//  AuthRepositoryTests.swift
 //  GabayTests
 //
 
@@ -10,7 +10,7 @@ import Testing
 extension SharedStubProtocolSuite {
 
 @Suite(.serialized)
-struct AuthClientTests {
+struct AuthRepositoryTests {
 
     private let base = URL(string: "https://example.test/api")!
 
@@ -38,12 +38,12 @@ struct AuthClientTests {
         )
     }
 
-    private func makeClient(interceptors: [any RequestInterceptor] = []) -> AuthClient {
-        AuthClient(api: makeAPIClient(interceptors: interceptors))
+    private func makeRepository(interceptors: [any RequestInterceptor] = []) -> LiveAuthRepository {
+        LiveAuthRepository(api: makeAPIClient(interceptors: interceptors))
     }
 
     @Test func registersAndReturnsATokenAndRole() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
@@ -56,7 +56,7 @@ struct AuthClientTests {
     }
 
     @Test func logsInAndReturnsATokenAndRole() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"accessToken\":\"abc123\",\"role\":\"organizer\"}".utf8)
@@ -68,7 +68,7 @@ struct AuthClientTests {
     }
 
     @Test func readsTheSignedInAccount() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"email\":\"hiker@example.test\",\"role\":\"hiker\"}".utf8)
@@ -80,7 +80,7 @@ struct AuthClientTests {
     }
 
     @Test func refusesBadCredentials() async throws {
-        let client = makeClient()
+        let client = makeRepository()
         StubURLProtocol.queue(.init(status: 401, body: Data()))
 
         await #expect(throws: APIError.unauthorized()) {
@@ -92,7 +92,7 @@ struct AuthClientTests {
     // interceptor attach a token to the endpoint meant to obtain one.
     @Test func registerDoesNotRequireAuth() async throws {
         let spy = RequiresAuthSpy()
-        let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
+        let client = LiveAuthRepository(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
@@ -107,7 +107,7 @@ struct AuthClientTests {
     // an expired session to a future refresh interceptor.
     @Test func loginDoesNotRequireAuth() async throws {
         let spy = RequiresAuthSpy()
-        let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
+        let client = LiveAuthRepository(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
@@ -122,7 +122,7 @@ struct AuthClientTests {
     // `false` along with the other two.
     @Test func meRequiresAuth() async throws {
         let spy = RequiresAuthSpy()
-        let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
+        let client = LiveAuthRepository(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(
             status: 200,
             body: Data("{\"email\":\"hiker@example.test\",\"role\":\"hiker\"}".utf8)

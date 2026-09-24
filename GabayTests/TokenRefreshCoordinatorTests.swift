@@ -136,7 +136,7 @@ struct LiveTokenRefresherTests {
 struct TokenRefreshCoordinatorTests {
 
     private func makeSignedInSession() async throws -> Session {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.loginResult = .success(
             AuthResult(accessToken: "abc123", refreshToken: "refresh1", expiresAt: nil, role: .hiker)
         )

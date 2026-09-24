@@ -1,12 +1,12 @@
 //
-//  AuthClient.swift
+//  AuthRepository.swift
 //  Gabay
-//  Created by John Patrick Echavez on 9/23/26.
+//  Created by John Patrick Echavez on 9/24/26.
 //
 
 import Foundation
 
-protocol Authenticating: Sendable {
+protocol AuthRepository: Sendable {
 
     func register(email: String, password: String) async throws -> AuthResult
 
@@ -15,7 +15,7 @@ protocol Authenticating: Sendable {
     func me() async throws -> Account
 }
 
-struct AuthClient: Authenticating {
+struct LiveAuthRepository: AuthRepository {
 
     private let api: any APIClient
 

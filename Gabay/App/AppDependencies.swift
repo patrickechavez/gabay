@@ -67,7 +67,7 @@ final class AppDependencies {
             session: pinnedSession,
             interceptors: interceptors
         )
-        let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)
+        let session = Session(auth: LiveAuthRepository(api: api), tokenStore: tokenStore)
         sessionLink.session = session
         let events = EventClient(api: api)
 

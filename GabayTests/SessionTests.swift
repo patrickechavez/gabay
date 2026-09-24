@@ -13,18 +13,18 @@ struct SessionTests {
     private let hiker = Account(email: "hiker@example.test", role: .hiker)
 
     @Test func startsSignedOut() {
-        let session = Session(auth: StubAuthenticating(), tokenStore: InMemoryTokenStore())
+        let session = Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore())
         #expect(session.isSignedIn == false)
     }
 
     @Test func restoreDoesNothingWithoutAStoredToken() async {
-        let session = Session(auth: StubAuthenticating(), tokenStore: InMemoryTokenStore())
+        let session = Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore())
         await session.restore()
         #expect(session.isSignedIn == false)
     }
 
     @Test func restoreSignsInWhenATokenIsAlreadyStored() async throws {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.meResult = .success(hiker)
         let tokenStore = InMemoryTokenStore()
         try await tokenStore.save(AuthTokens(accessToken: "abc123"))
@@ -36,7 +36,7 @@ struct SessionTests {
     }
 
     @Test func restoreClearsAStaleToken() async {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.meResult = .failure(APIError.unauthorized())
         let tokenStore = InMemoryTokenStore()
         try? await tokenStore.save(AuthTokens(accessToken: "stale"))
@@ -49,7 +49,7 @@ struct SessionTests {
     }
 
     @Test func restoreKeepsTheTokenWhenMeFailsWithATransportError() async throws {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.meResult = .failure(APIError.offline)
         let tokenStore = InMemoryTokenStore()
         try await tokenStore.save(AuthTokens(accessToken: "abc123"))
@@ -62,7 +62,7 @@ struct SessionTests {
     }
 
     @Test func loginSavesTheTokenAndLoadsTheAccount() async throws {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(hiker)
         let tokenStore = InMemoryTokenStore()
@@ -75,7 +75,7 @@ struct SessionTests {
     }
 
     @Test func signOutClearsEverything() async throws {
-        let auth = StubAuthenticating()
+        let auth = StubAuthRepository()
         auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(hiker)
         let tokenStore = InMemoryTokenStore()

@@ -15,10 +15,10 @@ final class Session {
 
     var isSignedIn: Bool { account != nil }
 
-    @ObservationIgnored private let auth: any Authenticating
+    @ObservationIgnored private let auth: any AuthRepository
     @ObservationIgnored private let tokenStore: any TokenStore
 
-    init(auth: any Authenticating, tokenStore: any TokenStore) {
+    init(auth: any AuthRepository, tokenStore: any TokenStore) {
         self.auth = auth
         self.tokenStore = tokenStore
     }

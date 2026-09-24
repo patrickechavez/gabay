@@ -9,7 +9,7 @@ import Foundation
 // Shared stand-ins for the protocols view models depend on, so tests don't need a network or a
 // Keychain.
 
-final class StubAuthenticating: Authenticating, @unchecked Sendable {
+final class StubAuthRepository: AuthRepository, @unchecked Sendable {
     var registerResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized())
     var loginResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized())
     var meResult: Result<Account, any Error> = .failure(APIError.unauthorized())
