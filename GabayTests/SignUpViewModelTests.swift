@@ -113,7 +113,7 @@ struct SignUpViewModelTests {
         let result = await viewModel.register()
 
         #expect(result == false)
-        #expect(viewModel.failure == nil)
+        #expect(viewModel.action.error == nil)
         #expect(await tokenStore.load() == nil)
     }
 
@@ -166,6 +166,38 @@ struct SignUpViewModelTests {
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
         _ = await viewModel.register()
 
+        #expect(viewModel.signUpErrorMessage == nil)
+    }
+
+    @Test func aServerFieldMessageWinsOverTheLocalRule() async {
+        let auth = StubAuthenticating()
+        auth.registerResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["email": ["That email is already registered."]],
+            summary: nil
+        )))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
+        // Well-formed, so the local rule alone would say nothing here.
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        _ = await viewModel.register()
+
+        #expect(viewModel.emailError == "That email is already registered.")
+    }
+
+    @Test func editingAFieldAfterAFailedRegistrationClearsTheStaleMessage() async {
+        let viewModel = makeViewModel()
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        _ = await viewModel.register()
+        #expect(viewModel.signUpErrorMessage != nil)
+
+        // canSubmit goes false, so nothing will ever resubmit to clear it
+        // the old way; the edit itself has to be what clears it.
+        viewModel.password = "short"
+
+        #expect(viewModel.canSubmit == false)
         #expect(viewModel.signUpErrorMessage == nil)
     }
 }

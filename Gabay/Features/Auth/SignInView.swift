@@ -10,11 +10,24 @@ import SwiftUI
 @MainActor
 final class SignInViewModel {
 
-    var email = ""
-    var password = ""
+    let action = ActionState()
 
-    private(set) var isSigningIn = false
-    private(set) var failure: LoadFailure?
+    // Backed by its own storage with a hand-written setter, rather than a
+    // plain stored property, so every edit clears a stale failure through
+    // the one shared `ActionState.clear()` instead of leaving it on screen
+    // until a resubmit that a bad edit may never allow.
+    private var storedEmail = ""
+    private var storedPassword = ""
+
+    var email: String {
+        get { storedEmail }
+        set { storedEmail = newValue; action.clear() }
+    }
+
+    var password: String {
+        get { storedPassword }
+        set { storedPassword = newValue; action.clear() }
+    }
 
     @ObservationIgnored private let session: Session
 
@@ -26,28 +39,19 @@ final class SignInViewModel {
     // would gate canSubmit, and a false negative would lock someone out of
     // their own account over an unusual but legal address. The server decides.
     var canSubmit: Bool {
-        !email.trimmed.isEmpty && !password.isEmpty && !isSigningIn
+        !email.trimmed.isEmpty && !password.isEmpty && !action.isRunning
     }
 
     var signInErrorMessage: String? {
-        guard let failure, failure.isUserFacing else { return nil }
-        return String(
-            localized: "Check your email and password, then try again.",
-            comment: "Shown when sign-in fails"
-        )
+        action.errorMessage
     }
 
     func signIn() async {
         guard canSubmit else { return }
 
-        failure = nil
-        isSigningIn = true
-        defer { isSigningIn = false }
-
-        do {
-            try await session.login(email: email.trimmed, password: password)
-        } catch {
-            failure = LoadFailure.classify(error)
+        let credentials = (email: email.trimmed, password: password)
+        await action.run { [session] in
+            try await session.login(email: credentials.email, password: credentials.password)
         }
     }
 }
@@ -84,7 +88,7 @@ struct SignInView: View {
 
                     AsyncButton(
                         title: Text("Sign In", comment: "Button that submits the sign-in form"),
-                        isRunning: viewModel.isSigningIn,
+                        isRunning: viewModel.action.isRunning,
                         action: { await viewModel.signIn() }
                     )
                     .disabled(!viewModel.canSubmit)

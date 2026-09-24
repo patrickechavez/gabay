@@ -12,9 +12,12 @@ final class EventsViewModel: LoadableViewModel {
 
     var state: LoadState<[Event]> = .idle
 
-    private(set) var mine: [Event] = []
+    // Its own `LoadState`, not just an array, so `MyEventsView` can tell
+    // "still loading" and "failed to load" apart from "loaded and empty"
+    // instead of showing the empty copy for all three.
+    private(set) var mineState: LoadState<[Event]> = .idle
 
-    // Ids the hiker has joined, kept alongside `mine` so a row's button
+    // Ids the hiker has joined, kept alongside `mineState` so a row's button
     // updates the moment Join is tapped, without waiting on a refresh.
     private(set) var joined: Set<String> = []
 
@@ -24,6 +27,8 @@ final class EventsViewModel: LoadableViewModel {
     init(events: any EventFetching) {
         self.events = events
     }
+
+    var mine: [Event] { mineState.value ?? [] }
 
     func load() async {
         guard !hasLoaded else { return }
@@ -35,7 +40,7 @@ final class EventsViewModel: LoadableViewModel {
 
     func refresh() async {
         await perform(isRefresh: true) { try await self.fetchEvents() }
-        await loadMine()
+        await loadMine(isRefresh: true)
     }
 
     func join(_ event: Event) async {
@@ -52,12 +57,31 @@ final class EventsViewModel: LoadableViewModel {
         try await events.events()
     }
 
-    private func loadMine() async {
+    private func loadMine(isRefresh: Bool = false) async {
+        if !isRefresh, mineState.value == nil {
+            mineState = .loading
+        }
+
         do {
-            mine = try await events.mine()
-            joined = Set(mine.map(\.id))
+            let fetched = try await events.mine()
+            try Task.checkCancellation()
+            mineState = .from(fetched)
+            joined = Set(fetched.map(\.id))
         } catch {
-            // Left as-is; `state` already reports the list's own failure.
+            let apiError = APIError.classify(error)
+
+            // A cancelled first load goes back to `.idle` so the view can retry.
+            if apiError == .cancelled, case .loading = mineState {
+                mineState = .idle
+                return
+            }
+
+            guard apiError.isUserFacing else { return }
+
+            // Failing silently while refreshing content that's already visible.
+            if isRefresh, mineState.value != nil { return }
+
+            mineState = .failed(apiError)
         }
     }
 }

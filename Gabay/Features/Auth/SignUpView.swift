@@ -10,11 +10,24 @@ import SwiftUI
 @MainActor
 final class SignUpViewModel {
 
-    var email = ""
-    var password = ""
+    let action = ActionState()
 
-    private(set) var isRegistering = false
-    private(set) var failure: LoadFailure?
+    // Backed by its own storage with a hand-written setter, rather than a
+    // plain stored property, so every edit clears a stale failure through
+    // the one shared `ActionState.clear()` instead of leaving it on screen
+    // until a resubmit that a bad edit may never allow.
+    private var storedEmail = ""
+    private var storedPassword = ""
+
+    var email: String {
+        get { storedEmail }
+        set { storedEmail = newValue; action.clear() }
+    }
+
+    var password: String {
+        get { storedPassword }
+        set { storedPassword = newValue; action.clear() }
+    }
 
     @ObservationIgnored private let session: Session
 
@@ -28,7 +41,9 @@ final class SignUpViewModel {
 
     // An empty field is never an inline error. It shows as the required
     // marker and a disabled button, so only a filled-in field can be wrong.
+    // A server-supplied message, when there is one, wins over the local rule.
     var emailError: String? {
+        if let serverMessage = action.message(for: "email") { return serverMessage }
         guard !email.trimmed.isEmpty, !email.trimmed.isValidEmail else { return nil }
         return String(
             localized: "Enter a valid email address.",
@@ -37,6 +52,7 @@ final class SignUpViewModel {
     }
 
     var passwordError: String? {
+        if let serverMessage = action.message(for: "password") { return serverMessage }
         guard !password.isEmpty, password.count < Self.minimumPasswordLength else { return nil }
         return String(
             localized: "Use at least \(Self.minimumPasswordLength) characters.",
@@ -44,31 +60,27 @@ final class SignUpViewModel {
         )
     }
 
+    // A field-level message is already shown next to its own field, so the
+    // whole-form line only carries what's left over.
     var signUpErrorMessage: String? {
-        guard let failure, failure.isUserFacing else { return nil }
-        return String(localized: "Try again in a moment.", comment: "Shown when sign-up fails")
+        guard action.error?.validationErrors == nil else { return nil }
+        return action.errorMessage
     }
 
     var canSubmit: Bool {
         email.trimmed.isValidEmail
             && password.count >= Self.minimumPasswordLength
-            && !isRegistering
+            && !action.isRunning
     }
 
     func register() async -> Bool {
         guard canSubmit else { return false }
 
-        failure = nil
-        isRegistering = true
-        defer { isRegistering = false }
-
-        do {
-            try await session.register(email: email.trimmed, password: password)
-            return true
-        } catch {
-            failure = LoadFailure.classify(error)
-            return false
+        let credentials = (email: email.trimmed, password: password)
+        let succeeded: Void? = await action.run { [session] in
+            try await session.register(email: credentials.email, password: credentials.password)
         }
+        return succeeded != nil
     }
 }
 
@@ -104,7 +116,7 @@ struct SignUpView: View {
 
                     AsyncButton(
                         title: Text("Create Account", comment: "Button that submits the sign-up form"),
-                        isRunning: viewModel.isRegistering,
+                        isRunning: viewModel.action.isRunning,
                         action: {
                             if await viewModel.register() {
                                 await MainActor.run { dismiss() }

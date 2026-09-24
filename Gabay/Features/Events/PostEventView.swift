@@ -31,7 +31,7 @@ struct PostEventView: View {
                     AsyncButton(
                         title: Text("Submit for Review",
                                     comment: "Button that submits a new event for moderation"),
-                        isRunning: viewModel.isSubmitting,
+                        isRunning: viewModel.action.isRunning,
                         action: { await viewModel.submit() }
                     )
                     .disabled(!viewModel.canSubmit)

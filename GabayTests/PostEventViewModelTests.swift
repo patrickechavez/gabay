@@ -144,7 +144,7 @@ struct PostEventViewModelTests {
         await viewModel.submit()
 
         #expect(viewModel.didSubmit == false)
-        #expect(viewModel.failure != nil)
+        #expect(viewModel.action.error != nil)
     }
 
     @Test func aSuccessfulSubmitShowsAConfirmationAlert() async {
@@ -277,5 +277,36 @@ struct PostEventViewModelTests {
         viewModel.photoURLText = "example.com/hike.jpg"
         #expect(viewModel.photoURLError != nil)
         #expect(viewModel.canSubmit == false)
+    }
+
+    @Test func aServerFieldMessageWinsOverTheLocalRule() async {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["feePHP": ["Fee must not exceed 5000."]],
+            summary: nil
+        )))
+        let viewModel = makeValidViewModel(events: events)
+        // A perfectly valid fee, so the local rule alone would say nothing.
+        viewModel.feePHP = "9999"
+
+        await viewModel.submit()
+
+        #expect(viewModel.feeError == "Fee must not exceed 5000.")
+    }
+
+    @Test func editingAFieldAfterAFailedSubmitClearsTheStaleMessage() async {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.server(status: 500))
+        let viewModel = makeValidViewModel(events: events)
+
+        await viewModel.submit()
+        #expect(viewModel.submitErrorMessage != nil)
+
+        // canSubmit goes false, so nothing will ever resubmit to clear it
+        // the old way; the edit itself has to be what clears it.
+        viewModel.capacity = "0"
+
+        #expect(viewModel.canSubmit == false)
+        #expect(viewModel.submitErrorMessage == nil)
     }
 }

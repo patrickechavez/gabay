@@ -64,6 +64,33 @@ struct EventsViewModelTests {
         #expect(events.joinedIds == ["hike-for-pawssion"])
     }
 
+    @Test func aFailedMineFetchReportsTheFailureSeparatelyFromTheList() async {
+        let events = StubEventFetching()
+        events.eventsResult = .success([.fixture()])
+        events.mineResult = .failure(APIError.server(status: 500))
+        let viewModel = makeViewModel(events: events)
+
+        await viewModel.load()
+
+        #expect(viewModel.state.error == nil)
+        #expect(viewModel.mineState.error != nil)
+    }
+
+    @Test func aFailedMineFetchCanBeRetried() async {
+        let events = StubEventFetching()
+        events.mineResult = .failure(APIError.server(status: 500))
+        let viewModel = makeViewModel(events: events)
+
+        await viewModel.load()
+        #expect(viewModel.mineState.error != nil)
+
+        events.mineResult = .success([.fixture()])
+        await viewModel.refresh()
+
+        #expect(viewModel.mine.count == 1)
+        #expect(viewModel.mineState.error == nil)
+    }
+
     @Test func aFailedLoadReportsTheFailure() async {
         let events = StubEventFetching()
         events.eventsResult = .failure(APIError.server(status: 500))

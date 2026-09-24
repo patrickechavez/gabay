@@ -16,14 +16,14 @@ enum LoadState<Value: Sendable>: Sendable {
 
     case empty
 
-    case failed(LoadFailure)
+    case failed(APIError)
 
     var value: Value? {
         if case let .loaded(value) = self { return value }
         return nil
     }
 
-    var error: LoadFailure? {
+    var error: APIError? {
         if case let .failed(error) = self { return error }
         return nil
     }
@@ -109,20 +109,20 @@ extension LoadableViewModel {
 
     /// Shared failure path for loads that also update other properties.
     func fail(with error: any Error, isRefresh: Bool = false) {
-        let failure = LoadFailure.classify(error)
+        let apiError = APIError.classify(error)
 
         // A cancelled first load goes back to `.idle` so the view can retry.
-        if failure == .cancelled, case .loading = state {
+        if apiError == .cancelled, case .loading = state {
             state = .idle
             return
         }
 
-        guard failure.isUserFacing else { return }
+        guard apiError.isUserFacing else { return }
 
         // Failing silently while refreshing content that's already visible.
         if isRefresh, state.value != nil { return }
 
-        state = .failed(failure)
+        state = .failed(apiError)
     }
 }
 

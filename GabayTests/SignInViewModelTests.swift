@@ -67,6 +67,22 @@ struct SignInViewModelTests {
         #expect(viewModel.signInErrorMessage == nil)
     }
 
+    @Test func editingAFieldAfterAFailedSignInClearsTheStaleMessage() async {
+        let viewModel = makeViewModel()
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "whatever"
+
+        await viewModel.signIn()
+        #expect(viewModel.signInErrorMessage != nil)
+
+        // canSubmit goes false, so nothing will ever resubmit to clear it
+        // the old way; the edit itself has to be what clears it.
+        viewModel.password = ""
+
+        #expect(viewModel.canSubmit == false)
+        #expect(viewModel.signInErrorMessage == nil)
+    }
+
     @Test func signInTrimsTheEmailBeforeSendingIt() async {
         let auth = StubAuthenticating()
         auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))

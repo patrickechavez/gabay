@@ -13,7 +13,10 @@ struct MyEventsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.mine.isEmpty {
+                switch viewModel.mineState {
+                case .idle, .loading:
+                    ProgressView()
+                case .empty:
                     ContentUnavailableView {
                         Label {
                             Text("No events joined yet", comment: "Shown when the hiker hasn't joined any event")
@@ -24,7 +27,9 @@ struct MyEventsView: View {
                         Text("Events you join show up here.",
                              comment: "Shown when My Events is empty")
                     }
-                } else {
+                case let .failed(error):
+                    ErrorStateView(error: error) { await viewModel.refresh() }
+                case .loaded:
                     list
                 }
             }

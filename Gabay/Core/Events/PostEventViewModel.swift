@@ -10,30 +10,84 @@ import Foundation
 @MainActor
 final class PostEventViewModel {
 
-    var title = ""
-    var cause = ""
+    // Each field is backed by its own storage and a hand-written setter,
+    // rather than a plain stored property, so every edit clears a stale
+    // failure through the one shared `ActionState.clear()` instead of
+    // leaving it on screen until a resubmit that a bad edit may never allow.
+    private var storedTitle = ""
+    private var storedCause = ""
+    private var storedDate: Date?
+    private var storedMeetingPoint = ""
+    private var storedMeetingCoordinate: Coordinate?
+    private var storedFeePHP = ""
+    private var storedCapacity = ""
+    private var storedJoinURLText = ""
+    private var storedEventDescription = ""
+    private var storedPhotoURLText = ""
+
+    var title: String {
+        get { storedTitle }
+        set { storedTitle = newValue; action.clear() }
+    }
+
+    var cause: String {
+        get { storedCause }
+        set { storedCause = newValue; action.clear() }
+    }
+
     // Optional and required, rather than defaulted to now. A pre-filled date
     // lets an organizer post a hike starting the instant they tap Submit
     // without ever noticing the field.
-    var date: Date?
-    var meetingPoint = ""
-    var meetingCoordinate: Coordinate?
-    var feePHP = ""
-    var capacity = ""
-    var joinURLText = ""
-    var eventDescription = ""
-    var photoURLText = ""
+    var date: Date? {
+        get { storedDate }
+        set { storedDate = newValue; action.clear() }
+    }
+
+    var meetingPoint: String {
+        get { storedMeetingPoint }
+        set { storedMeetingPoint = newValue; action.clear() }
+    }
+
+    var meetingCoordinate: Coordinate? {
+        get { storedMeetingCoordinate }
+        set { storedMeetingCoordinate = newValue; action.clear() }
+    }
+
+    var feePHP: String {
+        get { storedFeePHP }
+        set { storedFeePHP = newValue; action.clear() }
+    }
+
+    var capacity: String {
+        get { storedCapacity }
+        set { storedCapacity = newValue; action.clear() }
+    }
+
+    var joinURLText: String {
+        get { storedJoinURLText }
+        set { storedJoinURLText = newValue; action.clear() }
+    }
+
+    var eventDescription: String {
+        get { storedEventDescription }
+        set { storedEventDescription = newValue; action.clear() }
+    }
+
+    var photoURLText: String {
+        get { storedPhotoURLText }
+        set { storedPhotoURLText = newValue; action.clear() }
+    }
 
     var alert: AlertState?
 
-    private(set) var isSubmitting = false
-    private(set) var failure: LoadFailure?
+    let action = ActionState()
+
     private(set) var didSubmit = false
 
     // A GPX is optional. Once picked, it must parse, a bad file blocks
     // only itself, with its own inline error, not the rest of the form.
     private(set) var route: RouteStats?
-    private(set) var gpxError: LoadFailure?
+    private(set) var gpxError: APIError?
     @ObservationIgnored private var gpxFileURL: URL?
 
     @ObservationIgnored private let events: any EventFetching
@@ -46,9 +100,11 @@ final class PostEventViewModel {
 
     // Every rule below guards on the field being non-empty first. An empty
     // required field shows as the required marker and a disabled button, so
-    // an inline error always means "what you typed is not usable".
+    // an inline error always means "what you typed is not usable". A
+    // server-supplied message, when there is one, wins over the local rule.
 
     var feeError: String? {
+        if let serverMessage = action.message(for: "feePHP") { return serverMessage }
         guard !feePHP.trimmed.isEmpty, (Int(feePHP.trimmed) ?? -1) < 0 else { return nil }
         return String(
             localized: "Enter the fee as a whole number of pesos, 0 or more.",
@@ -57,6 +113,7 @@ final class PostEventViewModel {
     }
 
     var capacityError: String? {
+        if let serverMessage = action.message(for: "capacity") { return serverMessage }
         guard !capacity.trimmed.isEmpty, (Int(capacity.trimmed) ?? 0) <= 0 else { return nil }
         return String(
             localized: "Enter how many hikers can join, at least 1.",
@@ -65,6 +122,7 @@ final class PostEventViewModel {
     }
 
     var joinURLError: String? {
+        if let serverMessage = action.message(for: "joinURL") { return serverMessage }
         guard !joinURLText.trimmed.isEmpty, !joinURLText.trimmed.isFullLink else { return nil }
         return String(
             localized: "Enter a full link, starting with https://",
@@ -73,6 +131,7 @@ final class PostEventViewModel {
     }
 
     var photoURLError: String? {
+        if let serverMessage = action.message(for: "photoURL") { return serverMessage }
         guard !photoURLText.trimmed.isEmpty, !photoURLText.trimmed.isFullLink else { return nil }
         return String(
             localized: "Enter a full link, starting with https://",
@@ -88,19 +147,18 @@ final class PostEventViewModel {
         )
     }
 
+    // A field-level message is already shown next to its own field, so the
+    // whole-form line only carries what's left over.
     var submitErrorMessage: String? {
-        guard let failure, failure.isUserFacing else { return nil }
-        return String(
-            localized: "Check the form and try again.",
-            comment: "Shown when posting an event fails"
-        )
+        guard action.error?.validationErrors == nil else { return nil }
+        return action.errorMessage
     }
 
     // No image upload endpoint exists yet, so a photo is an already-hosted
     // link (the organizer's own upload elsewhere) rather than a picked
     // file, unlike the GPX, which does upload.
     var canSubmit: Bool {
-        !isSubmitting
+        !action.isRunning
             && !title.trimmed.isEmpty
             && !cause.trimmed.isEmpty
             && date != nil
@@ -124,7 +182,7 @@ final class PostEventViewModel {
         } catch {
             route = nil
             gpxFileURL = nil
-            gpxError = .unavailable
+            gpxError = APIError.classify(error)
         }
     }
 
@@ -142,10 +200,6 @@ final class PostEventViewModel {
               let joinURL = URL(string: joinURLText.trimmed),
               let meetingCoordinate else { return }
 
-        failure = nil
-        isSubmitting = true
-        defer { isSubmitting = false }
-
         let draft = EventDraft(
             title: title.trimmed,
             cause: cause.trimmed,
@@ -158,8 +212,10 @@ final class PostEventViewModel {
             description: eventDescription.trimmed,
             photoURL: photoURLText.trimmed.isEmpty ? nil : URL(string: photoURLText.trimmed)
         )
+        let route = self.route
+        let gpxFileURL = self.gpxFileURL
 
-        do {
+        let created = await action.run { [events] in
             let created = try await events.create(draft)
 
             if let route, let gpxFileURL {
@@ -172,17 +228,19 @@ final class PostEventViewModel {
                 )
             }
 
-            didSubmit = true
-            alert = .notice(
-                String(localized: "Submitted", comment: "Title confirming an event was submitted"),
-                String(
-                    localized: "Your event is pending review before it appears publicly.",
-                    comment: "Shown after an organizer submits a new event"
-                )
-            )
-        } catch {
-            failure = LoadFailure.classify(error)
+            return created
         }
+
+        guard created != nil else { return }
+
+        didSubmit = true
+        alert = .notice(
+            String(localized: "Submitted", comment: "Title confirming an event was submitted"),
+            String(
+                localized: "Your event is pending review before it appears publicly.",
+                comment: "Shown after an organizer submits a new event"
+            )
+        )
     }
 }
 

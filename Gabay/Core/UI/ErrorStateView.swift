@@ -8,14 +8,14 @@ import SwiftUI
 
 struct ErrorStateView: View {
 
-    let error: LoadFailure
+    let error: APIError
     var retry: (@Sendable () async -> Void)?
 
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: icon)
         } description: {
-            Text(message)
+            Text(error.localizedDescription)
         } actions: {
             if let retry, error.isRetryable {
                 Button {
@@ -28,21 +28,16 @@ struct ErrorStateView: View {
         }
     }
 
+    // `errorDescription` already carries the message; only the title and
+    // icon need their own switch, and only for the failures worth telling
+    // apart at a glance. Everything else reads as one generic failure.
     private var title: LocalizedStringKey {
         switch error {
         case .offline: "You're offline"
         case .timedOut: "That took too long"
-        case .unavailable: "Not available"
+        case .maintenance: "Down for maintenance"
+        case .updateRequired: "Update required"
         default: "Something went wrong"
-        }
-    }
-
-    private var message: LocalizedStringKey {
-        switch error {
-        case .offline: "Check your connection and try again."
-        case .timedOut: "The request did not finish in time."
-        case .unavailable: "That's not available right now."
-        default: "Try again in a moment."
         }
     }
 
@@ -50,7 +45,8 @@ struct ErrorStateView: View {
         switch error {
         case .offline: "wifi.exclamationmark"
         case .timedOut: "clock.badge.exclamationmark"
-        case .unavailable: "questionmark.folder"
+        case .maintenance: "wrench.and.screwdriver"
+        case .updateRequired: "arrow.up.circle"
         default: "exclamationmark.triangle"
         }
     }
