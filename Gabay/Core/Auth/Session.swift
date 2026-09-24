@@ -49,9 +49,9 @@ final class Session {
         account = try await auth.me()
     }
 
-    // Called by any view model after a 401, not just from within Session,
-    // so a session always reflects a rejected token no matter where it was
-    // rejected.
+    // Called by `TokenRefreshCoordinator.invalidate()` when a refresh fails
+    // or there is no refresh token to try, so the session always reflects a
+    // rejected token no matter where the rejection happened.
     func signOut() async {
         await tokenStore.clear()
         account = nil
