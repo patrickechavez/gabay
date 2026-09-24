@@ -59,7 +59,9 @@ struct EventDetailView: View {
         }
         .navigationTitle(Text("Hike Details", comment: "Title of an event's detail screen"))
         .navigationBarTitleDisplayMode(.inline)
-        .task {
+        // Keyed on the URL: a refresh can flip this from nil to a link once the organizer's upload
+        // lands, and an unkeyed task would never run again, leaving the map spinning forever.
+        .task(id: event.gpxURL) {
             guard hasRoute else { return }
             await routeViewModel.load()
         }
@@ -147,15 +149,27 @@ struct EventDetailView: View {
 
     @ViewBuilder
     private var routeStats: some View {
-        if let distanceM = event.distanceM {
-            Text(RouteSummary.text(
-                distanceM: Double(distanceM),
-                ascentM: event.ascentM.map(Double.init),
-                minutes: event.estimatedMinutes
-            ))
-            .font(Theme.Font.caption)
-            .foregroundStyle(Theme.Color.secondaryText)
+        if let summary = routeSummaryText {
+            Text(summary)
+                .font(Theme.Font.caption)
+                .foregroundStyle(Theme.Color.secondaryText)
         }
+    }
+
+    // Prefers what the event carried, since that is what the organizer saw, and falls back
+    // field by field to the track once it loads. Without the fallback an event whose stats the
+    // backend did not send would draw the route and print no numbers beside it.
+    private var routeSummaryText: String? {
+        let computed = routeViewModel.stats
+
+        guard let distanceM = event.distanceM.map(Double.init) ?? computed?.distanceM else {
+            return nil
+        }
+        return RouteSummary.text(
+            distanceM: distanceM,
+            ascentM: event.ascentM.map(Double.init) ?? computed?.ascentM,
+            minutes: event.estimatedMinutes ?? computed?.estimatedMinutes
+        )
     }
 
     private var joinButton: some View {

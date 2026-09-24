@@ -14,6 +14,10 @@ final class EventRouteViewModel {
 
     private(set) var route: LoadState<[TrackPoint]> = .idle
 
+    // The same numbers the organizer's phone computed, recovered from the track itself. Used only
+    // to fill what the event did not carry.
+    var stats: RouteStats? { route.value.map(RouteStats.init(points:)) }
+
     @ObservationIgnored private let eventID: String
     @ObservationIgnored private let events: any EventBrowsingRepository
     @ObservationIgnored private let parser: GPXParser
@@ -41,7 +45,9 @@ final class EventRouteViewModel {
             let data = try await events.gpx(eventID: eventID)
             let points = try parser.parse(data).points
             try Task.checkCancellation()
-            route = .from(points)
+
+            // One point draws no line, so it is nothing to show rather than a route.
+            route = points.count > 1 ? .loaded(points) : .empty
         } catch {
             let apiError = APIError.classify(error)
 
