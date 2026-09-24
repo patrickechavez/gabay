@@ -27,6 +27,16 @@ private struct StubTokenRefresher: TokenRefreshing {
     }
 }
 
+// Always throws a configured error, for tests that need
+// `coordinator.refresh` to fail in a specific way rather than succeed.
+private struct FailingTokenRefresher: TokenRefreshing {
+    let error: APIError
+
+    func refresh(using refreshToken: String) async throws -> AuthTokens {
+        throw error
+    }
+}
+
 // `.serialized`: some tests below drive a real `URLSessionAPIClient` against
 // `StubURLProtocol`, whose queue is shared static state (see its own
 // comment); running this suite's tests concurrently against each other
@@ -154,5 +164,31 @@ struct AuthInterceptorTests {
 
         #expect(StubURLProtocol.asked.count == 1)
         #expect(session.isSignedIn == false)
+    }
+
+    // Would fail if `handle(_:for:attempt:)` let a cancelled refresh fall
+    // through to the branch above it: that would surface `.unauthorized`
+    // instead of `.cancelled` (misreporting a plain request cancellation as
+    // an expired session), and would call `coordinator.invalidate()`,
+    // wrongly signing the user out and clearing their tokens over a
+    // cancellation that says nothing about whether the token is still good.
+    @Test func cancelledRefreshFailsWithCancelledAndLeavesTheSessionIntact() async throws {
+        let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
+        let session = try await makeSignedInSession()
+        let link = SessionLink()
+        link.session = session
+        let coordinator = TokenRefreshCoordinator(
+            store: store,
+            refresher: FailingTokenRefresher(error: .cancelled),
+            link: link
+        )
+        let interceptor = AuthInterceptor(coordinator: coordinator)
+        let endpoint = Endpoint.get("thing", requiresAuth: true)
+
+        let decision = await interceptor.handle(.unauthorized(), for: endpoint, attempt: 1)
+
+        #expect(decision == .fail(.cancelled))
+        #expect(session.isSignedIn == true)
+        #expect(await store.load() != nil)
     }
 }
