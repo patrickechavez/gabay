@@ -14,7 +14,7 @@ struct EventsViewModelTests {
         events: StubEventFetching = StubEventFetching(),
         auth: StubAuthenticating = StubAuthenticating()
     ) -> (EventsViewModel, Session) {
-        let session = Session(auth: auth, tokenStore: StubTokenStore())
+        let session = Session(auth: auth, tokenStore: InMemoryTokenStore())
         return (EventsViewModel(events: events, session: session), session)
     }
 
@@ -80,7 +80,7 @@ struct EventsViewModelTests {
         let events = StubEventFetching()
         events.eventsResult = .failure(APIError.unauthorized())
         let auth = StubAuthenticating()
-        auth.loginResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
         let (viewModel, session) = makeViewModel(events: events, auth: auth)
         try? await session.login(email: "hiker@example.test", password: "secret123")

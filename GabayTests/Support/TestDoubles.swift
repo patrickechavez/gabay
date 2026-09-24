@@ -31,14 +31,6 @@ final class StubAuthenticating: Authenticating, @unchecked Sendable {
     }
 }
 
-final class StubTokenStore: TokenStoring, @unchecked Sendable {
-    private(set) var saved: String?
-
-    func save(_ token: String) throws { saved = token }
-    func load() -> String? { saved }
-    func clear() { saved = nil }
-}
-
 final class StubEventFetching: EventFetching, @unchecked Sendable {
     var eventsResult: Result<[Event], any Error> = .success([])
     var mineResult: Result<[Event], any Error> = .success([])

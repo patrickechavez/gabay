@@ -46,12 +46,12 @@ struct AuthClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(
             status: 200,
-            body: Data("{\"token\":\"abc123\",\"role\":\"hiker\"}".utf8)
+            body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
         ))
 
         let result = try await client.register(email: "hiker@example.test", password: "secret123")
 
-        #expect(result == AuthResult(token: "abc123", role: .hiker))
+        #expect(result == AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         #expect(StubURLProtocol.asked.first?.url?.absoluteString == "https://example.test/api/auth/register")
     }
 
@@ -59,12 +59,12 @@ struct AuthClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(
             status: 200,
-            body: Data("{\"token\":\"abc123\",\"role\":\"organizer\"}".utf8)
+            body: Data("{\"accessToken\":\"abc123\",\"role\":\"organizer\"}".utf8)
         ))
 
         let result = try await client.login(email: "organizer@example.test", password: "secret123")
 
-        #expect(result == AuthResult(token: "abc123", role: .organizer))
+        #expect(result == AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .organizer))
     }
 
     @Test func readsTheSignedInAccount() async throws {
@@ -96,7 +96,7 @@ struct AuthClientTests {
         let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(
             status: 200,
-            body: Data("{\"token\":\"abc123\",\"role\":\"hiker\"}".utf8)
+            body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
         ))
 
         _ = try await client.register(email: "hiker@example.test", password: "secret123")
@@ -112,7 +112,7 @@ struct AuthClientTests {
         let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
         StubURLProtocol.queue(.init(
             status: 200,
-            body: Data("{\"token\":\"abc123\",\"role\":\"hiker\"}".utf8)
+            body: Data("{\"accessToken\":\"abc123\",\"role\":\"hiker\"}".utf8)
         ))
 
         _ = try await client.login(email: "hiker@example.test", password: "secret123")

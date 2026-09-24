@@ -11,7 +11,7 @@ import Testing
 struct SignUpViewModelTests {
 
     private func makeViewModel() -> SignUpViewModel {
-        SignUpViewModel(session: Session(auth: StubAuthenticating(), tokenStore: StubTokenStore()))
+        SignUpViewModel(session: Session(auth: StubAuthenticating(), tokenStore: InMemoryTokenStore()))
     }
 
     @Test func anUntouchedEmailShowsNoError() {
@@ -105,24 +105,24 @@ struct SignUpViewModelTests {
 
     @Test func registerDoesNothingWhenTheFormCannotBeSubmitted() async {
         let auth = StubAuthenticating()
-        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
-        let tokenStore = StubTokenStore()
+        let tokenStore = InMemoryTokenStore()
         let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: tokenStore))
 
         let result = await viewModel.register()
 
         #expect(result == false)
         #expect(viewModel.failure == nil)
-        #expect(tokenStore.saved == nil)
+        #expect(await tokenStore.load() == nil)
     }
 
     @Test func registerTrimsTheEmailBeforeSendingIt() async {
         let auth = StubAuthenticating()
-        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
 
-        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
         viewModel.email = "  hiker@example.com  "
         viewModel.password = "longenough"
 
@@ -132,10 +132,10 @@ struct SignUpViewModelTests {
 
     @Test func registerReturnsTrueOnASuccessfulRegistration() async {
         let auth = StubAuthenticating()
-        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
 
-        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
         viewModel.email = "hiker@example.com"
         viewModel.password = "longenough"
 
@@ -155,14 +155,14 @@ struct SignUpViewModelTests {
 
     @Test func aSecondRegisterAttemptClearsTheFailureFromTheFirst() async {
         let auth = StubAuthenticating()
-        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: StubTokenStore()))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
         viewModel.email = "hiker@example.com"
         viewModel.password = "longenough"
 
         _ = await viewModel.register()
         #expect(viewModel.signUpErrorMessage != nil)
 
-        auth.registerResult = .success(AuthResult(token: "abc123", role: .hiker))
+        auth.registerResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))
         _ = await viewModel.register()
 

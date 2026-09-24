@@ -1,74 +1,140 @@
 //
 //  TokenStore.swift
 //  Gabay
-//  Created by John Patrick Echavez on 9/23/26.
 //
 
 import Foundation
 import Security
+import os
 
-// Where the signed-in hiker's session token lives. The Keychain survives
-// reinstalls and app updates, unlike UserDefaults, which is where a token
-// belongs.
-protocol TokenStoring: Sendable {
+enum KeychainError: LocalizedError, Equatable {
+    case unhandled(status: OSStatus)
 
-    func save(_ token: String) throws
+    var errorDescription: String? {
+        switch self {
+        case let .unhandled(status):
 
-    func load() -> String?
-
-    func clear()
+            let detail = SecCopyErrorMessageString(status, nil) as String? ?? "OSStatus \(status)"
+            return "Keychain error: \(detail)"
+        }
+    }
 }
 
-struct TokenStore: TokenStoring {
+protocol TokenStore: Sendable {
+    func load() async -> AuthTokens?
+    func save(_ tokens: AuthTokens) async throws
+    func clear() async
+}
+
+actor KeychainTokenStore: TokenStore {
 
     private let service: String
-    private let account = "session-token"
+    private let account = "auth.tokens"
 
-    // The service is a parameter so a test can use its own, and never
-    // collide with the token a real sign-in left behind.
-    init(service: String = "com.patrick.Gabay.session") {
+    private var cached: AuthTokens??
+
+    init(service: String? = nil) {
+        guard let service = service ?? Bundle.main.bundleIdentifier else {
+
+            // A literal fallback would let two apps quietly share one keychain entry.
+            preconditionFailure("Bundle.main.bundleIdentifier is missing")
+        }
         self.service = service
     }
 
-    func save(_ token: String) throws {
-        clear()
+    func load() async -> AuthTokens? {
+        if let cached { return cached }
 
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: Data(token.utf8)
-        ]
-
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else { throw TokenStoreError.saveFailed(status) }
+        let tokens = readFromKeychain()
+        cached = .some(tokens)
+        return tokens
     }
 
-    func load() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
+    func save(_ tokens: AuthTokens) async throws {
+        let data = try JSONEncoder().encode(tokens)
+
+        let deleteStatus = SecItemDelete(baseQuery as CFDictionary)
+        guard deleteStatus == errSecSuccess || deleteStatus == errSecItemNotFound else {
+            throw KeychainError.unhandled(status: deleteStatus)
+        }
+
+        var attributes = baseQuery
+        attributes[kSecValueData as String] = data
+
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+        let addStatus = SecItemAdd(attributes as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            AppLogger.auth.error("Keychain write failed: OSStatus \(addStatus, privacy: .public)")
+            throw KeychainError.unhandled(status: addStatus)
+        }
+
+        cached = .some(tokens)
+    }
+
+    func clear() async {
+        let status = SecItemDelete(baseQuery as CFDictionary)
+        if status != errSecSuccess, status != errSecItemNotFound {
+
+            AppLogger.auth.error("Keychain clear failed: OSStatus \(status, privacy: .public)")
+        }
+        cached = .some(nil)
+    }
+
+    private func readFromKeychain() -> AuthTokens? {
+        var query = baseQuery
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
+
+        guard status == errSecSuccess else {
+            if status != errSecItemNotFound {
+                AppLogger.auth.error("Keychain read failed: OSStatus \(status, privacy: .public)")
+            }
+            return nil
+        }
+
+        guard let data = result as? Data else { return nil }
+
+        do {
+            return try JSONDecoder().decode(AuthTokens.self, from: data)
+        } catch {
+
+            AppLogger.auth.error("Stored tokens could not be decoded; discarding.")
+            SecItemDelete(baseQuery as CFDictionary)
+            return nil
+        }
     }
 
-    func clear() {
-        let query: [String: Any] = [
+    private var baseQuery: [String: Any] {
+        [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(query as CFDictionary)
     }
 }
 
-enum TokenStoreError: Error, Equatable {
-    case saveFailed(OSStatus)
+actor InMemoryTokenStore: TokenStore {
+
+    private var tokens: AuthTokens?
+
+    var saveError: (any Error)?
+
+    init(tokens: AuthTokens? = nil) {
+        self.tokens = tokens
+    }
+
+    func load() async -> AuthTokens? { tokens }
+
+    func save(_ tokens: AuthTokens) async throws {
+        if let saveError { throw saveError }
+        self.tokens = tokens
+    }
+
+    func clear() async { tokens = nil }
+
+    func setSaveError(_ error: (any Error)?) { saveError = error }
 }

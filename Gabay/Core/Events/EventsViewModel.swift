@@ -45,7 +45,7 @@ final class EventsViewModel: LoadableViewModel {
             try await events.join(event.id)
             joined.insert(event.id)
         } catch APIError.unauthorized {
-            session.signOut()
+            await session.signOut()
         } catch {
             // A soft RSVP; a failure here isn't worth blocking the hiker,
             // who is about to leave the app for the payment link anyway.
@@ -56,7 +56,7 @@ final class EventsViewModel: LoadableViewModel {
         do {
             return try await events.events()
         } catch APIError.unauthorized {
-            session.signOut()
+            await session.signOut()
             throw CancellationError()
         }
     }
@@ -66,7 +66,7 @@ final class EventsViewModel: LoadableViewModel {
             mine = try await events.mine()
             joined = Set(mine.map(\.id))
         } catch APIError.unauthorized {
-            session.signOut()
+            await session.signOut()
         } catch {
             // Left as-is; `state` already reports the list's own failure.
         }

@@ -17,8 +17,14 @@ struct Account: Codable, Equatable, Sendable {
 }
 
 struct AuthResult: Codable, Equatable, Sendable {
-    let token: String
+    let accessToken: String
+    let refreshToken: String?
+    let expiresAt: Date?
     let role: AccountRole
+
+    var tokens: AuthTokens {
+        AuthTokens(accessToken: accessToken, refreshToken: refreshToken, expiresAt: expiresAt)
+    }
 }
 
 // Registers, signs in, and reads the signed-in account.
