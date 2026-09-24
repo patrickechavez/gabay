@@ -67,6 +67,49 @@ private actor GatedTokenRefresher: TokenRefreshing {
     }
 }
 
+@Suite(.serialized)
+struct LiveTokenRefresherTests {
+
+    private let base = URL(string: "https://example.test/api")!
+
+    private func makeRefresher() -> LiveTokenRefresher {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [StubURLProtocol.self]
+
+        StubURLProtocol.reset()
+        let api = URLSessionAPIClient(
+            baseURL: base,
+            session: URLSession(configuration: configuration),
+            retryPolicy: .none
+        )
+        return LiveTokenRefresher(api: api)
+    }
+
+    // Would fail if `refresh(using:)` still decoded the response as
+    // `AuthResult`: the contract payload for `/auth/refresh` has no `role`
+    // key, so that decode throws `keyNotFound` and this test would fail
+    // with a decoding error instead of returning tokens.
+    @Test func decodesTheContractShapeWithNoRoleKey() async throws {
+        let refresher = makeRefresher()
+        StubURLProtocol.queue(.init(
+            status: 200,
+            body: Data("""
+            {
+                "accessToken": "renewed-access-token",
+                "refreshToken": "renewed-refresh-token",
+                "expiresAt": "2026-09-25T00:00:00Z"
+            }
+            """.utf8)
+        ))
+
+        let tokens = try await refresher.refresh(using: "refresh1")
+
+        #expect(tokens.accessToken == "renewed-access-token")
+        #expect(tokens.refreshToken == "renewed-refresh-token")
+        #expect(tokens.expiresAt == ISO8601DateFormatter().date(from: "2026-09-25T00:00:00Z"))
+    }
+}
+
 @MainActor
 struct TokenRefreshCoordinatorTests {
 

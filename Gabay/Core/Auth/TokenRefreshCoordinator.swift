@@ -93,7 +93,7 @@ struct LiveTokenRefresher: TokenRefreshing {
     }
 
     func refresh(using refreshToken: String) async throws -> AuthTokens {
-        let result: AuthResult = try await api.post(
+        let result: RefreshResponse = try await api.post(
             APIRoute.Auth.refresh,
             body: RefreshRequest(refreshToken: refreshToken),
             requiresAuth: false
@@ -103,5 +103,17 @@ struct LiveTokenRefresher: TokenRefreshing {
 
     private struct RefreshRequest: Encodable {
         let refreshToken: String
+    }
+
+    // `/auth/refresh` does not return a `role`, unlike `/auth/register` and
+    // `/auth/login`, so it cannot be decoded as `AuthResult`.
+    private struct RefreshResponse: Decodable {
+        let accessToken: String
+        let refreshToken: String?
+        let expiresAt: Date?
+
+        var tokens: AuthTokens {
+            AuthTokens(accessToken: accessToken, refreshToken: refreshToken, expiresAt: expiresAt)
+        }
     }
 }
