@@ -7,6 +7,8 @@ import Foundation
 import Testing
 @testable import Gabay
 
+extension SharedStubProtocolSuite {
+
 @Suite(.serialized)
 struct AuthClientTests {
 
@@ -135,4 +137,5 @@ struct AuthClientTests {
 
         #expect(await spy.values == [true])
     }
+}
 }

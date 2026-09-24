@@ -67,6 +67,8 @@ private actor GatedTokenRefresher: TokenRefreshing {
     }
 }
 
+extension SharedStubProtocolSuite {
+
 @Suite(.serialized)
 struct LiveTokenRefresherTests {
 
@@ -108,6 +110,7 @@ struct LiveTokenRefresherTests {
         #expect(tokens.refreshToken == "renewed-refresh-token")
         #expect(tokens.expiresAt == ISO8601DateFormatter().date(from: "2026-09-25T00:00:00Z"))
     }
+}
 }
 
 @MainActor

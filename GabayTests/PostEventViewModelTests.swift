@@ -320,6 +320,37 @@ struct PostEventViewModelTests {
         #expect(viewModel.submitErrorMessage == nil)
     }
 
+    @Test func pickingAGPXAfterAFailedSubmitClearsTheStaleMessage() async throws {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.server(status: 500))
+        let viewModel = makeValidViewModel(events: events)
+        let file = gpxFixture()
+        defer { try? FileManager.default.removeItem(at: file) }
+
+        await viewModel.submit()
+        #expect(viewModel.submitErrorMessage != nil)
+
+        viewModel.pickGPX(at: file)
+
+        #expect(viewModel.submitErrorMessage == nil)
+    }
+
+    @Test func removingAGPXAfterAFailedSubmitClearsTheStaleMessage() async throws {
+        let events = StubEventFetching()
+        let viewModel = makeValidViewModel(events: events)
+        let file = gpxFixture()
+        defer { try? FileManager.default.removeItem(at: file) }
+        viewModel.pickGPX(at: file)
+
+        events.createResult = .failure(APIError.server(status: 500))
+        await viewModel.submit()
+        #expect(viewModel.submitErrorMessage != nil)
+
+        viewModel.removeGPX()
+
+        #expect(viewModel.submitErrorMessage == nil)
+    }
+
     @Test func editingAFieldAfterAFailedSubmitClearsTheStaleMessage() async {
         let events = StubEventFetching()
         events.createResult = .failure(APIError.server(status: 500))

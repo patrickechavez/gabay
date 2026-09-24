@@ -7,6 +7,8 @@ import Foundation
 import Testing
 @testable import Gabay
 
+extension SharedStubProtocolSuite {
+
 @Suite(.serialized)
 struct EventClientTests {
 
@@ -223,4 +225,5 @@ struct EventClientTests {
         #expect(mine.count == 1)
         #expect(StubURLProtocol.asked.first?.url?.absoluteString == "https://example.test/api/me/events")
     }
+}
 }

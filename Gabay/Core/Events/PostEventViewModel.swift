@@ -185,6 +185,7 @@ final class PostEventViewModel {
 
     func pickGPX(at url: URL) {
         gpxError = nil
+        action.clear()
 
         do {
             let data = try Data(contentsOf: url)
@@ -202,6 +203,7 @@ final class PostEventViewModel {
         route = nil
         gpxFileURL = nil
         gpxError = nil
+        action.clear()
     }
 
     func submit() async {

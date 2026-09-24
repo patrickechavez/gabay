@@ -7,6 +7,8 @@ import Foundation
 import Testing
 @testable import Gabay
 
+extension SharedStubProtocolSuite {
+
 @Suite(.serialized)
 struct APIClientTests {
 
@@ -118,4 +120,5 @@ struct APIClientTests {
 
         #expect(response == EmptyResponse())
     }
+}
 }

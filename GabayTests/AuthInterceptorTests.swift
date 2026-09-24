@@ -37,6 +37,8 @@ private struct FailingTokenRefresher: TokenRefreshing {
     }
 }
 
+extension SharedStubProtocolSuite {
+
 // `.serialized`: some tests below drive a real `URLSessionAPIClient` against
 // `StubURLProtocol`, whose queue is shared static state (see its own
 // comment); running this suite's tests concurrently against each other
@@ -191,4 +193,5 @@ struct AuthInterceptorTests {
         #expect(session.isSignedIn == true)
         #expect(await store.load() != nil)
     }
+}
 }
