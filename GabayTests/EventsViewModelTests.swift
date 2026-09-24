@@ -68,7 +68,7 @@ struct EventsViewModelTests {
 
     @Test func aFailedLoadReportsTheFailure() async {
         let events = StubEventFetching()
-        events.eventsResult = .failure(APIError.server)
+        events.eventsResult = .failure(APIError.server(status: 500))
         let (viewModel, _) = makeViewModel(events: events)
 
         await viewModel.load()
@@ -78,7 +78,7 @@ struct EventsViewModelTests {
 
     @Test func anUnauthorizedLoadSignsOut() async {
         let events = StubEventFetching()
-        events.eventsResult = .failure(APIError.unauthorized)
+        events.eventsResult = .failure(APIError.unauthorized())
         let auth = StubAuthenticating()
         auth.loginResult = .success(AuthResult(token: "abc123", role: .hiker))
         auth.meResult = .success(Account(email: "hiker@example.test", role: .hiker))

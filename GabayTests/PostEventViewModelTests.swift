@@ -138,7 +138,7 @@ struct PostEventViewModelTests {
 
     @Test func aFailedSubmitReportsTheFailureAndDoesNotMarkSubmitted() async {
         let events = StubEventFetching()
-        events.createResult = .failure(APIError.validationFailed)
+        events.createResult = .failure(APIError.validation(ValidationErrors(fields: [:], summary: nil)))
         let viewModel = makeValidViewModel(events: events)
 
         await viewModel.submit()
@@ -159,7 +159,7 @@ struct PostEventViewModelTests {
 
     @Test func aFailedSubmitDoesNotShowAConfirmationAlert() async {
         let events = StubEventFetching()
-        events.createResult = .failure(APIError.validationFailed)
+        events.createResult = .failure(APIError.validation(ValidationErrors(fields: [:], summary: nil)))
         let viewModel = makeValidViewModel(events: events)
 
         await viewModel.submit()

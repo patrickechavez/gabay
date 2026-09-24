@@ -74,7 +74,7 @@ struct APIClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 401, body: Data()))
 
-        await #expect(throws: APIError.unauthorized) {
+        await #expect(throws: APIError.unauthorized()) {
             let _: Payload = try await client.get("thing")
         }
     }
@@ -83,7 +83,7 @@ struct APIClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 403, body: Data()))
 
-        await #expect(throws: APIError.forbidden) {
+        await #expect(throws: APIError.forbidden()) {
             let _: Payload = try await client.get("thing")
         }
     }
@@ -92,7 +92,7 @@ struct APIClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 422, body: Data()))
 
-        await #expect(throws: APIError.validationFailed) {
+        await #expect(throws: APIError.validation(ValidationErrors(fields: [:], summary: nil))) {
             let _: Payload = try await client.get("thing")
         }
     }
@@ -101,7 +101,7 @@ struct APIClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 500, body: Data()))
 
-        await #expect(throws: APIError.server) {
+        await #expect(throws: APIError.server(status: 500)) {
             let _: Payload = try await client.get("thing")
         }
     }

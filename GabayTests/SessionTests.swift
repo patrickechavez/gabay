@@ -37,7 +37,7 @@ struct SessionTests {
 
     @Test func restoreClearsAStaleToken() async {
         let auth = StubAuthenticating()
-        auth.meResult = .failure(APIError.unauthorized)
+        auth.meResult = .failure(APIError.unauthorized())
         let tokenStore = StubTokenStore()
         try? tokenStore.save("stale")
 

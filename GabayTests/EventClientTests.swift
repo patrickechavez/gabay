@@ -102,7 +102,7 @@ struct EventClientTests {
             description: "x", photoURL: nil
         )
 
-        await #expect(throws: APIError.forbidden) {
+        await #expect(throws: APIError.forbidden()) {
             try await client.create(draft)
         }
     }

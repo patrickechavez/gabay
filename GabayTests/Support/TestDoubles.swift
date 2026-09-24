@@ -10,9 +10,9 @@ import Foundation
 // need a network or a Keychain to drive them.
 
 final class StubAuthenticating: Authenticating, @unchecked Sendable {
-    var registerResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized)
-    var loginResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized)
-    var meResult: Result<Account, any Error> = .failure(APIError.unauthorized)
+    var registerResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized())
+    var loginResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized())
+    var meResult: Result<Account, any Error> = .failure(APIError.unauthorized())
     private(set) var registeredEmail: String?
     private(set) var loggedInEmail: String?
 
@@ -42,8 +42,8 @@ final class StubTokenStore: TokenStoring, @unchecked Sendable {
 final class StubEventFetching: EventFetching, @unchecked Sendable {
     var eventsResult: Result<[Event], any Error> = .success([])
     var mineResult: Result<[Event], any Error> = .success([])
-    var createResult: Result<Event, any Error> = .failure(APIError.forbidden)
-    var uploadGPXResult: Result<Event, any Error> = .failure(APIError.forbidden)
+    var createResult: Result<Event, any Error> = .failure(APIError.forbidden())
+    var uploadGPXResult: Result<Event, any Error> = .failure(APIError.forbidden())
     var joinResult: Result<Void, any Error> = .success(())
     private(set) var joinedIds: [String] = []
     private(set) var uploadedGPXEventIds: [String] = []

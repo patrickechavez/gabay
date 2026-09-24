@@ -61,7 +61,7 @@ struct AuthClientTests {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 401, body: Data()))
 
-        await #expect(throws: APIError.unauthorized) {
+        await #expect(throws: APIError.unauthorized()) {
             try await client.login(email: "hiker@example.test", password: "wrong")
         }
     }

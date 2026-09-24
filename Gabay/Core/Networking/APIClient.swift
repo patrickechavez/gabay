@@ -101,22 +101,11 @@ struct APIClient: Sendable {
 
     private func sendRaw(_ request: URLRequest) async throws -> Data {
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw APIError.badResponse }
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
 
-        switch http.statusCode {
-        case 200..<300: return data
-        case 401: throw APIError.unauthorized
-        case 403: throw APIError.forbidden
-        case 400, 422: throw APIError.validationFailed
-        default: throw APIError.server
+        guard 200..<300 ~= http.statusCode else {
+            throw APIError.from(statusCode: http.statusCode, data: data, headers: http.allHeaderFields)
         }
+        return data
     }
-}
-
-enum APIError: Error, Equatable {
-    case badResponse
-    case unauthorized
-    case forbidden
-    case validationFailed
-    case server
 }
