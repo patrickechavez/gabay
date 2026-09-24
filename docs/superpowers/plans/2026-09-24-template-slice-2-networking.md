@@ -134,7 +134,9 @@ This is recorded because the spec's version is wrong, not because the spec was v
 | `Gabay/Core/Networking/APIErrorBody.swift` | `AppTemplate/Core/Networking/APIErrorBody.swift` |
 | `Gabay/Core/Networking/Endpoint.swift` | `AppTemplate/Core/Networking/Endpoint.swift` |
 | `Gabay/Core/Networking/HTTPMethod.swift` | `AppTemplate/Core/Networking/HTTPMethod.swift` |
-| `Gabay/Core/Networking/MultipartFormData.swift` | `AppTemplate/Core/Networking/MultipartFormData.swift`, minus its `addImage` helper (see Task 2) |
+| `Gabay/Core/Networking/MultipartFormData.swift` | `AppTemplate/Core/Networking/MultipartFormData.swift` |
+| `Gabay/Core/Networking/ImageCompression.swift` | `AppTemplate/Core/Networking/ImageCompression.swift` (see Task 2) |
+| `Gabay/Core/Networking/UIImage+Upload.swift` | `AppTemplate/Core/Networking/UIImage+Upload.swift` (see Task 2) |
 | `Gabay/Core/Networking/RetryPolicy.swift` | `AppTemplate/Core/Networking/RetryPolicy.swift` |
 | `Gabay/Core/Networking/APIConfig.swift` | `AppTemplate/Core/Networking/APIConfig.swift` |
 | `Gabay/Core/Networking/RequestInterceptor.swift` | `AppTemplate/Core/Networking/RequestInterceptor.swift` |
@@ -242,7 +244,7 @@ done
 
 Fix headers. None of these three contained an em dash at plan time; re-check anyway.
 
-**One correction found during execution.** The template's `MultipartFormData` carries an `addImage(_:name:filename:compression:)` helper depending on `ImageCompression` and a `UIImage.jpegData(for:)` extension, neither of which is in this slice's port list. This plan originally called the file a verbatim port without checking its dependencies, which was wrong. Delete `addImage` on port and change its import from `UIKit` to `Foundation`. Gabay uploads no images: the events spec makes an event photo an already-hosted link precisely because there is no image upload endpoint, and the only multipart upload in the app is a GPX file going through `addFile`. Porting `ImageCompression` to satisfy a method nothing calls would be worse than dropping it.
+**Reversed during execution.** The template's `MultipartFormData` carries an `addImage(_:name:filename:compression:)` helper depending on `ImageCompression` and a `UIImage` extension, neither of which this plan originally listed. That omission was first handled by deleting the helper, on the grounds that Gabay uploads no images. The user then confirmed photo upload is planned, so the decision was reversed: `ImageCompression.swift` and `UIImage+Upload.swift` are ported alongside, from the same `main` branch and into the same directory, and `MultipartFormData` is left byte-identical to the template apart from its header. The helper has no caller yet and that is expected; it is groundwork for a photo upload flow, in the same spirit as Slice 5 taking the Firebase dependency ahead of the push work.
 
 - [ ] **Step 2: Reconcile the JSON coders, do not port a second pair**
 
