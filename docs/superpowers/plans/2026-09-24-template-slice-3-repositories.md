@@ -40,17 +40,17 @@ It also adds the verification script every later task depends on.
 **Files:**
 - Create: `Gabay/Models/Event.swift`
 - Create: `Gabay/Models/Account.swift`
-- Create: `scripts/typecheck.sh`
+- Create: `Scripts/typecheck.sh` (the repo already has a `Scripts/` folder holding `rename.sh`)
 - Modify: `Gabay/Core/Events/EventClient.swift` (remove the three model types from the top)
 - Modify: `Gabay/Core/Auth/AuthClient.swift` (remove the three model types from the top)
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
-- Produces: `Coordinate`, `Event`, `Event.Status`, `EventDraft`, `AccountRole`, `Account`, `AuthResult` at their new paths, all with identical declarations. `scripts/typecheck.sh`, which exits 0 on a clean whole-module typecheck and prints any diagnostics.
+- Produces: `Coordinate`, `Event`, `Event.Status`, `EventDraft`, `AccountRole`, `Account`, `AuthResult` at their new paths, all with identical declarations. `Scripts/typecheck.sh`, which exits 0 on a clean whole-module typecheck and prints any diagnostics.
 
 - [ ] **Step 1: Create the verification script**
 
-Agents cannot run the build, so the only mechanical check available is a whole-module typecheck of every source file under the project's real build flags. Write `scripts/typecheck.sh`:
+Agents cannot run the build, so the only mechanical check available is a whole-module typecheck of every source file under the project's real build flags. Write `Scripts/typecheck.sh`:
 
 ```bash
 #!/bin/bash
@@ -86,11 +86,11 @@ swiftc -swift-version 6 -typecheck -module-name Gabay \
 echo "Clean."
 ```
 
-Then `chmod +x scripts/typecheck.sh`.
+Then `chmod +x Scripts/typecheck.sh`.
 
 - [ ] **Step 2: Run it to record the baseline**
 
-Run: `./scripts/typecheck.sh`
+Run: `./Scripts/typecheck.sh`
 Expected: `Typechecking 85 files...` then `Clean.`, exit 0, no warnings.
 
 If it reports anything else, stop and report BLOCKED. The branch was clean at `b7619a7` and nothing has changed since.
@@ -196,7 +196,7 @@ Do not change anything else in either file. This task must produce a diff where 
 
 - [ ] **Step 6: Verify**
 
-Run: `./scripts/typecheck.sh`
+Run: `./Scripts/typecheck.sh`
 Expected: `Typechecking 87 files...` then `Clean.`, exit 0.
 
 Then confirm the move was lossless:
@@ -207,7 +207,7 @@ Expected: two files with deletions only, two files created, and the sum of inser
 - [ ] **Step 7: Commit**
 
 ```bash
-git add Gabay/Models scripts/typecheck.sh Gabay/Core/Events/EventClient.swift Gabay/Core/Auth/AuthClient.swift
+git add Gabay/Models Scripts/typecheck.sh Gabay/Core/Events/EventClient.swift Gabay/Core/Auth/AuthClient.swift
 git commit -m "Move the domain models into Models/"
 git log -1 --format=%B
 ```
@@ -344,7 +344,7 @@ Do not add, remove, or change any `@Test`. The seven test cases in this file sta
 
 - [ ] **Step 7: Verify**
 
-Run: `./scripts/typecheck.sh`
+Run: `./Scripts/typecheck.sh`
 Expected: `Typechecking 87 files...` then `Clean.`, exit 0.
 
 Run: `grep -rn 'Authenticating\|AuthClient' Gabay GabayTests`
@@ -622,7 +622,7 @@ Open the file and fix what the regex cannot: comments that still say "client", a
 
 - [ ] **Step 8: Verify**
 
-Run: `./scripts/typecheck.sh`
+Run: `./Scripts/typecheck.sh`
 Expected: `Typechecking 87 files...` then `Clean.`, exit 0.
 
 Run: `grep -rn 'EventFetching\|EventClient\|event(id:' Gabay GabayTests`
@@ -699,7 +699,7 @@ Expected: `0`.
 
 - [ ] **Step 3: Final typecheck**
 
-Run: `./scripts/typecheck.sh`
+Run: `./Scripts/typecheck.sh`
 Expected: `Typechecking 87 files...` then `Clean.`, exit 0, no warnings.
 
 - [ ] **Step 4: Append the ledger entry**
@@ -720,7 +720,7 @@ SLICE 3 (repository layer) COMPLETE at <head7>. 3 commits <base7>..<head7>.
   untouched. Spec amended to record this.
   No new test cases, per the user's 2026-09-24 instruction. One test deleted
   (readsOneEvent) because the method it covered is gone: 249 -> 248.
-  Whole-module typecheck via scripts/typecheck.sh: 87 files, zero errors, zero
+  Whole-module typecheck via Scripts/typecheck.sh: 87 files, zero errors, zero
   warnings. THE BUILD AND THE TEST SUITE HAVE STILL NEVER BEEN RUN.
 ```
 
