@@ -12,12 +12,37 @@ struct EventClientTests {
 
     private let base = URL(string: "https://example.test/api")!
 
-    private func makeClient() -> EventClient {
+    // Captures the raw multipart body of the request an interceptor sees,
+    // reading it off `Endpoint.body` rather than the delivered
+    // `URLRequest`: `URLProtocol` subclasses can be handed the body as a
+    // stream instead of `Data`, but the `Endpoint` still carries the bytes
+    // exactly as `EventClient` built them.
+    private actor BodySpy: RequestInterceptor {
+        private(set) var capturedBody: String?
+
+        func adapt(_ request: URLRequest, for endpoint: Endpoint) async throws -> URLRequest {
+            if case let .data(data, _)? = endpoint.body {
+                capturedBody = String(data: data, encoding: .utf8)
+            }
+            return request
+        }
+    }
+
+    private func makeAPIClient(interceptors: [any RequestInterceptor] = []) -> URLSessionAPIClient {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StubURLProtocol.self]
 
         StubURLProtocol.reset()
-        return EventClient(api: APIClient(base: base, configuration: configuration))
+        return URLSessionAPIClient(
+            baseURL: base,
+            session: URLSession(configuration: configuration),
+            interceptors: interceptors,
+            retryPolicy: .none
+        )
+    }
+
+    private func makeClient(interceptors: [any RequestInterceptor] = []) -> EventClient {
+        EventClient(api: makeAPIClient(interceptors: interceptors))
     }
 
     private var eventJSON: Data {
@@ -147,6 +172,35 @@ struct EventClientTests {
         #expect(event.distanceM == 4761)
         #expect(StubURLProtocol.asked.first?.url?.absoluteString
             == "https://example.test/api/events/hike-for-pawssion/gpx")
+    }
+
+    // Would fail if the filename reverted to the caller's local file name
+    // (a temp path seeded with a random UUID here) instead of one built
+    // from the event id, or if any of the plain fields were dropped or
+    // renamed on the way to `MultipartFormData`.
+    @Test func uploadGPXBuildsTheFilenameFromTheEventIDAndKeepsEveryField() async throws {
+        let spy = BodySpy()
+        let client = EventClient(api: makeAPIClient(interceptors: [spy]))
+        StubURLProtocol.queue(.init(status: 200, body: eventJSON))
+
+        let fileURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).gpx")
+        try Data("<gpx></gpx>".utf8).write(to: fileURL)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        _ = try await client.uploadGPX(
+            eventID: "hike-for-pawssion",
+            fileURL: fileURL,
+            distanceM: 4761,
+            ascentM: 386,
+            estimatedMinutes: 132
+        )
+
+        let body = await spy.capturedBody
+        #expect(body?.contains("filename=\"hike-for-pawssion.gpx\"") == true)
+        #expect(body?.contains(fileURL.lastPathComponent) == false)
+        #expect(body?.contains("name=\"distanceM\"") == true)
+        #expect(body?.contains("name=\"ascentM\"") == true)
+        #expect(body?.contains("name=\"estimatedMinutes\"") == true)
     }
 
     @Test func joinsAnEvent() async throws {

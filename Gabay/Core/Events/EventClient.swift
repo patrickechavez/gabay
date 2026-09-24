@@ -79,22 +79,22 @@ protocol EventFetching: Sendable {
 
 struct EventClient: EventFetching {
 
-    private let api: APIClient
+    private let api: any APIClient
 
-    init(api: APIClient) {
+    init(api: any APIClient) {
         self.api = api
     }
 
     func events() async throws -> [Event] {
-        try await api.get("events")
+        try await api.get(APIRoute.Events.list)
     }
 
     func event(id: String) async throws -> Event {
-        try await api.get("events/\(id)")
+        try await api.get(APIRoute.Events.detail(id))
     }
 
     func create(_ draft: EventDraft) async throws -> Event {
-        try await api.post("events", body: draft)
+        try await api.post(APIRoute.Events.list, body: draft)
     }
 
     func uploadGPX(
@@ -104,27 +104,29 @@ struct EventClient: EventFetching {
         ascentM: Int?,
         estimatedMinutes: Int
     ) async throws -> Event {
-        var fields = [
-            "distanceM": String(distanceM),
-            "estimatedMinutes": String(estimatedMinutes)
-        ]
-        if let ascentM { fields["ascentM"] = String(ascentM) }
+        var form = MultipartFormData()
+        form.addField("distanceM", value: String(distanceM))
+        if let ascentM { form.addField("ascentM", value: String(ascentM)) }
+        form.addField("estimatedMinutes", value: String(estimatedMinutes))
 
-        return try await api.postMultipart(
-            "events/\(eventID)/gpx",
-            fileURL: fileURL,
-            fieldName: "gpx",
-            filename: fileURL.lastPathComponent,
+        // The filename rides in the multipart Content-Disposition header
+        // unescaped, so it must be one we control rather than the user's
+        // raw file name.
+        form.addFile(
+            "gpx",
+            filename: "\(eventID).gpx",
             mimeType: "application/gpx+xml",
-            fields: fields
+            data: try Data(contentsOf: fileURL)
         )
+
+        return try await api.upload(APIRoute.Events.gpx(eventID), form: form)
     }
 
     func join(_ id: String) async throws {
-        try await api.post("events/\(id)/join")
+        try await api.send(Endpoint(APIRoute.Events.join(id), method: .post))
     }
 
     func mine() async throws -> [Event] {
-        try await api.get("me/events")
+        try await api.get(APIRoute.Events.mine)
     }
 }

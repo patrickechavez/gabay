@@ -33,22 +33,30 @@ protocol Authenticating: Sendable {
 
 struct AuthClient: Authenticating {
 
-    private let api: APIClient
+    private let api: any APIClient
 
-    init(api: APIClient) {
+    init(api: any APIClient) {
         self.api = api
     }
 
     func register(email: String, password: String) async throws -> AuthResult {
-        try await api.post("auth/register", body: Credentials(email: email, password: password))
+        try await api.post(
+            APIRoute.Auth.register,
+            body: Credentials(email: email, password: password),
+            requiresAuth: false
+        )
     }
 
     func login(email: String, password: String) async throws -> AuthResult {
-        try await api.post("auth/login", body: Credentials(email: email, password: password))
+        try await api.post(
+            APIRoute.Auth.login,
+            body: Credentials(email: email, password: password),
+            requiresAuth: false
+        )
     }
 
     func me() async throws -> Account {
-        try await api.get("me")
+        try await api.get(APIRoute.Auth.currentUser)
     }
 
     private struct Credentials: Encodable {
