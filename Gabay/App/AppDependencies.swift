@@ -58,13 +58,18 @@ final class AppDependencies {
             link: sessionLink
         )
 
-        // LoggingInterceptor is deliberately not wired in here: the ported
-        // LogFormat.headers(_:) does not redact "Authorization", so turning
-        // this on would print bearer tokens to the device console.
+        // LoggingInterceptor must come after AuthInterceptor: interceptors
+        // run in array order, so this logs the request as actually sent,
+        // with the Authorization header already attached (and redacted by
+        // LogFormat before anything reaches the console).
+        var interceptors: [any RequestInterceptor] = [AuthInterceptor(coordinator: coordinator)]
+        if APIConfig.isLoggingEnabled {
+            interceptors.append(LoggingInterceptor())
+        }
         let api = URLSessionAPIClient(
             baseURL: APIConfig.baseURL,
             session: pinnedSession,
-            interceptors: [AuthInterceptor(coordinator: coordinator)]
+            interceptors: interceptors
         )
         let session = Session(auth: AuthClient(api: api), tokenStore: tokenStore)
         sessionLink.session = session

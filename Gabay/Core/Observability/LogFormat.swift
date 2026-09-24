@@ -8,9 +8,18 @@ import Foundation
 // Shared by the network and offline logs so both print identically.
 enum LogFormat {
 
-    // Authorization is logged in full; logging is on in Development only.
+    // Authorization carries a bearer token, the same kind of secret
+    // `redactedBodyKeys` below already redacts when it shows up in a
+    // request body (as "token", "access_token", "refresh_token"). Gabay
+    // also stores a refresh token, which lives longer and does more damage
+    // if it leaks than an access token does. Redacting it here costs
+    // nothing for debugging - you can still see that the header was
+    // attached, just not its value - and the auth interceptor tests
+    // already assert attachment without needing it in the console.
+    //
+    // Divergence from the template: upstream logs Authorization in full.
     private static let redactedHeaders: Set<String> = [
-        "cookie", "set-cookie", "x-api-key", "proxy-authorization"
+        "cookie", "set-cookie", "x-api-key", "proxy-authorization", "authorization"
     ]
 
     private static let redactedBodyKeys: Set<String> = [
