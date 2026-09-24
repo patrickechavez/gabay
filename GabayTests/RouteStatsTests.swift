@@ -63,7 +63,15 @@ struct RouteStatsTests {
         #expect(stats.distanceM.isFinite)
     }
 
-    @Test func survivesAnInfiniteCoordinate() {
+    @Test func anInfiniteCoordinateIsNeutralisedByCoreLocationBeforeAnyGuardRuns() {
+        // This is not crash-path coverage: CLLocation.distance(from:) with an
+        // infinite latitude was measured to return 0.0, not infinity or NaN,
+        // so points.distance is already 0 here regardless of the RouteStats
+        // guards. NaN is the coordinate value that actually propagates and
+        // needs the guard; survivesANonFiniteCoordinate covers that case.
+        // This test only records that an infinite coordinate stays harmless,
+        // a property worth guarding against regressing if CoreLocation's or
+        // this code's behavior around it ever changes.
         let broken = [
             TrackPoint(latitude: .infinity, longitude: 123.3878, elevation: nil, time: nil),
             TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: nil, time: nil)
