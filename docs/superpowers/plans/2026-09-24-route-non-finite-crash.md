@@ -228,7 +228,7 @@ extension TrackPoint {
 }
 ```
 
-The `isFinite` checks are not redundant with the range checks even though a comparison against NaN is always false. They state the intent, and they are what makes the infinity case obvious to the next reader.
+On the two `isFinite` checks for latitude and longitude: they are logically redundant with the range checks that follow, since a comparison against NaN is always false and both infinities fall outside any finite closed range. They are kept deliberately, to state the intent and to make the infinity case obvious to the next reader. The `isFinite` check on elevation is not redundant, because no range check accompanies it.
 
 Leave the memberwise initializer alone. Task 2's tests need to construct deliberately invalid points, and both existing test files already use it.
 
