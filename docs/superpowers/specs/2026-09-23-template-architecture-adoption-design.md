@@ -185,8 +185,13 @@ Gabay's view models currently call network clients directly. The template puts
 protocol-based repositories between them, and this slice does the same:
 
 - `Data/AuthRepository.swift`: `protocol AuthRepository` plus
-  `LiveAuthRepository`, covering register, login, refresh and the current
-  account.
+  `LiveAuthRepository`, covering register, login and the current account.
+  Refresh is deliberately NOT on this protocol, unlike the template's.
+  `LiveAuthRepository` is built on the intercepted client because `me()` needs
+  an Authorization header, while refresh must run on the bare client or a
+  failing refresh recurses into the `AuthInterceptor` that triggered it. One
+  type carrying both would have a method that is only safe on one of its two
+  instances. `TokenRefreshing` and `LiveTokenRefresher` stay as they are.
 - `Data/EventRepository.swift`: split along the lines the audit identified, so
   no consumer depends on methods it does not use. `EventBrowsingRepository`
   covers listing, joined events and joining; `EventPublishingRepository`

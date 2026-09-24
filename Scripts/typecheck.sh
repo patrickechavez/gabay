@@ -2,7 +2,10 @@
 # Typechecks every Swift file in the app and test targets as one module, under the
 # same flags the Xcode project uses. Agents cannot run xcodebuild, so this is the
 # mechanical check that a change still compiles. It is not a substitute for the
-# real build or for running the tests.
+# real build or for running the tests. It also flattens the app and test targets
+# into one module, so it cannot catch anything that depends on the boundary
+# between them: a symbol made private in the app but read from a test still
+# passes here and fails in Xcode.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
