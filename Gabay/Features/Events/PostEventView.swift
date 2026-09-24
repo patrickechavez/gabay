@@ -45,7 +45,7 @@ struct PostEventView: View {
             }
             .fileImporter(isPresented: $isPickingGPX, allowedContentTypes: [.gpxFile, .xml, .data]) { result in
                 if case let .success(url) = result {
-                    viewModel.pickGPX(at: url)
+                    Task { await viewModel.pickGPX(at: url) }
                 }
             }
             .appAlert($viewModel.alert)

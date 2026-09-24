@@ -73,12 +73,12 @@ struct PostEventViewModelTests {
         #expect(viewModel.canSubmit == false)
     }
 
-    @Test func pickingAValidGPXComputesRouteStats() throws {
+    @Test func pickingAValidGPXComputesRouteStats() async throws {
         let viewModel = makeValidViewModel()
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
 
-        viewModel.pickGPX(at: file)
+        await viewModel.pickGPX(at: file)
 
         #expect(viewModel.route != nil)
         #expect(viewModel.gpxError == nil)
@@ -89,22 +89,22 @@ struct PostEventViewModelTests {
         #expect(makeValidViewModel().canSubmit == true)
     }
 
-    @Test func pickingAnUnreadableGPXReportsAnErrorAndClearsAnyRoute() throws {
+    @Test func pickingAnUnreadableGPXReportsAnErrorAndClearsAnyRoute() async throws {
         let viewModel = makeValidViewModel()
         let badFile = gpxFixture("not gpx at all")
         defer { try? FileManager.default.removeItem(at: badFile) }
 
-        viewModel.pickGPX(at: badFile)
+        await viewModel.pickGPX(at: badFile)
 
         #expect(viewModel.route == nil)
         #expect(viewModel.gpxError != nil)
     }
 
-    @Test func removeGPXClearsTheRoute() throws {
+    @Test func removeGPXClearsTheRoute() async throws {
         let viewModel = makeValidViewModel()
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
-        viewModel.pickGPX(at: file)
+        await viewModel.pickGPX(at: file)
 
         viewModel.removeGPX()
 
@@ -128,7 +128,7 @@ struct PostEventViewModelTests {
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
-        viewModel.pickGPX(at: file)
+        await viewModel.pickGPX(at: file)
 
         await viewModel.submit()
 
@@ -330,7 +330,7 @@ struct PostEventViewModelTests {
         await viewModel.submit()
         #expect(viewModel.submitErrorMessage != nil)
 
-        viewModel.pickGPX(at: file)
+        await viewModel.pickGPX(at: file)
 
         #expect(viewModel.submitErrorMessage == nil)
     }
@@ -340,7 +340,7 @@ struct PostEventViewModelTests {
         let viewModel = makeValidViewModel(events: events)
         let file = gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
-        viewModel.pickGPX(at: file)
+        await viewModel.pickGPX(at: file)
 
         events.createResult = .failure(APIError.server(status: 500))
         await viewModel.submit()

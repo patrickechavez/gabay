@@ -177,32 +177,50 @@ final class PostEventViewModel {
             && (photoURLText.trimmed.isEmpty || photoURLText.trimmed.isFullLink)
     }
 
-    func pickGPX(at url: URL) {
+    // Async because every step here touches the filesystem: an iCloud Drive file that is not
+    // materialized locally can block for seconds on the read alone.
+    func pickGPX(at url: URL) async {
         gpxError = nil
         action.clear()
 
-        // A file from Files or iCloud Drive is security scoped: without this the read fails, which
-        // is most real picks. The scope ends when this method returns, so the bytes are copied into
-        // our own container rather than held by URL until submit uploads them.
-        let isScoped = url.startAccessingSecurityScopedResource()
-        defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
-
         do {
-            let data = try Data(contentsOf: url)
-            let points = try parser.parse(data).points
-
-            let local = FileManager.default.temporaryDirectory
-                .appending(path: "\(UUID().uuidString).gpx")
-            try data.write(to: local)
-
+            let imported = try await Self.importGPX(at: url, parser: parser)
             discardCopiedGPX()
-            route = RouteStats(points: points)
-            gpxFileURL = local
+            route = imported.stats
+            gpxFileURL = imported.fileURL
         } catch {
             route = nil
             discardCopiedGPX()
             gpxError = APIError.classify(error)
         }
+    }
+
+    // Off the main actor. A picked file is security scoped and that scope ends with this work, but
+    // the upload reads the file later from `submit()`, so the bytes are copied into our own
+    // container and uploaded from there.
+    private static func importGPX(
+        at url: URL,
+        parser: GPXParser
+    ) async throws -> (stats: RouteStats, fileURL: URL) {
+        try await Task.detached(priority: .userInitiated) {
+            let isScoped = url.startAccessingSecurityScopedResource()
+            defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
+
+            let data = try Data(contentsOf: url)
+            let points = try parser.parse(data).points
+
+            let local = FileManager.default.temporaryDirectory
+                .appending(path: "\(UUID().uuidString).gpx")
+            do {
+                try data.write(to: local)
+            } catch {
+                // A write that failed partway leaves a stub behind that nothing else tracks.
+                try? FileManager.default.removeItem(at: local)
+                throw error
+            }
+
+            return (RouteStats(points: points), local)
+        }.value
     }
 
     func removeGPX() {
@@ -258,6 +276,7 @@ final class PostEventViewModel {
 
         guard created != nil else { return }
 
+        discardCopiedGPX()
         didSubmit = true
         alert = .notice(
             String(localized: "Submitted", comment: "Title confirming an event was submitted"),
