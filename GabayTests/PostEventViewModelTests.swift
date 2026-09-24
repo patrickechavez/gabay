@@ -359,8 +359,7 @@ struct PostEventViewModelTests {
         await viewModel.submit()
         #expect(viewModel.submitErrorMessage != nil)
 
-        // canSubmit goes false, so nothing will ever resubmit to clear it
-        // the old way; the edit itself has to be what clears it.
+        // canSubmit goes false, so nothing resubmits to clear the message; the edit itself has to clear it.
         viewModel.capacity = "0"
 
         #expect(viewModel.canSubmit == false)

@@ -6,23 +6,9 @@
 import Foundation
 import Testing
 
-// Answers requests from a queue, and keeps what it was asked. Shared by
-// every test that stubs a network call instead of talking to a server.
-//
-// The lock makes each read or write atomic, but does not make a whole
-// reset-then-queue-then-request sequence atomic across suites: two
-// different test suites running concurrently could still interleave their
-// sequences and steal each other's queued reply. `@Suite(.serialized)` on
-// an individual suite only serializes that suite's own tests against each
-// other; Swift Testing still runs separate suites in parallel by default.
-//
-// Every suite that drives a request through this stub is therefore nested
-// under `SharedStubProtocolSuite` below, whose own `.serialized` trait is
-// what actually serializes all of them against one another, not just each
-// one internally. See `APIClientTests`, `AuthClientTests`,
-// `EventClientTests`, `AuthInterceptorTests` and `LiveTokenRefresherTests`,
-// each declared as an extension of `SharedStubProtocolSuite` in its own
-// file so it keeps its own name in test output.
+// Answers requests from a queue and records what it was asked; shared by every test that stubs a network call.
+// The lock makes one read or write atomic, but not a whole reset-then-queue-then-request sequence across suites, which Swift Testing still runs in parallel even with `@Suite(.serialized)` on each suite alone.
+// So every suite driving a request through this stub nests under `SharedStubProtocolSuite` below, whose `.serialized` trait serializes them all against each other (see APIClientTests, AuthClientTests, EventClientTests, AuthInterceptorTests, LiveTokenRefresherTests).
 final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
     struct Reply {
@@ -65,8 +51,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         let reply = Self._replies.isEmpty ? nil : Self._replies.removeFirst()
         Self.lock.unlock()
 
-        // Safe to force-unwrap: `request.url` and `reply.status` are always
-        // set by the tests that construct them, never derived from external input.
+        // Safe to force-unwrap: `request.url` and `reply.status` are always set by the tests that construct them.
         guard let reply else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
@@ -87,9 +72,6 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 
-// Pure namespace: every suite sharing `StubURLProtocol` is declared as an
-// extension of this type, so `.serialized` here serializes all of them
-// against each other, not just each one against itself. See the comment
-// above `StubURLProtocol` for why that distinction matters.
+// Pure namespace: every suite sharing `StubURLProtocol` extends this type, so `.serialized` here serializes them all against each other, not just each internally (see the comment above `StubURLProtocol`).
 @Suite(.serialized)
 enum SharedStubProtocolSuite {}

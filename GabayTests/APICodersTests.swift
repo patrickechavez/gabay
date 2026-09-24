@@ -47,8 +47,7 @@ struct APICodersTests {
         }
     }
 
-    // A field with consecutive capitals must round-trip exactly, proving
-    // the coders do not apply snake_case conversion.
+    // Proves the coders do not apply snake_case conversion: consecutive capitals must round-trip exactly.
     @Test func leavesAConsecutiveCapitalKeyAlone() throws {
         struct Fee: Codable, Equatable {
             var feePHP: Int

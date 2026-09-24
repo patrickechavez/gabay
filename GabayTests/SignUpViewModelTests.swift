@@ -223,8 +223,7 @@ struct SignUpViewModelTests {
         _ = await viewModel.register()
         #expect(viewModel.signUpErrorMessage != nil)
 
-        // canSubmit goes false, so nothing will ever resubmit to clear it
-        // the old way; the edit itself has to be what clears it.
+        // canSubmit goes false, so nothing resubmits to clear the message; the edit itself has to clear it.
         viewModel.password = "short"
 
         #expect(viewModel.canSubmit == false)

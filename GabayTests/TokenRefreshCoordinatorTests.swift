@@ -7,8 +7,7 @@ import Foundation
 import Testing
 @testable import Gabay
 
-// A refresher that counts calls and returns a fixed result, for tests that
-// don't need to control timing.
+// A refresher that counts calls and returns a fixed result, for tests that don't need to control timing.
 private actor StubTokenRefresher: TokenRefreshing {
 
     private(set) var callCount = 0
@@ -24,9 +23,7 @@ private actor StubTokenRefresher: TokenRefreshing {
     }
 }
 
-// A refresher whose `refresh` suspends until the test opens the gate, so
-// concurrent callers can be made to genuinely overlap inside it instead of
-// completing one after another.
+// A refresher whose `refresh` suspends until the test opens the gate, so concurrent callers genuinely overlap instead of completing one after another.
 private actor GatedTokenRefresher: TokenRefreshing {
 
     private(set) var callCount = 0
@@ -35,11 +32,7 @@ private actor GatedTokenRefresher: TokenRefreshing {
     private var entryWaiters: [CheckedContinuation<Void, Never>] = []
     private var gateWaiters: [CheckedContinuation<Void, Never>] = []
 
-    // Tracks callers that have reached the point of calling into the
-    // coordinator, not calls into `refresh(using:)` itself: a correctly
-    // single-flighted follower never reaches this actor at all, so this is
-    // how the test knows every concurrent caller has actually arrived at
-    // `coordinator.refresh`, rather than merely having been scheduled.
+    // Tracks callers reaching `coordinator.refresh`, not `refresh(using:)` itself, since a correctly single-flighted follower never reaches this actor at all.
     private var callersArrived = 0
     private var callerWaiters: [(threshold: Int, continuation: CheckedContinuation<Void, Never>)] = []
 
@@ -74,8 +67,7 @@ private actor GatedTokenRefresher: TokenRefreshing {
         gateWaiters = []
     }
 
-    /// Called by a test caller immediately before it calls into the
-    /// coordinator, so `waitForCallers(_:)` can tell arrival from scheduling.
+    /// Called by a test caller immediately before it calls into the coordinator, so `waitForCallers(_:)` can tell arrival from scheduling.
     func callerArrived() {
         callersArrived += 1
         let ready = callerWaiters.filter { callersArrived >= $0.threshold }
@@ -112,10 +104,7 @@ struct LiveTokenRefresherTests {
         return LiveTokenRefresher(api: api)
     }
 
-    // Would fail if `refresh(using:)` still decoded the response as
-    // `AuthResult`: the contract payload for `/auth/refresh` has no `role`
-    // key, so that decode throws `keyNotFound` and this test would fail
-    // with a decoding error instead of returning tokens.
+    // Would fail if `refresh(using:)` still decoded as `AuthResult`; `/auth/refresh`'s payload has no `role` key, so that decode would throw `keyNotFound`.
     @Test func decodesTheContractShapeWithNoRoleKey() async throws {
         let refresher = makeRefresher()
         StubURLProtocol.queue(.init(
@@ -152,8 +141,7 @@ struct TokenRefreshCoordinatorTests {
         return session
     }
 
-    // Would fail if the coordinator tried to refresh with no current tokens
-    // instead of short-circuiting to `.unauthorized()`.
+    // Would fail if the coordinator tried to refresh with no current tokens instead of short-circuiting to `.unauthorized()`.
     @Test func refreshWithNoStoredTokensThrowsUnauthorized() async {
         let store = InMemoryTokenStore()
         let refresher = StubTokenRefresher(result: .failure(.server(status: 500)))
@@ -166,9 +154,7 @@ struct TokenRefreshCoordinatorTests {
         #expect(await refresher.callCount == 0)
     }
 
-    // Would fail if the coordinator called the refresher with an empty
-    // refresh token instead of recognizing there is nothing to refresh
-    // with, and would fail if it left the session signed in afterward.
+    // Would fail if the coordinator called the refresher with an empty token instead of recognizing there's nothing to refresh with, or left the session signed in.
     @Test func refreshWithNoRefreshTokenThrowsUnauthorizedAndInvalidates() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: nil))
         let refresher = StubTokenRefresher(result: .failure(.server(status: 500)))
@@ -185,8 +171,7 @@ struct TokenRefreshCoordinatorTests {
         #expect(session.isSignedIn == false)
     }
 
-    // Would fail if the renewed tokens were returned but never persisted, or
-    // if the wrong tokens were returned to the caller.
+    // Would fail if the renewed tokens were returned but never persisted, or the wrong tokens were returned to the caller.
     @Test func successfulRefreshSavesAndReturnsTheRenewedTokens() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let renewed = AuthTokens(accessToken: "renewed456", refreshToken: "refresh2")
@@ -200,27 +185,11 @@ struct TokenRefreshCoordinatorTests {
         #expect(await store.load() == renewed)
     }
 
-    // Would fail if every concurrent caller triggered its own refresh
-    // instead of sharing one in-flight task: the refresher suspends until
-    // released, so a coordinator that doesn't single-flight would show more
-    // than one call while the callers are still pending, not just after they
-    // all finish.
+    // Would fail if every caller triggered its own refresh instead of sharing one in-flight task: the refresher suspends until released, so an un-single-flighted coordinator would show more than one call while callers are still pending.
     //
-    // Each caller marks its arrival via `callerArrived()` immediately before
-    // calling into the coordinator, and the test waits for all three marks
-    // before checking `callCount`. This closes the gap in the previous
-    // version of this test, where `waitForEntry()` only confirmed the
-    // leader had reached the refresher; the second and third callers could
-    // still not have reached `coordinator.refresh` yet, so `callCount == 1`
-    // held trivially, true regardless of whether single-flighting actually
-    // worked. Waiting for all three arrivals, plus yielding to let the
-    // coordinator actor's brief, await-free `inFlight` check run for each
-    // of them, makes the mid-flight assertion below meaningfully test the
-    // in-progress state, not just the eventual one. It still leans on the
-    // cooperative executor running that tiny synchronous step promptly
-    // after resumption, which is not a language-level guarantee; the
-    // assertion after all three results are collected does not have that
-    // dependency and is the fully deterministic half of this test.
+    // Each caller marks arrival via `callerArrived()` before calling the coordinator, and the test waits for all three marks before checking `callCount`; the old version of this test only confirmed the leader reached the refresher, so `callCount == 1` held trivially even when single-flighting was broken.
+    //
+    // Waiting for all arrivals, then yielding, lets the coordinator's brief await-free `inFlight` check run for each caller, so the mid-flight assertion tests the in-progress state, not just the eventual one. It still leans on the cooperative executor running that step promptly after resumption, which is not a language-level guarantee; the assertion after all three results are collected has no such dependency and is the fully deterministic half of this test.
     @Test func concurrentRefreshesSingleFlight() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let renewed = AuthTokens(accessToken: "renewed456", refreshToken: "refresh2")
@@ -254,9 +223,7 @@ struct TokenRefreshCoordinatorTests {
         #expect(await refresher.callCount == 1)
     }
 
-    // Would fail if the coordinator called the refresher again for a token
-    // that has already been renewed by someone else, instead of noticing
-    // the store no longer matches what the caller thought was stale.
+    // Would fail if the coordinator refreshed again for a token already renewed by someone else, instead of noticing the store no longer matches what the caller thought was stale.
     @Test func staleTokenShortCircuitReturnsStoredTokensWithoutRefreshing() async throws {
         let current = AuthTokens(accessToken: "already-renewed", refreshToken: "refresh1")
         let store = InMemoryTokenStore(tokens: current)
@@ -270,8 +237,7 @@ struct TokenRefreshCoordinatorTests {
         #expect(await refresher.callCount == 0)
     }
 
-    // Would fail if a failed refresh left the session signed in, or threw
-    // something other than `.unauthorized()`.
+    // Would fail if a failed refresh left the session signed in, or threw something other than `.unauthorized()`.
     @Test func failedRefreshInvalidatesAndThrowsUnauthorized() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let refresher = StubTokenRefresher(result: .failure(.server(status: 500)))
@@ -287,9 +253,7 @@ struct TokenRefreshCoordinatorTests {
         #expect(session.isSignedIn == false)
     }
 
-    // Would fail if a cancelled refresh signed the session out, which would
-    // wrongly treat "the app cancelled this request" as "this token is no
-    // longer valid".
+    // Would fail if a cancelled refresh signed the session out, wrongly treating a cancelled request as an invalid token.
     @Test func cancelledRefreshThrowsCancelledWithoutInvalidating() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let refresher = StubTokenRefresher(result: .failure(.cancelled))

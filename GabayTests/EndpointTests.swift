@@ -12,11 +12,7 @@ struct EndpointTests {
     private let baseWithTrailingSlash = URL(string: "https://api.example.test/")!
     private let baseWithoutTrailingSlash = URL(string: "https://api.example.test")!
 
-    // Pins that a trailing slash on the base URL and a leading slash on the
-    // path are interchangeable with the plain forms. The implementation
-    // splits the path on "/" and appends non-empty components, so all four
-    // combinations must land on the same URL; a naive string concatenation
-    // would instead produce a doubled or missing slash on some of them.
+    // Pins that trailing/leading slashes are interchangeable with the plain forms; naive concatenation would double or drop a slash on some combinations.
     @Test func joinsPathOntoBaseURLRegardlessOfSurroundingSlashes() throws {
         let expected = "https://api.example.test/events"
 
@@ -35,9 +31,7 @@ struct EndpointTests {
         #expect(plainPathOnPlainBase.url?.absoluteString == expected)
     }
 
-    // A multi-segment path exercises the split-and-append loop beyond a
-    // single component. Would fail if the loop dropped a segment or joined
-    // them without separators.
+    // Exercises the split-and-append loop past a single segment; would fail if it dropped a segment or joined them without separators.
     @Test func joinsAMultiSegmentPath() throws {
         let request = try Endpoint("/events/42/rsvp")
             .urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -45,8 +39,7 @@ struct EndpointTests {
         #expect(request.url?.absoluteString == "https://api.example.test/events/42/rsvp")
     }
 
-    // Would fail if query items were ignored, or if they were appended in a
-    // way that mangled the URL.
+    // Would fail if query items were ignored, or appended in a way that mangled the URL.
     @Test func composesQueryItemsIntoTheURL() throws {
         let endpoint = Endpoint("events", query: [URLQueryItem(name: "page", value: "2")])
         let request = try endpoint.urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -54,9 +47,7 @@ struct EndpointTests {
         #expect(request.url?.absoluteString == "https://api.example.test/events?page=2")
     }
 
-    // Would fail if the implementation unconditionally ran the query items
-    // through URLComponents, which appends a bare "?" even for an empty
-    // array.
+    // Would fail if query items ran through URLComponents unconditionally, which appends a bare "?" even for an empty array.
     @Test func leavesTheURLUntouchedWhenQueryIsEmpty() throws {
         let request = try Endpoint("events", query: [])
             .urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -64,8 +55,7 @@ struct EndpointTests {
         #expect(request.url?.absoluteString == "https://api.example.test/events")
     }
 
-    // Would fail if the method were not assigned, or if the Accept header
-    // or a caller-supplied header were dropped.
+    // Would fail if the method were not assigned, or the Accept header or a caller-supplied header were dropped.
     @Test func setsMethodAcceptHeaderAndCustomHeaders() throws {
         let endpoint = Endpoint("events", method: .post, headers: ["X-Client": "gabay-ios"])
         let request = try endpoint.urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -79,9 +69,7 @@ struct EndpointTests {
         var name: String
     }
 
-    // Would fail if a JSON body failed to set httpBody, or failed to set
-    // the Content-Type header, either of which would break every writing
-    // request once the client lands.
+    // Would fail if a JSON body failed to set httpBody or the Content-Type header, breaking every writing request once the client lands.
     @Test func jsonBodySetsHTTPBodyAndContentType() throws {
         let endpoint = try Endpoint.post("events", body: Payload(name: "trail cleanup"))
         let request = try endpoint.urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -91,9 +79,7 @@ struct EndpointTests {
         #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
     }
 
-    // The inverse of the previous test: an endpoint with no body must not
-    // set httpBody or Content-Type. Would fail if those were set
-    // unconditionally instead of inside `if let body`.
+    // Inverse of the previous test: would fail if httpBody or Content-Type were set unconditionally instead of inside `if let body`.
     @Test func noBodyLeavesHTTPBodyAndContentTypeUnset() throws {
         let request = try Endpoint("events").urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
 
@@ -101,8 +87,7 @@ struct EndpointTests {
         #expect(request.value(forHTTPHeaderField: "Content-Type") == nil)
     }
 
-    // Would fail if the endpoint's own timeout were ignored in favor of the
-    // default.
+    // Would fail if the endpoint's own timeout were ignored in favor of the default.
     @Test func explicitTimeoutOverridesTheDefault() throws {
         let request = try Endpoint("events", timeout: 5)
             .urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -110,8 +95,7 @@ struct EndpointTests {
         #expect(request.timeoutInterval == 5)
     }
 
-    // Would fail if a nil timeout produced some other value (zero, for
-    // example) instead of falling back to the caller-supplied default.
+    // Would fail if a nil timeout produced some other value (zero, say) instead of falling back to the default.
     @Test func nilTimeoutFallsBackToTheDefault() throws {
         let request = try Endpoint("events", timeout: nil)
             .urlRequest(baseURL: baseWithTrailingSlash, defaultTimeout: 30)
@@ -119,8 +103,7 @@ struct EndpointTests {
         #expect(request.timeoutInterval == 30)
     }
 
-    // Parameterized over every case so an inverted or shuffled mapping
-    // fails on the specific case it gets wrong, not just in aggregate.
+    // Parameterized over every case so an inverted or shuffled mapping fails on the specific case it gets wrong.
     @Test(arguments: [
         (HTTPMethod.get, true),
         (.put, true),

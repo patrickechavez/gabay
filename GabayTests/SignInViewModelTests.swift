@@ -75,8 +75,7 @@ struct SignInViewModelTests {
         await viewModel.signIn()
         #expect(viewModel.signInErrorMessage != nil)
 
-        // canSubmit goes false, so nothing will ever resubmit to clear it
-        // the old way; the edit itself has to be what clears it.
+        // canSubmit goes false, so nothing resubmits to clear the message; the edit itself has to clear it.
         viewModel.password = ""
 
         #expect(viewModel.canSubmit == false)

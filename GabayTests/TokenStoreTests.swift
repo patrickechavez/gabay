@@ -10,8 +10,7 @@ import Testing
 
 struct TokenStoreTests {
 
-    // A unique service per store, so one test's tokens never reach another
-    // even when tests run concurrently against the real Keychain.
+    // A unique service per store, so tests never share Keychain state even when run concurrently.
     private func makeService(_ label: String = #function) -> String {
         "com.patrick.Gabay.tests.\(label).\(UUID().uuidString)"
     }
@@ -57,8 +56,7 @@ struct TokenStoreTests {
         let tokens = AuthTokens(accessToken: "abc123")
         try await store.save(tokens)
 
-        // Delete the item directly from the Keychain, bypassing the store,
-        // so any load that actually hits the Keychain now finds nothing.
+        // Delete the item directly from the Keychain, bypassing the store, so a real read would now find nothing.
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -69,9 +67,7 @@ struct TokenStoreTests {
         // The store still has its own cached answer...
         #expect(await store.load() == tokens)
 
-        // ...while a fresh store pointed at the same service proves the
-        // Keychain item is genuinely gone, so the first answer above could
-        // only have come from the actor's cache, not a second read.
+        // ...while a fresh store on the same service proves the item is really gone, so the first answer came from the cache, not a second read.
         let freshStore = KeychainTokenStore(service: service)
         #expect(await freshStore.load() == nil)
     }

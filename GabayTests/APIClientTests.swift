@@ -30,8 +30,7 @@ struct APIClientTests {
         let value: Int
     }
 
-    // Would fail if the GET path never reached the decoder, or decoded the
-    // wrong type.
+    // Would fail if the GET path never reached the decoder, or decoded the wrong type.
     @Test func decodesAGetResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 200, body: Data("{\"value\":1}".utf8)))
@@ -41,8 +40,7 @@ struct APIClientTests {
         #expect(payload == Payload(value: 1))
     }
 
-    // Would fail if the POST body were dropped, or the method sent were not
-    // POST.
+    // Would fail if the POST body were dropped, or the method sent were not POST.
     @Test func sendsAPostBodyAndDecodesTheResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 200, body: Data("{\"value\":2}".utf8)))
@@ -53,8 +51,7 @@ struct APIClientTests {
         #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
     }
 
-    // Would fail if a bodiless send() threw on a response it has no type to
-    // decode into, instead of silently succeeding.
+    // Would fail if a bodiless send() threw on a response it has no type to decode into, instead of silently succeeding.
     @Test func bodilessPostIgnoresTheResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 204, body: Data()))
@@ -64,9 +61,7 @@ struct APIClientTests {
         #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
     }
 
-    // Would fail if a 401 were mapped to any other case, or not mapped at
-    // all (in which case this would throw a different error and the
-    // `#expect(throws:)` would fail).
+    // Fails if a 401 maps to any other case, or isn't mapped (then `#expect(throws:)` fails differently).
     @Test func mapsA401ToUnauthorized() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 401, body: Data()))
@@ -86,8 +81,7 @@ struct APIClientTests {
         }
     }
 
-    // Would fail if a 422 were mapped to any other case; named for the
-    // `.validation` case the mapping actually produces.
+    // Would fail if a 422 were mapped to any other case; named for the `.validation` case the mapping produces.
     @Test func mapsA422ToValidation() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 422, body: Data()))
@@ -97,8 +91,7 @@ struct APIClientTests {
         }
     }
 
-    // Would fail if an unrecognized status stopped falling through to the
-    // generic `.server` case.
+    // Would fail if an unrecognized status stopped falling through to the generic `.server` case.
     @Test func mapsAnythingElseToServer() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 500, body: Data()))
@@ -108,10 +101,7 @@ struct APIClientTests {
         }
     }
 
-    // Would fail if the empty-body shortcut were removed: JSONDecoder has
-    // no valid top-level value to read from zero bytes, so a 2xx with an
-    // empty body would throw `decodingFailed` instead of yielding
-    // `EmptyResponse`.
+    // Fails if the empty-body shortcut is removed; JSONDecoder can't decode zero bytes, so this would throw `decodingFailed` instead of yielding `EmptyResponse`.
     @Test func decodesAnEmptyBodyOn2xxAsEmptyResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 200, body: Data()))

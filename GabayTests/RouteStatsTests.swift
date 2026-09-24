@@ -64,14 +64,8 @@ struct RouteStatsTests {
     }
 
     @Test func anInfiniteCoordinateIsNeutralisedByCoreLocationBeforeAnyGuardRuns() {
-        // This is not crash-path coverage: CLLocation.distance(from:) with an
-        // infinite latitude was measured to return 0.0, not infinity or NaN,
-        // so points.distance is already 0 here regardless of the RouteStats
-        // guards. NaN is the coordinate value that actually propagates and
-        // needs the guard; survivesANonFiniteCoordinate covers that case.
-        // This test only records that an infinite coordinate stays harmless,
-        // a property worth guarding against regressing if CoreLocation's or
-        // this code's behavior around it ever changes.
+        // Not crash-path coverage: CLLocation.distance(from:) already returns 0.0 for an infinite latitude, so the RouteStats guards aren't exercised here.
+        // NaN is what actually needs the guard (see survivesANonFiniteCoordinate); this only guards against the harmlessness here regressing.
         let broken = [
             TrackPoint(latitude: .infinity, longitude: 123.3878, elevation: nil, time: nil),
             TrackPoint(latitude: 9.8127, longitude: 123.3878, elevation: nil, time: nil)
@@ -84,10 +78,7 @@ struct RouteStatsTests {
     }
 
     @Test func survivesANonFiniteElevation() {
-        // A finite elevation followed by an infinite one drives ascent()
-        // itself non-finite: change = .infinity - 100 = .infinity, which
-        // accumulates straight into total. The ascentM guard must turn
-        // that into nil rather than let it propagate into the estimate.
+        // Drives ascent() non-finite (change = .infinity - 100 = .infinity, accumulating into total); the ascentM guard must turn that into nil.
         let broken = points([100, .infinity])
         let flat = points([100, 100])
 
@@ -99,11 +90,7 @@ struct RouteStatsTests {
     }
 
     @Test func treatsNaNElevationAsNoClimbRatherThanCrashing() {
-        // The fixture the old test used never reaches the ascentM guard:
-        // reference becomes NaN on the first point, and NaN compares false
-        // against both the climb and drop thresholds in ascent(), so
-        // nothing ever accumulates. The route is scored as flat, not
-        // crashed.
+        // The old fixture never reached the ascentM guard: NaN compares false against both thresholds in ascent(), so nothing accumulates and the route scores flat, not crashed.
         let broken = points([.nan, .infinity])
         let flat = points([100, 100])
 
@@ -115,10 +102,7 @@ struct RouteStatsTests {
     }
 
     @Test func rejectsAFiniteButEnormousElevation() {
-        // 1e19 is finite, so TrackPoint.validated and the old isFinite-only
-        // ascentM guard both let it through. It is also past Double(Int.max),
-        // so Int(_:) on it would trap. The bound must catch it here, at the
-        // one place every Int conversion of ascentM reads from.
+        // 1e19 is finite, so the old isFinite-only guard let it through, but it's past Double(Int.max) so Int(_:) on it would trap; the bound must catch it here.
         let broken = points([100, 1e19])
         let flat = points([100, 100])
 
@@ -130,8 +114,7 @@ struct RouteStatsTests {
     }
 
     @Test func doesNotClampAPlausibleMountainElevation() {
-        // A real mountain's elevation gain is nowhere near Double(Int.max),
-        // so the new bound must leave it alone.
+        // A real mountain's elevation gain is nowhere near Double(Int.max), so the new bound must leave it alone.
         let stats = RouteStats(points: points([0, 8000]))
 
         #expect(stats.ascentM == 8000)

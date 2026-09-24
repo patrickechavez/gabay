@@ -14,11 +14,7 @@ struct EventClientTests {
 
     private let base = URL(string: "https://example.test/api")!
 
-    // Captures the raw multipart body of the request an interceptor sees,
-    // reading it off `Endpoint.body` rather than the delivered
-    // `URLRequest`: `URLProtocol` subclasses can be handed the body as a
-    // stream instead of `Data`, but the `Endpoint` still carries the bytes
-    // exactly as `EventClient` built them.
+    // Reads the body off `Endpoint.body` rather than the delivered `URLRequest`, since `URLProtocol` may hand the body over as a stream instead of `Data`.
     private actor BodySpy: RequestInterceptor {
         private(set) var capturedBody: String?
 
@@ -178,10 +174,7 @@ struct EventClientTests {
             .hasPrefix("multipart/form-data; boundary=") == true)
     }
 
-    // Would fail if the filename reverted to the caller's local file name
-    // (a temp path seeded with a random UUID here) instead of one built
-    // from the event id, or if any of the plain fields were dropped or
-    // renamed on the way to `MultipartFormData`.
+    // Would fail if the filename reverted to the caller's local name instead of one built from the event id, or any plain field were dropped or renamed en route to `MultipartFormData`.
     @Test func uploadGPXBuildsTheFilenameFromTheEventIDAndKeepsEveryField() async throws {
         let spy = BodySpy()
         let client = EventClient(api: makeAPIClient(interceptors: [spy]))

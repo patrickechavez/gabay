@@ -9,10 +9,7 @@ import Testing
 
 struct MultipartFormDataTests {
 
-    // Would fail if a field were dropped, misnamed, or its value mangled,
-    // if the file part's name or filename were wrong, or if the boundary
-    // delimiter between parts were missing - each assertion pins one piece
-    // the encoder must reproduce verbatim.
+    // Fails if any field, the file's name, or the boundary delimiter is dropped or wrong.
     @Test func encodedBodyContainsTheBoundaryEveryFieldAndTheFile() throws {
         var form = MultipartFormData(boundary: "TestBoundary")
         form.addField("distanceM", value: "4761")
@@ -26,10 +23,7 @@ struct MultipartFormDataTests {
         #expect(text.contains("Content-Type: application/gpx+xml\r\n\r\n<gpx></gpx>\r\n"))
     }
 
-    // Isolated from the field/file assertions above so a broken closing
-    // delimiter (missing trailing `--`, wrong boundary, or a body that
-    // simply never closes) fails on its own rather than being masked by a
-    // `contains` check elsewhere in the string.
+    // Isolated so a broken closing delimiter fails on its own, not masked by a `contains` check elsewhere.
     @Test func encodedBodyEndsWithTheClosingBoundaryDelimiter() {
         var form = MultipartFormData(boundary: "TestBoundary")
         form.addField("distanceM", value: "4761")
@@ -39,9 +33,7 @@ struct MultipartFormDataTests {
         #expect(text.hasSuffix("--TestBoundary--\r\n"))
     }
 
-    // File bytes must ride through unmodified. Would fail if the encoder
-    // round-tripped the payload through a text encoding and lost or
-    // corrupted the non-ASCII bytes.
+    // Fails if the encoder round-trips the payload through a text encoding and corrupts non-ASCII bytes.
     @Test func fileBytesSurviveEncodingUnmodified() {
         var form = MultipartFormData(boundary: "TestBoundary")
         let fileBytes = Data([0x00, 0xFF, 0x10, 0x7F, 0x80])
@@ -52,9 +44,7 @@ struct MultipartFormDataTests {
         #expect(encoded.range(of: fileBytes) != nil)
     }
 
-    // Would fail if `contentType` and `encoded()` ever disagreed on the
-    // boundary string, which would produce a body the server can't parse
-    // even though each half looks correct in isolation.
+    // Fails if `contentType` and `encoded()` disagree on the boundary, producing a body the server can't parse.
     @Test func contentTypeAdvertisesTheSameBoundaryTheBodyUses() {
         let form = MultipartFormData(boundary: "TestBoundary")
 
