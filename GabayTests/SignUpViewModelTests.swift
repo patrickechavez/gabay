@@ -185,6 +185,36 @@ struct SignUpViewModelTests {
         #expect(viewModel.emailError == "That email is already registered.")
     }
 
+    @Test func aValidationErrorOnAFieldWithNoSlotShowsTheWholeFormMessage() async {
+        let auth = StubAuthenticating()
+        auth.registerResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["captcha": ["Please complete the challenge."]],
+            summary: nil
+        )))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        _ = await viewModel.register()
+
+        #expect(viewModel.signUpErrorMessage != nil)
+    }
+
+    @Test func aValidationErrorOnlyOnFieldsWithSlotsSuppressesTheWholeFormMessage() async {
+        let auth = StubAuthenticating()
+        auth.registerResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["email": ["That email is already registered."]],
+            summary: nil
+        )))
+        let viewModel = SignUpViewModel(session: Session(auth: auth, tokenStore: InMemoryTokenStore()))
+        viewModel.email = "hiker@example.com"
+        viewModel.password = "longenough"
+
+        _ = await viewModel.register()
+
+        #expect(viewModel.signUpErrorMessage == nil)
+    }
+
     @Test func editingAFieldAfterAFailedRegistrationClearsTheStaleMessage() async {
         let viewModel = makeViewModel()
         viewModel.email = "hiker@example.com"

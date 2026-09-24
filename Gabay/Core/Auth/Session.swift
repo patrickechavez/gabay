@@ -32,8 +32,15 @@ final class Session {
         do {
             account = try await auth.me()
         } catch {
-            // A stale or revoked token: back to signed out.
-            await tokenStore.clear()
+            // A transport failure (offline, timed out, a 5xx) must not cost
+            // the user their session; only clear the store when the token
+            // itself is genuinely rejected. A 401 is normally handled a
+            // layer down by AuthInterceptor and TokenRefreshCoordinator,
+            // which already clear the store and sign out, but classify
+            // here too in case `me()` surfaces the rejection directly.
+            if APIError.classify(error).invalidatesSession {
+                await tokenStore.clear()
+            }
         }
     }
 

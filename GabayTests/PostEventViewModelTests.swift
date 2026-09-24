@@ -294,6 +294,32 @@ struct PostEventViewModelTests {
         #expect(viewModel.feeError == "Fee must not exceed 5000.")
     }
 
+    @Test func aValidationErrorOnAFieldWithNoSlotShowsTheWholeFormMessage() async {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["title": ["That title is already taken."]],
+            summary: nil
+        )))
+        let viewModel = makeValidViewModel(events: events)
+
+        await viewModel.submit()
+
+        #expect(viewModel.submitErrorMessage != nil)
+    }
+
+    @Test func aValidationErrorOnlyOnFieldsWithSlotsSuppressesTheWholeFormMessage() async {
+        let events = StubEventFetching()
+        events.createResult = .failure(APIError.validation(ValidationErrors(
+            fields: ["feePHP": ["Fee must not exceed 5000."], "capacity": ["Too many hikers."]],
+            summary: nil
+        )))
+        let viewModel = makeValidViewModel(events: events)
+
+        await viewModel.submit()
+
+        #expect(viewModel.submitErrorMessage == nil)
+    }
+
     @Test func editingAFieldAfterAFailedSubmitClearsTheStaleMessage() async {
         let events = StubEventFetching()
         events.createResult = .failure(APIError.server(status: 500))

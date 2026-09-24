@@ -42,6 +42,8 @@ final class SignInViewModel {
         !email.trimmed.isEmpty && !password.isEmpty && !action.isRunning
     }
 
+    // Unguarded, unlike its sign-up and post-event siblings: sign-in renders
+    // no field slots at all, so every validation error belongs here.
     var signInErrorMessage: String? {
         action.errorMessage
     }

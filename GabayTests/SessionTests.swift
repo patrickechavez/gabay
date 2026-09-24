@@ -48,6 +48,19 @@ struct SessionTests {
         #expect(await tokenStore.load() == nil)
     }
 
+    @Test func restoreKeepsTheTokenWhenMeFailsWithATransportError() async throws {
+        let auth = StubAuthenticating()
+        auth.meResult = .failure(APIError.offline)
+        let tokenStore = InMemoryTokenStore()
+        try await tokenStore.save(AuthTokens(accessToken: "abc123"))
+
+        let session = Session(auth: auth, tokenStore: tokenStore)
+        await session.restore()
+
+        #expect(session.isSignedIn == false)
+        #expect(await tokenStore.load() == AuthTokens(accessToken: "abc123"))
+    }
+
     @Test func loginSavesTheTokenAndLoadsTheAccount() async throws {
         let auth = StubAuthenticating()
         auth.loginResult = .success(AuthResult(accessToken: "abc123", refreshToken: nil, expiresAt: nil, role: .hiker))

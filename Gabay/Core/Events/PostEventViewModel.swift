@@ -147,10 +147,22 @@ final class PostEventViewModel {
         )
     }
 
+    // Field keys that have their own inline slot elsewhere on the form.
+    // title, cause, meetingPoint and description render no slot, so a
+    // validation error keyed on one of those must fall through to the
+    // whole-form line below or the user sees nothing at all.
+    private static let fieldsWithSlots: Set<String> = ["feePHP", "capacity", "joinURL", "photoURL"]
+
     // A field-level message is already shown next to its own field, so the
-    // whole-form line only carries what's left over.
+    // whole-form line is suppressed only when every returned field key has
+    // a slot that will render it. If any key has no slot, this falls
+    // through to `action.errorMessage` so the failure is still visible.
     var submitErrorMessage: String? {
-        guard action.error?.validationErrors == nil else { return nil }
+        if let fields = action.error?.validationErrors?.fields,
+           !fields.isEmpty,
+           fields.keys.allSatisfy(Self.fieldsWithSlots.contains) {
+            return nil
+        }
         return action.errorMessage
     }
 

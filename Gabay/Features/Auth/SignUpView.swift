@@ -60,10 +60,19 @@ final class SignUpViewModel {
         )
     }
 
+    // Field keys that have their own inline slot elsewhere on the form.
+    private static let fieldsWithSlots: Set<String> = ["email", "password"]
+
     // A field-level message is already shown next to its own field, so the
-    // whole-form line only carries what's left over.
+    // whole-form line is suppressed only when every returned field key has
+    // a slot that will render it. If any key has no slot, this falls
+    // through to `action.errorMessage` so the failure is still visible.
     var signUpErrorMessage: String? {
-        guard action.error?.validationErrors == nil else { return nil }
+        if let fields = action.error?.validationErrors?.fields,
+           !fields.isEmpty,
+           fields.keys.allSatisfy(Self.fieldsWithSlots.contains) {
+            return nil
+        }
         return action.errorMessage
     }
 
