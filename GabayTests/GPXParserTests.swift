@@ -162,6 +162,39 @@ struct GPXParserTests {
         #expect(document.points.last?.elevation == 120)
     }
 
+    @Test func keepsAPointWhoseElevationIsInfinite() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"><ele>inf</ele></trkpt>
+        <trkpt lat="9.82" lon="123.38"><ele>120</ele></trkpt>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        // The position is usable, so the point survives; only the climb is lost.
+        #expect(document.points.count == 2)
+        #expect(document.points.first?.elevation == nil)
+        #expect(document.points.last?.elevation == 120)
+    }
+
+    @Test func keepsAPointWhoseElevationOverflowsToInfinity() throws {
+        let xml = """
+        <gpx><trk><trkseg>
+        <trkpt lat="9.81" lon="123.38"><ele>1e400</ele></trkpt>
+        <trkpt lat="9.82" lon="123.38"><ele>120</ele></trkpt>
+        </trkseg></trk></gpx>
+        """
+
+        let document = try GPXParser().parse(Data(xml.utf8))
+
+        // 1e400 overflows Double to +infinity, which fails isFinite the
+        // same way "inf" and "nan" do; the position is still usable.
+        #expect(document.points.count == 2)
+        #expect(document.points.first?.elevation == nil)
+        #expect(document.points.last?.elevation == 120)
+    }
+
     @Test func refusesAFileWhereEveryPointIsUnusable() throws {
         let xml = """
         <gpx><trk><trkseg>

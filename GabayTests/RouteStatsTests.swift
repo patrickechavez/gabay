@@ -106,6 +106,29 @@ struct RouteStatsTests {
         #expect(stats.estimatedMinutes == flatStats.estimatedMinutes)
     }
 
+    @Test func rejectsAFiniteButEnormousElevation() {
+        // 1e19 is finite, so TrackPoint.validated and the old isFinite-only
+        // ascentM guard both let it through. It is also past Double(Int.max),
+        // so Int(_:) on it would trap. The bound must catch it here, at the
+        // one place every Int conversion of ascentM reads from.
+        let broken = points([100, 1e19])
+        let flat = points([100, 100])
+
+        let stats = RouteStats(points: broken)
+        let flatStats = RouteStats(points: flat)
+
+        #expect(stats.ascentM == nil)
+        #expect(stats.estimatedMinutes == flatStats.estimatedMinutes)
+    }
+
+    @Test func doesNotClampAPlausibleMountainElevation() {
+        // A real mountain's elevation gain is nowhere near Double(Int.max),
+        // so the new bound must leave it alone.
+        let stats = RouteStats(points: points([0, 8000]))
+
+        #expect(stats.ascentM == 8000)
+    }
+
     @Test func leavesAWellFormedRouteUnchanged() {
         // A regression guard: the new arithmetic must not alter a valid route.
         let stats = RouteStats(points: points([100, 150, 200]))
