@@ -12,7 +12,9 @@ final class SignInViewModel {
 
     let action = ActionState()
 
-    // Backed by its own storage with a hand-written setter (not a plain stored property) so every edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until a resubmit a bad edit might never allow.
+    // Backed by its own storage with a hand-written setter (not a plain stored property) so every
+    // edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until
+    // a resubmit a bad edit might never allow.
     private var storedEmail = ""
     private var storedPassword = ""
 
@@ -32,12 +34,14 @@ final class SignInViewModel {
         self.session = session
     }
 
-    // Sign-in deliberately has no inline field validation: a local rule could false-negative and lock someone out of their own account over an unusual but legal address. The server decides.
+    // Sign-in deliberately has no inline field validation: a local rule could false-negative and
+    // lock someone out of their own account over an unusual but legal address. The server decides.
     var canSubmit: Bool {
         !email.trimmed.isEmpty && !password.isEmpty && !action.isRunning
     }
 
-    // Unguarded, unlike its sign-up and post-event siblings: sign-in renders no field slots at all, so every validation error belongs here.
+    // Unguarded, unlike its sign-up and post-event siblings: sign-in renders no field slots at all,
+    // so every validation error belongs here.
     var signInErrorMessage: String? {
         action.errorMessage
     }

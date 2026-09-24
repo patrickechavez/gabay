@@ -12,7 +12,9 @@ final class SignUpViewModel {
 
     let action = ActionState()
 
-    // Backed by its own storage with a hand-written setter (not a plain stored property) so every edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until a resubmit a bad edit might never allow.
+    // Backed by its own storage with a hand-written setter (not a plain stored property) so every
+    // edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until
+    // a resubmit a bad edit might never allow.
     private var storedEmail = ""
     private var storedPassword = ""
 
@@ -28,14 +30,17 @@ final class SignUpViewModel {
 
     @ObservationIgnored private let session: Session
 
-    // A backend-defined minimum; the form just avoids an obviously-too-short password making a wasted round trip.
+    // A backend-defined minimum; the form just avoids an obviously-too-short password making a
+    // wasted round trip.
     private static let minimumPasswordLength = 8
 
     init(session: Session) {
         self.session = session
     }
 
-    // An empty field is never an inline error, it shows as the required marker and a disabled button, so only a filled-in field can be wrong. A server-supplied message wins over the local rule when there is one.
+    // An empty field is never an inline error, it shows as the required marker and a disabled
+    // button, so only a filled-in field can be wrong. A server-supplied message wins over the local
+    // rule when there is one.
     var emailError: String? {
         if let serverMessage = action.message(for: "email") { return serverMessage }
         guard !email.trimmed.isEmpty, !email.trimmed.isValidEmail else { return nil }
@@ -57,7 +62,9 @@ final class SignUpViewModel {
     // Field keys that have their own inline slot elsewhere on the form.
     private static let fieldsWithSlots: Set<String> = ["email", "password"]
 
-    // A field-level message already shows next to its field, so the whole-form line is suppressed only when every returned key has a slot. If any key lacks one, this falls through to `action.errorMessage` so the failure stays visible.
+    // A field-level message already shows next to its field, so the whole-form line is suppressed
+    // only when every returned key has a slot. If any key lacks one, this falls through to
+    // `action.errorMessage` so the failure stays visible.
     var signUpErrorMessage: String? {
         if let fields = action.error?.validationErrors?.fields,
            !fields.isEmpty,

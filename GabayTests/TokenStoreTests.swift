@@ -56,7 +56,8 @@ struct TokenStoreTests {
         let tokens = AuthTokens(accessToken: "abc123")
         try await store.save(tokens)
 
-        // Delete the item directly from the Keychain, bypassing the store, so a real read would now find nothing.
+        // Delete the item directly from the Keychain, bypassing the store, so a real read would now
+        // find nothing.
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -67,7 +68,8 @@ struct TokenStoreTests {
         // The store still has its own cached answer...
         #expect(await store.load() == tokens)
 
-        // ...while a fresh store on the same service proves the item is really gone, so the first answer came from the cache, not a second read.
+        // ...while a fresh store on the same service proves the item is really gone, so the first
+        // answer came from the cache, not a second read.
         let freshStore = KeychainTokenStore(service: service)
         #expect(await freshStore.load() == nil)
     }

@@ -6,7 +6,8 @@
 
 import Foundation
 
-// Distance, climb, and estimated time, computed once from a parsed route by the organizer's phone and carried on the Event, instead of recomputed by every viewer like the free-trail app used to.
+// Distance, climb, and estimated time, computed once from a parsed route by the organizer's phone
+// and carried on the Event, instead of recomputed by every viewer like the free-trail app used to.
 struct RouteStats: Equatable, Sendable {
 
     let distanceM: Double
@@ -17,11 +18,12 @@ struct RouteStats: Equatable, Sendable {
     let estimatedMinutes: Int
 
     init(points: [TrackPoint]) {
-        // Int(_:) traps on NaN, infinity, and anything past Int.max, and one non-finite coordinate makes the whole
-        // sum non-finite. Points usually arrive validated from GPXParser, but this type is constructible from
-        // anywhere, so it doesn't assume that; TrackPoint.validated only checks elevation for finiteness, so a
-        // huge-but-finite value (1e19, say) can still reach here, and the Int.max bound below is what actually
-        // stops it from trapping later in a consumer's Int(_:) conversion.
+        // Int(_:) traps on NaN, infinity, and anything past Int.max, and one non-finite coordinate
+        // makes the whole sum non-finite. Points usually arrive validated from GPXParser, but this
+        // type is constructible from anywhere, so it doesn't assume that; TrackPoint.validated only
+        // checks elevation for finiteness, so a huge-but-finite value (1e19, say) can still reach
+        // here, and the Int.max bound below is what actually stops it from trapping later in a
+        // consumer's Int(_:) conversion.
         let distance = points.distance
         distanceM = distance.isFinite && distance >= 0 && distance < Double(Int.max) ? distance : 0
 

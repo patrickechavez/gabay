@@ -33,8 +33,9 @@ struct TrackPoint: Equatable, Sendable {
 
 extension TrackPoint {
 
-    // Builds a point only when its position can be used for arithmetic: Double("nan"), Double("inf") and
-    // Double("1e400") all succeed, so a GPX attribute can look like a valid number and trap much later, in the Int conversion inside RouteStats.
+    // Builds a point only when its position can be used for arithmetic: Double("nan"),
+    // Double("inf") and Double("1e400") all succeed, so a GPX attribute can look like a valid
+    // number and trap much later, in the Int conversion inside RouteStats.
     static func validated(
         latitude: Double,
         longitude: Double,
@@ -44,7 +45,8 @@ extension TrackPoint {
         guard latitude.isFinite, (-90...90).contains(latitude),
               longitude.isFinite, (-180...180).contains(longitude) else { return nil }
 
-        // A bad elevation costs the climb for this point, not the point; elevation is optional anyway, hand drawn routes carry none.
+        // A bad elevation costs the climb for this point, not the point; elevation is optional
+        // anyway, hand drawn routes carry none.
         let usableElevation = elevation.flatMap { $0.isFinite ? $0 : nil }
 
         return TrackPoint(

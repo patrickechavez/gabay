@@ -7,14 +7,16 @@ import Foundation
 import Testing
 @testable import Gabay
 
-// adapt(_:for:) never needs to refresh here since stored tokens have no expiry; a refresher that throws makes that assumption load-bearing, not incidental.
+// adapt(_:for:) never needs to refresh here since stored tokens have no expiry; a refresher that
+// throws makes that assumption load-bearing, not incidental.
 private struct UnreachableRefresher: TokenRefreshing {
     func refresh(using refreshToken: String) async throws -> AuthTokens {
         throw APIError.server(status: 500)
     }
 }
 
-// Returns a fixed set of renewed tokens, for tests that drive a real `handle(_:for:attempt:)` retry that needs the refresh to succeed.
+// Returns a fixed set of renewed tokens, for tests that drive a real `handle(_:for:attempt:)` retry
+// that needs the refresh to succeed.
 private struct StubTokenRefresher: TokenRefreshing {
     let renewed: AuthTokens
 
@@ -23,7 +25,8 @@ private struct StubTokenRefresher: TokenRefreshing {
     }
 }
 
-// Always throws a configured error, for tests that need `coordinator.refresh` to fail in a specific way.
+// Always throws a configured error, for tests that need `coordinator.refresh` to fail in a specific
+// way.
 private struct FailingTokenRefresher: TokenRefreshing {
     let error: APIError
 
@@ -34,7 +37,8 @@ private struct FailingTokenRefresher: TokenRefreshing {
 
 extension SharedStubProtocolSuite {
 
-// `.serialized`: tests here drive a real client against `StubURLProtocol`'s shared static queue; running concurrently could let one test steal another's queued reply.
+// `.serialized`: tests here drive a real client against `StubURLProtocol`'s shared static queue;
+// running concurrently could let one test steal another's queued reply.
 @Suite(.serialized)
 @MainActor
 struct AuthInterceptorTests {
@@ -75,7 +79,8 @@ struct AuthInterceptorTests {
         )
     }
 
-    // Would fail if the header were missing, misspelled, or the wrong token; restores coverage Task 4 dropped when `tokenProvider` was removed.
+    // Would fail if the header were missing, misspelled, or the wrong token; restores coverage Task
+    // 4 dropped when `tokenProvider` was removed.
     @Test func attachesTheTokenWhenAuthIsRequiredAndATokenExists() async throws {
         let interceptor = makeInterceptor(tokens: AuthTokens(accessToken: "abc123"))
         let endpoint = Endpoint.get("thing", requiresAuth: true)
@@ -86,7 +91,8 @@ struct AuthInterceptorTests {
         #expect(adapted.value(forHTTPHeaderField: "Authorization") == "Bearer abc123")
     }
 
-    // Would fail if a token were attached to a request that declared it doesn't need one, leaking a credential the endpoint never asked for.
+    // Would fail if a token were attached to a request that declared it doesn't need one, leaking a
+    // credential the endpoint never asked for.
     @Test func leavesTheHeaderOffWhenAuthIsNotRequired() async throws {
         let interceptor = makeInterceptor(tokens: AuthTokens(accessToken: "abc123"))
         let endpoint = Endpoint.get("thing", requiresAuth: false)
@@ -97,7 +103,8 @@ struct AuthInterceptorTests {
         #expect(adapted.value(forHTTPHeaderField: "Authorization") == nil)
     }
 
-    // Would fail if the interceptor attached a header built from an absent or empty token, e.g. `"Bearer "` or `"Bearer nil"`.
+    // Would fail if the interceptor attached a header built from an absent or empty token, e.g.
+    // `"Bearer "` or `"Bearer nil"`.
     @Test func leavesTheHeaderOffWhenNoTokenIsStored() async throws {
         let interceptor = makeInterceptor(tokens: nil)
         let endpoint = Endpoint.get("thing", requiresAuth: true)
@@ -108,7 +115,8 @@ struct AuthInterceptorTests {
         #expect(adapted.value(forHTTPHeaderField: "Authorization") == nil)
     }
 
-    // Would fail if `handle(_:for:attempt:)` retried without refreshing first, or `attemptOnce` didn't re-run `adapt`; either way the retry would still carry the stale token.
+    // Would fail if `handle(_:for:attempt:)` retried without refreshing first, or `attemptOnce`
+    // didn't re-run `adapt`; either way the retry would still carry the stale token.
     @Test func retriedRequestCarriesTheRefreshedTokenNotTheStaleOne() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "stale-token", refreshToken: "refresh1"))
         let renewed = AuthTokens(accessToken: "renewed-token", refreshToken: "refresh2")
@@ -131,7 +139,8 @@ struct AuthInterceptorTests {
         #expect(StubURLProtocol.asked[1].value(forHTTPHeaderField: "Authorization") == "Bearer renewed-token")
     }
 
-    // Would fail if a 401 with no refresh token kept retrying forever instead of failing, or left the session signed in after the rejection.
+    // Would fail if a 401 with no refresh token kept retrying forever instead of failing, or left
+    // the session signed in after the rejection.
     @Test func aTokenThatCannotBeRefreshedEndsTheSessionAndSurfacesTheError() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: nil))
         let session = try await makeSignedInSession()
@@ -151,7 +160,9 @@ struct AuthInterceptorTests {
         #expect(session.isSignedIn == false)
     }
 
-    // Would fail if a cancelled refresh fell through to the branch above: it would surface `.unauthorized` instead of `.cancelled`, and call `coordinator.invalidate()`, wrongly signing the user out over a cancellation that says nothing about the token's validity.
+    // Would fail if a cancelled refresh fell through to the branch above: it would surface
+    // `.unauthorized` instead of `.cancelled`, and call `coordinator.invalidate()`, wrongly signing
+    // the user out over a cancellation that says nothing about the token's validity.
     @Test func cancelledRefreshFailsWithCancelledAndLeavesTheSessionIntact() async throws {
         let store = InMemoryTokenStore(tokens: AuthTokens(accessToken: "abc123", refreshToken: "refresh1"))
         let session = try await makeSignedInSession()

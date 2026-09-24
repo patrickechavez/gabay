@@ -101,7 +101,9 @@ struct EventsViewModelTests {
         #expect(viewModel.state.error != nil)
     }
 
-    // The interceptor now owns 401 handling (refresh, retry, sign out only once refresh genuinely fails), so this just checks the list lands in `.failed` instead of stalling, and that a retry can still succeed.
+    // The interceptor now owns 401 handling (refresh, retry, sign out only once refresh genuinely
+    // fails), so this just checks the list lands in `.failed` instead of stalling, and that a retry
+    // can still succeed.
     @Test func anUnauthorizedLoadEndsInFailedAndCanBeRetried() async {
         let events = StubEventFetching()
         events.eventsResult = .failure(APIError.unauthorized())

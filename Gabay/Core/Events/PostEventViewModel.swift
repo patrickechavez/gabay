@@ -10,7 +10,9 @@ import Foundation
 @MainActor
 final class PostEventViewModel {
 
-    // Each field has its own storage and hand-written setter (not a plain stored property) so every edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until a resubmit a bad edit might never allow.
+    // Each field has its own storage and hand-written setter (not a plain stored property) so every
+    // edit clears a stale failure via `ActionState.clear()`, instead of leaving it on screen until
+    // a resubmit a bad edit might never allow.
     private var storedTitle = ""
     private var storedCause = ""
     private var storedDate: Date?
@@ -32,7 +34,8 @@ final class PostEventViewModel {
         set { storedCause = newValue; action.clear() }
     }
 
-    // Optional and required, not defaulted to now, so a pre-filled date can't let an organizer post a hike starting the instant they tap Submit without noticing the field.
+    // Optional and required, not defaulted to now, so a pre-filled date can't let an organizer post
+    // a hike starting the instant they tap Submit without noticing the field.
     var date: Date? {
         get { storedDate }
         set { storedDate = newValue; action.clear() }
@@ -79,7 +82,8 @@ final class PostEventViewModel {
 
     private(set) var didSubmit = false
 
-    // A GPX is optional; once picked it must parse, but a bad file blocks only itself with its own inline error, not the rest of the form.
+    // A GPX is optional; once picked it must parse, but a bad file blocks only itself with its own
+    // inline error, not the rest of the form.
     private(set) var route: RouteStats?
     private(set) var gpxError: APIError?
     @ObservationIgnored private var gpxFileURL: URL?
@@ -92,8 +96,9 @@ final class PostEventViewModel {
         self.parser = parser
     }
 
-    // Every rule below guards on the field being non-empty first: an empty required field already shows the required marker and a disabled button,
-    // so an inline error always means "what you typed is not usable". A server-supplied message, when there is one, wins over the local rule.
+    // Every rule below guards on the field being non-empty first: an empty required field already
+    // shows the required marker and a disabled button, so an inline error always means "what you
+    // typed is not usable". A server-supplied message, when there is one, wins over the local rule.
 
     var feeError: String? {
         if let serverMessage = action.message(for: "feePHP") { return serverMessage }
@@ -139,10 +144,14 @@ final class PostEventViewModel {
         )
     }
 
-    // Fields with their own inline slot on the form. title, cause, meetingPoint and description render none, so an error keyed to one of those must fall through to the whole-form line below, or the user sees nothing.
+    // Fields with their own inline slot on the form. title, cause, meetingPoint and description
+    // render none, so an error keyed to one of those must fall through to the whole-form line
+    // below, or the user sees nothing.
     private static let fieldsWithSlots: Set<String> = ["feePHP", "capacity", "joinURL", "photoURL"]
 
-    // A field-level message already shows next to its field, so the whole-form line is suppressed only when every returned key has a slot. If any key lacks one, this falls through to `action.errorMessage` so the failure stays visible.
+    // A field-level message already shows next to its field, so the whole-form line is suppressed
+    // only when every returned key has a slot. If any key lacks one, this falls through to
+    // `action.errorMessage` so the failure stays visible.
     var submitErrorMessage: String? {
         if let fields = action.error?.validationErrors?.fields,
            !fields.isEmpty,
@@ -152,7 +161,8 @@ final class PostEventViewModel {
         return action.errorMessage
     }
 
-    // No image upload endpoint yet, so a photo is an already-hosted link (uploaded elsewhere by the organizer), unlike the GPX, which does upload.
+    // No image upload endpoint yet, so a photo is an already-hosted link (uploaded elsewhere by the
+    // organizer), unlike the GPX, which does upload.
     var canSubmit: Bool {
         !action.isRunning
             && !title.trimmed.isEmpty
@@ -244,7 +254,8 @@ final class PostEventViewModel {
 
 private extension String {
 
-    // A link the app can actually open: a web scheme with somewhere to go, not just anything URL(string:) will parse.
+    // A link the app can actually open: a web scheme with somewhere to go, not just anything
+    // URL(string:) will parse.
     var isFullLink: Bool {
         guard let url = URL(string: self), let scheme = url.scheme?.lowercased() else { return false }
         return (scheme == "http" || scheme == "https") && !(url.host?.isEmpty ?? true)

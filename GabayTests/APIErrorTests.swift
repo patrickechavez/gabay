@@ -7,7 +7,8 @@ import Foundation
 import Testing
 @testable import Gabay
 
-// classify(_:) isn't covered here: it's @MainActor and reaches into Breadcrumb/Observability, so it belongs with a test that can install a spy crash reporter.
+// classify(_:) isn't covered here: it's @MainActor and reaches into Breadcrumb/Observability, so it
+// belongs with a test that can install a spy crash reporter.
 struct APIErrorTests {
 
     @Test(arguments: [

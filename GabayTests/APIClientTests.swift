@@ -51,7 +51,8 @@ struct APIClientTests {
         #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
     }
 
-    // Would fail if a bodiless send() threw on a response it has no type to decode into, instead of silently succeeding.
+    // Would fail if a bodiless send() threw on a response it has no type to decode into, instead of
+    // silently succeeding.
     @Test func bodilessPostIgnoresTheResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 204, body: Data()))
@@ -61,7 +62,8 @@ struct APIClientTests {
         #expect(StubURLProtocol.asked.first?.httpMethod == "POST")
     }
 
-    // Fails if a 401 maps to any other case, or isn't mapped (then `#expect(throws:)` fails differently).
+    // Fails if a 401 maps to any other case, or isn't mapped (then `#expect(throws:)` fails
+    // differently).
     @Test func mapsA401ToUnauthorized() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 401, body: Data()))
@@ -81,7 +83,8 @@ struct APIClientTests {
         }
     }
 
-    // Would fail if a 422 were mapped to any other case; named for the `.validation` case the mapping produces.
+    // Would fail if a 422 were mapped to any other case; named for the `.validation` case the
+    // mapping produces.
     @Test func mapsA422ToValidation() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 422, body: Data()))
@@ -101,7 +104,8 @@ struct APIClientTests {
         }
     }
 
-    // Fails if the empty-body shortcut is removed; JSONDecoder can't decode zero bytes, so this would throw `decodingFailed` instead of yielding `EmptyResponse`.
+    // Fails if the empty-body shortcut is removed; JSONDecoder can't decode zero bytes, so this
+    // would throw `decodingFailed` instead of yielding `EmptyResponse`.
     @Test func decodesAnEmptyBodyOn2xxAsEmptyResponse() async throws {
         let client = makeClient()
         StubURLProtocol.queue(.init(status: 200, body: Data()))

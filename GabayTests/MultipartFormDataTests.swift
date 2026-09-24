@@ -23,7 +23,8 @@ struct MultipartFormDataTests {
         #expect(text.contains("Content-Type: application/gpx+xml\r\n\r\n<gpx></gpx>\r\n"))
     }
 
-    // Isolated so a broken closing delimiter fails on its own, not masked by a `contains` check elsewhere.
+    // Isolated so a broken closing delimiter fails on its own, not masked by a `contains` check
+    // elsewhere.
     @Test func encodedBodyEndsWithTheClosingBoundaryDelimiter() {
         var form = MultipartFormData(boundary: "TestBoundary")
         form.addField("distanceM", value: "4761")
@@ -33,7 +34,8 @@ struct MultipartFormDataTests {
         #expect(text.hasSuffix("--TestBoundary--\r\n"))
     }
 
-    // Fails if the encoder round-trips the payload through a text encoding and corrupts non-ASCII bytes.
+    // Fails if the encoder round-trips the payload through a text encoding and corrupts non-ASCII
+    // bytes.
     @Test func fileBytesSurviveEncodingUnmodified() {
         var form = MultipartFormData(boundary: "TestBoundary")
         let fileBytes = Data([0x00, 0xFF, 0x10, 0x7F, 0x80])
@@ -44,7 +46,8 @@ struct MultipartFormDataTests {
         #expect(encoded.range(of: fileBytes) != nil)
     }
 
-    // Fails if `contentType` and `encoded()` disagree on the boundary, producing a body the server can't parse.
+    // Fails if `contentType` and `encoded()` disagree on the boundary, producing a body the server
+    // can't parse.
     @Test func contentTypeAdvertisesTheSameBoundaryTheBodyUses() {
         let form = MultipartFormData(boundary: "TestBoundary")
 

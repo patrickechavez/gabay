@@ -14,7 +14,8 @@ struct AuthClientTests {
 
     private let base = URL(string: "https://example.test/api")!
 
-    // Records each endpoint's `requiresAuth` flag so a test can pin which calls opt out of Task 6's auth interceptor; an actor since new `@unchecked Sendable` types are off the table here.
+    // Records each endpoint's `requiresAuth` flag so a test can pin which calls opt out of Task 6's
+    // auth interceptor; an actor since new `@unchecked Sendable` types are off the table here.
     private actor RequiresAuthSpy: RequestInterceptor {
         private(set) var values: [Bool] = []
 
@@ -87,7 +88,8 @@ struct AuthClientTests {
         }
     }
 
-    // Would fail if `register` used the default `requiresAuth: true`, which would make Task 6's interceptor attach a token to the endpoint meant to obtain one.
+    // Would fail if `register` used the default `requiresAuth: true`, which would make Task 6's
+    // interceptor attach a token to the endpoint meant to obtain one.
     @Test func registerDoesNotRequireAuth() async throws {
         let spy = RequiresAuthSpy()
         let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
@@ -101,7 +103,8 @@ struct AuthClientTests {
         #expect(await spy.values == [false])
     }
 
-    // Same failure mode as above, for the other token-free endpoint: a 401 here must not look like an expired session to a future refresh interceptor.
+    // Same failure mode as above, for the other token-free endpoint: a 401 here must not look like
+    // an expired session to a future refresh interceptor.
     @Test func loginDoesNotRequireAuth() async throws {
         let spy = RequiresAuthSpy()
         let client = AuthClient(api: makeAPIClient(interceptors: [spy]))
@@ -115,7 +118,8 @@ struct AuthClientTests {
         #expect(await spy.values == [false])
     }
 
-    // Contrasting case: `me()` should keep the default; would fail if it had been flipped to `false` along with the other two.
+    // Contrasting case: `me()` should keep the default; would fail if it had been flipped to
+    // `false` along with the other two.
     @Test func meRequiresAuth() async throws {
         let spy = RequiresAuthSpy()
         let client = AuthClient(api: makeAPIClient(interceptors: [spy]))

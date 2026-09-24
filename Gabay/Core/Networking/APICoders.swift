@@ -17,7 +17,8 @@ extension JSONEncoder {
 
 extension JSONDecoder {
 
-    // No snake_case conversion: the backend's JSON already matches Swift's camelCase, and converting would mangle a field like `feePHP` into `fee_p_h_p`.
+    // No snake_case conversion: the backend's JSON already matches Swift's camelCase, and
+    // converting would mangle a field like `feePHP` into `fee_p_h_p`.
     static var api: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601Tolerant

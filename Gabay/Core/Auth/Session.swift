@@ -23,7 +23,8 @@ final class Session {
         self.tokenStore = tokenStore
     }
 
-    // Called once at launch; picks up a token already in the Keychain, or does nothing if there isn't one.
+    // Called once at launch; picks up a token already in the Keychain, or does nothing if there
+    // isn't one.
     func restore() async {
         guard await tokenStore.load() != nil else { return }
 

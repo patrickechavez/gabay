@@ -16,9 +16,9 @@ enum LogFormat {
         "cookie", "set-cookie", "x-api-key", "proxy-authorization", "authorization"
     ]
 
-    // Spelled snake_case for readability, but Gabay's coders (APICoders.swift) don't convert
-    // case, so a key can arrive on the wire in either spelling. `normalizedRedactedBodyKeys`
-    // and `normalize(_:)` below make matching spelling-agnostic instead of assuming one.
+    // Spelled snake_case for readability, but Gabay's coders (APICoders.swift) don't convert case,
+    // so a key can arrive on the wire in either spelling. `normalizedRedactedBodyKeys` and
+    // `normalize(_:)` below make matching spelling-agnostic instead of assuming one.
     private static let redactedBodyKeys: Set<String> = [
         "password", "current_password", "new_password", "password_confirmation",
         "token", "access_token", "refresh_token", "secret", "otp", "pin", "code"
@@ -27,7 +27,8 @@ enum LogFormat {
     // Precomputed once so redaction doesn't re-normalize `redactedBodyKeys` on every logged body.
     private static let normalizedRedactedBodyKeys: Set<String> = Set(redactedBodyKeys.map(normalize))
 
-    // Lowercases and strips underscores so "access_token", "accessToken", "AccessToken" and "ACCESS_TOKEN" all normalize the same.
+    // Lowercases and strips underscores so "access_token", "accessToken", "AccessToken" and
+    // "ACCESS_TOKEN" all normalize the same.
     private static func normalize(_ key: String) -> String {
         key.lowercased().replacingOccurrences(of: "_", with: "")
     }

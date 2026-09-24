@@ -6,7 +6,8 @@
 import Foundation
 @testable import Gabay
 
-// Shared stand-ins for the protocols view models depend on, so tests don't need a network or a Keychain.
+// Shared stand-ins for the protocols view models depend on, so tests don't need a network or a
+// Keychain.
 
 final class StubAuthenticating: Authenticating, @unchecked Sendable {
     var registerResult: Result<AuthResult, any Error> = .failure(APIError.unauthorized())

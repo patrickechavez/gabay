@@ -28,7 +28,8 @@ struct ErrorStateView: View {
         }
     }
 
-    // `errorDescription` already carries the message; title and icon only switch on failures worth telling apart at a glance, everything else reads as one generic failure.
+    // `errorDescription` already carries the message; title and icon only switch on failures worth
+    // telling apart at a glance, everything else reads as one generic failure.
     private var title: LocalizedStringKey {
         switch error {
         case .offline: "You're offline"

@@ -11,7 +11,8 @@ struct Coordinate: Codable, Hashable, Sendable {
     let longitude: Double
 }
 
-// Hashable, not merely Equatable: `.navigationDestination(item:)` in the events list requires it (same reason the free-trail app's Trail was Hashable).
+// Hashable, not merely Equatable: `.navigationDestination(item:)` in the events list requires it
+// (same reason the free-trail app's Trail was Hashable).
 struct Event: Codable, Identifiable, Hashable, Sendable {
     let id: String
     let title: String
@@ -36,7 +37,8 @@ struct Event: Codable, Identifiable, Hashable, Sendable {
     }
 }
 
-// What the organizer form sends: no id, status, or route stats, the backend assigns the first two and a route is added afterward through a separate upload.
+// What the organizer form sends: no id, status, or route stats, the backend assigns the first two
+// and a route is added afterward through a separate upload.
 struct EventDraft: Encodable, Sendable {
     let title: String
     let cause: String
@@ -103,7 +105,8 @@ struct EventClient: EventFetching {
         if let ascentM { form.addField("ascentM", value: String(ascentM)) }
         form.addField("estimatedMinutes", value: String(estimatedMinutes))
 
-        // The filename rides in the multipart Content-Disposition header unescaped, so it must be one we control, not the user's raw file name.
+        // The filename rides in the multipart Content-Disposition header unescaped, so it must be
+        // one we control, not the user's raw file name.
         form.addFile(
             "gpx",
             filename: "\(eventID).gpx",

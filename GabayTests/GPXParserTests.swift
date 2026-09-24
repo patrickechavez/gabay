@@ -188,7 +188,8 @@ struct GPXParserTests {
 
         let document = try GPXParser().parse(Data(xml.utf8))
 
-        // 1e400 overflows Double to +infinity, which fails isFinite the same way "inf" and "nan" do; the position is still usable.
+        // 1e400 overflows Double to +infinity, which fails isFinite the same way "inf" and "nan"
+        // do; the position is still usable.
         #expect(document.points.count == 2)
         #expect(document.points.first?.elevation == nil)
         #expect(document.points.last?.elevation == 120)
