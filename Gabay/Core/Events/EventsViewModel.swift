@@ -29,6 +29,12 @@ final class EventsViewModel: LoadableViewModel {
 
     var mine: [Event] { mineState.value ?? [] }
 
+    // Built here so the repository stays private: the detail screen gets what it needs without the
+    // list handing out its dependency.
+    func makeRouteViewModel(for event: Event) -> EventRouteViewModel {
+        EventRouteViewModel(eventID: event.id, events: events)
+    }
+
     func load() async {
         guard !hasLoaded else { return }
         hasLoaded = true

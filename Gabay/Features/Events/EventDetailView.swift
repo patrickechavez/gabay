@@ -14,9 +14,19 @@ struct EventDetailView: View {
     let viewModel: EventsViewModel
 
     @Environment(\.openURL) private var openURL
-    @State private var route: LoadState<[TrackPoint]> = .idle
+    @State private var routeViewModel: EventRouteViewModel
+
+    init(event: Event, viewModel: EventsViewModel) {
+        self.event = event
+        self.viewModel = viewModel
+        _routeViewModel = State(wrappedValue: viewModel.makeRouteViewModel(for: event))
+    }
 
     private var hasJoined: Bool { viewModel.joined.contains(event.id) }
+
+    // `gpxURL` is read as a presence flag only. The file itself is fetched from the route the app
+    // knows, so an authenticated request is never aimed at a URL the server chose.
+    private var hasRoute: Bool { event.gpxURL != nil }
 
     var body: some View {
         ScrollView {
@@ -31,9 +41,13 @@ struct EventDetailView: View {
                 details
                 meetingMap
 
-                if event.gpxURL != nil {
-                    routeSection
+                if hasRoute {
+                    routeMap
                 }
+
+                // Outside the `hasRoute` branch on purpose: these numbers come down with the event,
+                // so they show even while the map is loading, and still show if it never arrives.
+                routeStats
 
                 Text(event.description)
                     .font(Theme.Font.body)
@@ -45,7 +59,10 @@ struct EventDetailView: View {
         }
         .navigationTitle(Text("Hike Details", comment: "Title of an event's detail screen"))
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadRoute() }
+        .task {
+            guard hasRoute else { return }
+            await routeViewModel.load()
+        }
     }
 
     private var details: some View {
@@ -91,24 +108,53 @@ struct EventDetailView: View {
     }
 
     @ViewBuilder
-    private var routeSection: some View {
-        switch route {
+    private var routeMap: some View {
+        switch routeViewModel.route {
         case .idle, .loading:
             ProgressView()
-        case .empty, .failed:
+                .frame(maxWidth: .infinity, minHeight: 200)
+        case .empty:
             EmptyView()
-        case let .loaded(points):
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                RoutePreviewMap(points: points)
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.lg))
-
-                if let distanceM = event.distanceM {
-                    Text(routeSummary(distanceM: distanceM, ascentM: event.ascentM, minutes: event.estimatedMinutes))
-                        .font(Theme.Font.caption)
-                        .foregroundStyle(Theme.Color.secondaryText)
-                }
+        case let .failed(error):
+            if error.isUserFacing {
+                routeFailure
             }
+        case let .loaded(points):
+            RoutePreviewMap(points: points)
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.lg))
+        }
+    }
+
+    // Deliberately small: the map is the only thing missing, and the hike's details are all still
+    // on screen above and below it.
+    private var routeFailure: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Text("The route map could not be loaded.",
+                 comment: "Shown when an event's GPX route fails to download")
+                .font(Theme.Font.caption)
+                .foregroundStyle(Theme.Color.secondaryText)
+
+            Button {
+                Task { await routeViewModel.retry() }
+            } label: {
+                Text("Try Again", comment: "Retries loading the route map")
+            }
+            .font(Theme.Font.caption)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var routeStats: some View {
+        if let distanceM = event.distanceM {
+            Text(RouteSummary.text(
+                distanceM: Double(distanceM),
+                ascentM: event.ascentM.map(Double.init),
+                minutes: event.estimatedMinutes
+            ))
+            .font(Theme.Font.caption)
+            .foregroundStyle(Theme.Color.secondaryText)
         }
     }
 
@@ -127,37 +173,7 @@ struct EventDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func loadRoute() async {
-        guard let gpxURL = event.gpxURL, route.needsLoad else { return }
-
-        route = .loading
-        do {
-            let (data, _) = try await URLSession.shared.data(from: gpxURL)
-            let points = try GPXParser().parse(data).points
-            route = .from(points)
-        } catch {
-            route = .failed(.classify(error))
-        }
-    }
-
     private func directionsURL(to coordinate: CLLocationCoordinate2D) -> URL {
         URL(string: "http://maps.apple.com/?daddr=\(coordinate.latitude),\(coordinate.longitude)")!
-    }
-
-    private func routeSummary(distanceM: Int, ascentM: Int?, minutes: Int?) -> String {
-        let distanceText = Measurement(value: Double(distanceM), unit: UnitLength.meters)
-            .converted(to: .kilometers)
-            .formatted(.measurement(width: .abbreviated, usage: .road))
-
-        var parts = [distanceText]
-        if let ascentM {
-            parts.append(Measurement(value: Double(ascentM), unit: UnitLength.meters)
-                .formatted(.measurement(width: .abbreviated, usage: .asProvided,
-                                         numberFormatStyle: .number.precision(.fractionLength(0)))))
-        }
-        if let minutes {
-            parts.append("~\(minutes / 60)h \(minutes % 60)m")
-        }
-        return parts.joined(separator: " - ")
     }
 }
