@@ -163,7 +163,9 @@ struct PostEventView: View {
                     Image(systemName: "checkmark.circle.fill")
                 }
 
-                Text(routeSummary(route))
+                Text(RouteSummary.text(distanceM: route.distanceM,
+                                       ascentM: route.ascentM,
+                                       minutes: route.estimatedMinutes))
                     .font(Theme.Font.caption)
                     .foregroundStyle(Theme.Color.secondaryText)
             }
@@ -239,21 +241,6 @@ struct PostEventView: View {
             .foregroundStyle(Theme.Color.primaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, Theme.Spacing.sm)
-    }
-
-    private func routeSummary(_ route: RouteStats) -> String {
-        let distanceText = Measurement(value: route.distanceM, unit: UnitLength.meters)
-            .converted(to: .kilometers)
-            .formatted(.measurement(width: .abbreviated, usage: .road))
-
-        var parts = [distanceText]
-        if let ascentM = route.ascentM {
-            parts.append(Measurement(value: ascentM, unit: UnitLength.meters)
-                .formatted(.measurement(width: .abbreviated, usage: .asProvided,
-                                         numberFormatStyle: .number.precision(.fractionLength(0)))))
-        }
-        parts.append("~\(route.estimatedMinutes / 60)h \(route.estimatedMinutes % 60)m")
-        return parts.joined(separator: " - ")
     }
 }
 
