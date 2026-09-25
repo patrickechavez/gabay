@@ -23,6 +23,13 @@ struct RootView: View {
         }
         .offlineBanner(dependencies.networkMonitor)
         .task { await dependencies.session.restore() }
+        .onOpenURL { url in
+            dependencies.navigator.open(url, isSignedIn: dependencies.session.isSignedIn)
+        }
+        // A link that arrived while signed out was held, not dropped; play it now.
+        .onChange(of: dependencies.session.isSignedIn) { _, isSignedIn in
+            if isSignedIn { dependencies.navigator.resumePendingLink() }
+        }
     }
 }
 
@@ -31,35 +38,35 @@ struct SignedInView: View {
     let dependencies: AppDependencies
 
     var body: some View {
-        TabView {
-            EventsListView(viewModel: dependencies.eventsViewModel)
-                .tabItem {
-                    Label {
-                        Text("Events", comment: "Tab title for the list of cause-hike events")
-                    } icon: {
-                        Image(systemName: "figure.hiking")
-                    }
-                }
+        TabView(selection: Bindable(dependencies.navigator).tab) {
+            EventsListView(
+                viewModel: dependencies.eventsViewModel,
+                router: dependencies.navigator.events
+            )
+            .tabItem { label(for: .events) }
+            .tag(AppTab.events)
 
-            MyEventsView(viewModel: dependencies.eventsViewModel)
-                .tabItem {
-                    Label {
-                        Text("My Events", comment: "Tab title for events the hiker has joined")
-                    } icon: {
-                        Image(systemName: "checkmark.circle")
-                    }
-                }
+            MyEventsView(
+                viewModel: dependencies.eventsViewModel,
+                router: dependencies.navigator.myEvents
+            )
+            .tabItem { label(for: .myEvents) }
+            .tag(AppTab.myEvents)
 
             if dependencies.session.account?.role == .organizer {
                 PostEventView(viewModel: dependencies.makePostEventViewModel())
-                    .tabItem {
-                        Label {
-                            Text("Post a Hike", comment: "Tab title for the organizer event-creation form")
-                        } icon: {
-                            Image(systemName: "plus.circle")
-                        }
-                    }
+                    .tabItem { label(for: .postEvent) }
+                    .tag(AppTab.postEvent)
             }
+        }
+    }
+
+    // Title and icon live on AppTab, so a tab and the deep link that selects it cannot disagree.
+    private func label(for tab: AppTab) -> some View {
+        Label {
+            Text(tab.title)
+        } icon: {
+            Image(systemName: tab.systemImage)
         }
     }
 }

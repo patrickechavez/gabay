@@ -10,8 +10,10 @@ struct MyEventsView: View {
 
     @State var viewModel: EventsViewModel
 
+    let router: Router<MyEventsRoute>
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: Bindable(router).path) {
             Group {
                 switch viewModel.mineState {
                 case .idle, .loading:
@@ -34,14 +36,20 @@ struct MyEventsView: View {
                 }
             }
             .navigationTitle(Text("My Events", comment: "Title of the joined-events list"))
+            .navigationDestination(for: MyEventsRoute.self) { route in
+                switch route {
+                case let .eventDetail(id):
+                    EventDestination(id: id, events: viewModel.mine, viewModel: viewModel)
+                }
+            }
             .task { await viewModel.load() }
         }
     }
 
     private var list: some View {
         List(viewModel.mine) { event in
-            NavigationLink {
-                EventDetailView(event: event, viewModel: viewModel)
+            Button {
+                router.push(.eventDetail(id: event.id))
             } label: {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(event.title)

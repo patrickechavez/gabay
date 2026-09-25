@@ -9,10 +9,11 @@ import SwiftUI
 struct EventsListView: View {
 
     @State var viewModel: EventsViewModel
-    @State private var selected: Event?
+
+    let router: Router<EventsRoute>
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: Bindable(router).path) {
             Group {
                 switch viewModel.state {
                 case .idle, .loading:
@@ -35,8 +36,11 @@ struct EventsListView: View {
                 }
             }
             .navigationTitle(Text("Events", comment: "Title of the cause-hike events list"))
-            .navigationDestination(item: $selected) { event in
-                EventDetailView(event: event, viewModel: viewModel)
+            .navigationDestination(for: EventsRoute.self) { route in
+                switch route {
+                case let .eventDetail(id):
+                    EventDestination(id: id, events: viewModel.state.value ?? [], viewModel: viewModel)
+                }
             }
             .task { await viewModel.load() }
         }
@@ -45,7 +49,7 @@ struct EventsListView: View {
     private func list(_ events: [Event]) -> some View {
         List(events) { event in
             Button {
-                selected = event
+                router.push(.eventDetail(id: event.id))
             } label: {
                 row(event)
             }

@@ -42,6 +42,14 @@ enum APIConfig {
 
     static let updateURL: URL? = string("UPDATE_URL").flatMap(URL.init(string:))
 
+    // Read back from CFBundleURLTypes rather than hardcoded, so the scheme the parser accepts is
+    // always the one iOS was told to deliver.
+    static let urlScheme: String = {
+        let types = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
+        let schemes = types?.first?["CFBundleURLSchemes"] as? [String]
+        return schemes?.first ?? "gabay"
+    }()
+
     static var retryPolicy: RetryPolicy {
         maxAttempts <= 1 ? .none : RetryPolicy(maxAttempts: maxAttempts)
     }

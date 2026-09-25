@@ -11,9 +11,7 @@ struct Coordinate: Codable, Hashable, Sendable {
     let longitude: Double
 }
 
-// Hashable, not merely Equatable: `.navigationDestination(item:)` in the events list requires it
-// (same reason the free-trail app's Trail was Hashable).
-struct Event: Codable, Identifiable, Hashable, Sendable {
+struct Event: Codable, Identifiable, Equatable, Sendable {
     let id: String
     let title: String
     let cause: String
