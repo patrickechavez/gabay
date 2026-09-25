@@ -7,6 +7,7 @@
 import CoreLocation
 import MapKit
 import SwiftUI
+import os
 
 // Pin-drop for a meeting point: opens on the organizer's current location if they allow it,
 // otherwise a fixed region around Cebu, tap anywhere to move the pin.
@@ -23,7 +24,7 @@ struct LocationPicker: View {
         )
     )
     @State private var pin: CLLocationCoordinate2D?
-    private let locator = OneShotLocator()
+    @State private var locator = OneShotLocator()
 
     var body: some View {
         NavigationStack {
@@ -74,17 +75,22 @@ struct LocationPicker: View {
     }
 }
 
-// A single current-location read, nothing held past that: no background mode, no continuous
-// updates, just "where am I right now."
+// One current-location read, nothing held past it: no background mode, no continuous updates,
+// just "where am I right now."
 //
 // Not @MainActor: CLLocationManagerDelegate is a non-isolated protocol and Swift 6 refuses a
-// main-actor-isolated conformance to it. @unchecked Sendable is safe since there's never more than
-// one in-flight request per instance, the same escape hatch StubURLProtocol uses elsewhere in this
-// codebase for the same kind of delegate bridging.
+// main-actor-isolated conformance to it. The continuation is guarded by a lock instead, because
+// an authorization change and a location fix arrive through different callbacks and nothing
+// promises they are serialized.
 final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
 
     private let manager = CLLocationManager()
-    private var continuation: CheckedContinuation<CLLocationCoordinate2D?, Never>?
+    private let pending = OSAllocatedUnfairLock(initialState: Pending())
+
+    private struct Pending {
+        var continuation: CheckedContinuation<CLLocationCoordinate2D?, Never>?
+        var didRequestFix = false
+    }
 
     override init() {
         super.init()
@@ -93,41 +99,73 @@ final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Send
 
     func currentLocation() async -> CLLocationCoordinate2D? {
         switch manager.authorizationStatus {
-        case .notDetermined:
-            manager.requestWhenInUseAuthorization()
-        case .denied, .restricted:
-            return nil
-        default:
-            break
+        case .denied, .restricted: return nil
+        default: break
         }
 
-        return await withCheckedContinuation { continuation in
-            self.continuation = continuation
-            manager.requestLocation()
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                let isBusy = pending.withLock { state in
+                    guard state.continuation == nil else { return true }
+                    state.continuation = continuation
+                    return false
+                }
+
+                // One read at a time per instance: a second caller gets nothing rather than
+                // displacing the first one's continuation, which would leak it unresumed.
+                guard !isBusy else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                if manager.authorizationStatus == .notDetermined {
+                    // Asking for a fix before the answer arrives only produces a failure, so let
+                    // `locationManagerDidChangeAuthorization` ask once the answer is in.
+                    manager.requestWhenInUseAuthorization()
+                } else {
+                    requestFix()
+                }
+            }
+        } onCancel: {
+            // Nothing else would ever resume this: if the permission dialog is dismissed without
+            // an answer, no callback fires at all.
+            finish(with: nil)
         }
+    }
+
+    private func requestFix() {
+        let shouldRequest = pending.withLock { state in
+            guard state.continuation != nil, !state.didRequestFix else { return false }
+            state.didRequestFix = true
+            return true
+        }
+        // Outside the lock: never call into CoreLocation while holding it.
+        if shouldRequest { manager.requestLocation() }
+    }
+
+    // The one place a continuation is resumed, and it resumes at most once.
+    private func finish(with coordinate: CLLocationCoordinate2D?) {
+        let continuation = pending.withLock { state in
+            defer { state.continuation = nil }
+            return state.continuation
+        }
+        continuation?.resume(returning: coordinate)
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        continuation?.resume(returning: locations.last?.coordinate)
-        continuation = nil
+        finish(with: locations.last?.coordinate)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        continuation?.resume(returning: nil)
-        continuation = nil
+        finish(with: nil)
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // A permission decision made while a request is pending: ask again now that we know the
-        // answer, or give up if it was denied.
-        guard continuation != nil else { return }
-
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            manager.requestLocation()
+            requestFix()
         case .denied, .restricted:
-            continuation?.resume(returning: nil)
-            continuation = nil
+            finish(with: nil)
         default:
             break
         }
