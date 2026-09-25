@@ -6,7 +6,7 @@ An iPhone app that shows you a trail on a map and shows where you are on it. Fre
 
 Gabay is Filipino for guide.
 
-- iOS 17+ · Swift 6 · Xcode 26 · no third-party dependencies
+- iOS 17+ · Swift 6 · Xcode 26 · no third-party runtime dependencies other than the Firebase SDK (SwiftLint is a build-time plugin)
 
 | | |
 |---|---|

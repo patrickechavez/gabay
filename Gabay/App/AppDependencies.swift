@@ -37,9 +37,11 @@ final class AppDependencies {
     }
 
     static func live() -> AppDependencies {
-        // Nothing is reported anywhere, but the seams stay.
-        let analytics = NoopAnalyticsTracker()
-        let crashes = NoopCrashReporter()
+        // Real reporting when Firebase is both linked and configured, no-ops otherwise. The seams
+        // are the same either way.
+        let reporting = FirebaseBootstrap.start()
+        let analytics = reporting?.analytics ?? NoopAnalyticsTracker()
+        let crashes = reporting?.crashes ?? NoopCrashReporter()
 
         Observability.install(analytics: analytics, crashes: crashes)
 
