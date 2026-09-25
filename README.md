@@ -33,7 +33,7 @@ Every account is either a hiker or an organizer. Organizer accounts are set by h
 
 ## The API
 
-The app is built against a REST contract for a C# backend that does not exist yet. The contract (auth, events, joining, GPX upload) is documented in [`docs/superpowers/specs/2026-09-23-events-platform-design.md`](docs/superpowers/specs/2026-09-23-events-platform-design.md). Eight values reach code from the xcconfigs through `Config/Info.plist`, all read by `APIConfig`: the base URL, request timeout, retry count, logging, certificate pinning and its pinned hashes, and the force-update flag and its URL. `API_BASE_URL` points at a placeholder for a local server in Development.
+The app is built against a REST contract for a C# backend that does not exist yet. That contract is written down in full in [`docs/backend-api-contract.md`](docs/backend-api-contract.md): every endpoint, request and response shape, status code, and the deliberate open questions. It is the source of truth for the backend, not the other way around. Eight values reach code from the xcconfigs through `Config/Info.plist`, all read by `APIConfig`: the base URL, request timeout, retry count, logging, certificate pinning and its pinned hashes, and the force-update flag and its URL. `API_BASE_URL` points at a placeholder for a local server in Development.
 
 ## Deep links
 
