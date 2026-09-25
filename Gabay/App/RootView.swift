@@ -28,7 +28,15 @@ struct RootView: View {
         }
         // A link that arrived while signed out was held, not dropped; play it now.
         .onChange(of: dependencies.session.isSignedIn) { _, isSignedIn in
-            if isSignedIn { dependencies.navigator.resumePendingLink() }
+            if isSignedIn {
+                dependencies.navigator.resumePendingLink()
+            } else {
+                dependencies.navigator.reset()
+            }
+        }
+        // The Post a Hike tab disappears with the organizer role, taking its tag with it.
+        .onChange(of: dependencies.session.account?.role) { _, role in
+            if role != .organizer { dependencies.navigator.leavePostEventTabIfPresent() }
         }
     }
 }

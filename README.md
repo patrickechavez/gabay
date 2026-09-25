@@ -138,3 +138,27 @@ Still to come after that: a real offline basemap through downloadable region pac
 ## Attribution
 
 Maps and their attribution come from Apple, through MapKit. Trail data is recorded on foot and published here.
+
+## Firebase
+
+Analytics and Crashlytics are wired but the SDK is not in the project yet, because adding a
+package means editing `Gabay.xcodeproj/project.pbxproj`. `Gabay/Core/Observability/FirebaseObservability.swift`
+is guarded by `#if canImport(FirebaseCore)`, so it compiles to no-ops today and the real
+implementation takes over once the package is there, with no other code change.
+
+To turn it on:
+
+1. Xcode, File > Add Package Dependencies, `https://github.com/firebase/firebase-ios-sdk`.
+2. Add `FirebaseAnalytics` and `FirebaseCrashlytics` to the Gabay target.
+3. Drop `GoogleService-Info.plist` into the target. Without it the code still no-ops, so a
+   checkout without the file behaves exactly as it does now.
+4. For readable crash reports, add a run script build phase that uploads dSYMs
+   (`${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run`), with
+   `${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}` and `$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)`
+   as input files.
+
+Note that until step 1 is done, nothing compiles the Firebase branch of that file, so mistakes in
+it will only surface then.
+
+To remove Firebase instead, delete `FirebaseObservability.swift`; `AppDependencies` already falls
+back to the no-op trackers.

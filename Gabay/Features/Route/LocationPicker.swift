@@ -118,6 +118,14 @@ final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Send
                     return
                 }
 
+                // An already-cancelled task runs onCancel BEFORE this body, where there was no
+                // continuation to resume, and nothing cancels again. Without this the read hangs
+                // whenever no CoreLocation callback happens to arrive.
+                guard !Task.isCancelled else {
+                    finish(with: nil)
+                    return
+                }
+
                 if manager.authorizationStatus == .notDetermined {
                     // Asking for a fix before the answer arrives only produces a failure, so let
                     // `locationManagerDidChangeAuthorization` ask once the answer is in.
@@ -146,7 +154,9 @@ final class OneShotLocator: NSObject, CLLocationManagerDelegate, @unchecked Send
     // The one place a continuation is resumed, and it resumes at most once.
     private func finish(with coordinate: CLLocationCoordinate2D?) {
         let continuation = pending.withLock { state in
-            defer { state.continuation = nil }
+            // Clears didRequestFix too. Leaving it set made the locator work exactly once: the
+            // next read would install a continuation, skip requestLocation, and hang.
+            defer { state = Pending() }
             return state.continuation
         }
         continuation?.resume(returning: coordinate)

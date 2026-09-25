@@ -39,7 +39,8 @@ struct MyEventsView: View {
             .navigationDestination(for: MyEventsRoute.self) { route in
                 switch route {
                 case let .eventDetail(id):
-                    EventDestination(id: id, events: viewModel.mine, viewModel: viewModel)
+                    EventDestination(id: id, events: viewModel.mine,
+                                     state: viewModel.mineState, viewModel: viewModel)
                 }
             }
             .task { await viewModel.load() }

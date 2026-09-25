@@ -6,8 +6,8 @@
 
 import Foundation
 
-// The one-line "8.2 km - 386 m - ~2h 12m" under a route. Shared, because the organizer previewing
-// an upload and the hiker reading the event must not disagree about the same numbers.
+// The one-line "8.2 km - 386 m - ~2 hr, 12 min" under a route. Shared, because the organizer
+// previewing an upload and the hiker reading the event must not disagree about the same numbers.
 enum RouteSummary {
 
     static func text(distanceM: Double, ascentM: Double?, minutes: Int?) -> String {
@@ -33,10 +33,14 @@ enum RouteSummary {
     }
 
     // Duration.UnitsFormatStyle localizes the unit names and already drops an empty leading hour,
-    // so a 45 minute hike reads "45 min" and not "0 hr, 45 min". The hand-built "~2h 12m" it
-    // replaces hardcoded English in a file that localizes everything else.
+    // so a 45 minute hike reads "45 min" and not "0 hr, 45 min".
+    //
+    // Converted through Double first: `minutes * 60` traps on overflow, and `estimatedMinutes`
+    // is an unclamped Int decoded straight from the API. The "~" stays because this is Naismith's
+    // estimate, not a measurement.
     private static func duration(_ minutes: Int) -> String {
-        Duration.seconds(minutes * 60)
+        let formatted = Duration.seconds(Double(minutes) * 60)
             .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
+        return "~\(formatted)"
     }
 }

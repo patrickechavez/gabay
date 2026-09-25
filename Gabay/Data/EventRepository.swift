@@ -77,8 +77,8 @@ struct LiveEventRepository: EventBrowsingRepository, EventPublishingRepository {
         if let ascentM { form.addField("ascentM", value: String(ascentM)) }
         form.addField("estimatedMinutes", value: String(estimatedMinutes))
 
-        // The filename rides in the multipart Content-Disposition header unescaped, so it must be
-        // one we control, not the user's raw file name.
+        // The filename is ours, not the user's: MultipartFormData escapes it either way, but a
+        // server-side name derived from a picked file would leak what the organizer called it.
         form.addFile(
             "gpx",
             filename: "\(eventID).gpx",

@@ -29,18 +29,27 @@ struct MultipartFormData {
             Content-Disposition: form-data; name="\(Self.headerSafe(name))"; \
             filename="\(Self.headerSafe(filename))"\r\n
             """)
-        append("Content-Type: \(Self.headerSafe(mimeType))\r\n\r\n")
+        append("Content-Type: \(Self.singleLine(mimeType))\r\n\r\n")
         body.append(data)
         append("\r\n")
     }
 
-    // These land inside a quoted header value, so a quote ends the value early and a newline ends
-    // the header outright, letting a crafted name forge headers or corrupt the body.
+    // Names land inside a quoted header value, so a quote ends the value early and a newline ends
+    // the header outright, letting a crafted name forge headers or corrupt the body. Escaping `%`
+    // first keeps the transform injective.
     private static func headerSafe(_ value: String) -> String {
+        singleLine(
+            value
+                .replacingOccurrences(of: "%", with: "%25")
+                .replacingOccurrences(of: "\"", with: "%22")
+                .replacingOccurrences(of: "\\", with: "%5C")
+        )
+    }
+
+    // A media type is not a quoted value and may carry parameters such as `charset="utf-8"`, so
+    // only the line break is dangerous here. Percent-escaping it would corrupt a valid type.
+    private static func singleLine(_ value: String) -> String {
         value
-            .replacingOccurrences(of: "%", with: "%25")
-            .replacingOccurrences(of: "\"", with: "%22")
-            .replacingOccurrences(of: "\\", with: "%5C")
             .replacingOccurrences(of: "\r", with: "")
             .replacingOccurrences(of: "\n", with: "")
     }

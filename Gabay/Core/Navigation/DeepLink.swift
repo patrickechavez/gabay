@@ -52,7 +52,10 @@ struct DeepLinkParser: Sendable {
             .compactMap { $0 }
             .filter { !$0.isEmpty }
 
-        switch segments.first {
+        // Only the route word is case-normalised, because URLComponents does not normalise host
+        // case for a custom scheme and `gabay://Events` should still work. The id is left alone:
+        // it is a server-issued string and may well be case sensitive.
+        switch segments.first?.lowercased() {
         case "events":
             guard let id = segments.dropFirst().first else { return .events }
             return .event(id: id)
