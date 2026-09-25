@@ -21,6 +21,7 @@ struct RootView: View {
                 )
             }
         }
+        .offlineBanner(dependencies.networkMonitor)
         .task { await dependencies.session.restore() }
     }
 }

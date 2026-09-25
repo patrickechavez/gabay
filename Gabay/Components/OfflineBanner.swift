@@ -1,0 +1,37 @@
+//
+//  OfflineBanner.swift
+//  Gabay
+//  Created by John Patrick Echavez on 9/25/26.
+//
+
+import SwiftUI
+
+struct OfflineBanner: View {
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            Image(systemName: "wifi.exclamationmark")
+            Text("No internet connection", comment: "Banner shown while the device is offline")
+                .font(Theme.Font.caption)
+        }
+        .foregroundStyle(.white)
+        .padding(.vertical, Theme.Spacing.sm)
+        .frame(maxWidth: .infinity)
+        .background(Theme.Color.danger)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension View {
+
+    /// Drops in above the safe area while `monitor` reports no connection.
+    func offlineBanner(_ monitor: NetworkMonitor) -> some View {
+        safeAreaInset(edge: .top, spacing: 0) {
+            if !monitor.isConnected {
+                OfflineBanner()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(Theme.Animation.standard, value: monitor.isConnected)
+    }
+}

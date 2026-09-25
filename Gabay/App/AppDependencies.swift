@@ -14,6 +14,7 @@ final class AppDependencies {
 
     let session: Session
     let eventsViewModel: EventsViewModel
+    let networkMonitor: NetworkMonitor
 
     // Only the publishing repository is held: the browsing one is handed straight to
     // `eventsViewModel` at construction and nothing else asks for it.
@@ -23,12 +24,14 @@ final class AppDependencies {
         session: Session,
         publishing: any EventPublishingRepository,
         eventsViewModel: EventsViewModel,
+        networkMonitor: NetworkMonitor,
         analytics: any AnalyticsTracking,
         crashes: any CrashReporting
     ) {
         self.session = session
         self.publishing = publishing
         self.eventsViewModel = eventsViewModel
+        self.networkMonitor = networkMonitor
         self.analytics = analytics
         self.crashes = crashes
     }
@@ -77,6 +80,7 @@ final class AppDependencies {
             session: session,
             publishing: events,
             eventsViewModel: EventsViewModel(events: events),
+            networkMonitor: NetworkMonitor(),
             analytics: analytics,
             crashes: crashes
         )
