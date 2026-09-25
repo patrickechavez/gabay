@@ -2,85 +2,38 @@
 
 [![Tests](https://github.com/patrickechavez/gabay/actions/workflows/tests.yml/badge.svg)](https://github.com/patrickechavez/gabay/actions/workflows/tests.yml)
 
-An iPhone app that shows you a trail on a map and shows where you are on it. Free, no account, no subscription.
+An iPhone app for hiking for a cause. Organizers post a hike, hikers join for a small registration fee, and the fee goes to an animal shelter or someone who needs medical help.
 
 Gabay is Filipino for guide.
 
 - iOS 17+ · Swift 6 · Xcode 26 · no third-party runtime dependencies other than the Firebase SDK (SwiftLint is a build-time plugin)
 
-| | |
-|---|---|
-| <img src="docs/screenshots/map.png" width="320" alt="A trail drawn on the map, with how far the start is"> | <img src="docs/screenshots/trails.png" width="320" alt="The trail list, showing distance, climb and region"> |
-| The route, your position, and how far the start is | Published trails and your own imports, in one list |
-
 ## Why this exists
 
-Hiring a guide prices people out of hiking their own mountains. The trails are public, the maps are public, and the phone in your pocket already has a GPS receiver that works without a cell tower.
-
-The software is where it stops being free.
-
-AllTrails and Strava both charge for the one thing a hiker on an unfamiliar trail actually needs: loading a route somebody else made and following it. Recording your own activity is free on both. Uploading a finished walk is free on Strava. Following a line up a mountain you have never climbed is not.
-
-So the gap is narrow and specific: **follow a GPX you did not create, without paying.** Nobody serves it because there is no business in it.
-
-Gabay fills it from the other end. The trails are curated and given away, the app follows them, and your walk stays on your phone as a file you can take anywhere, including to Strava.
-
-If you hike a handful of times a year, a subscription is poor value for the one screen you need. This is that screen.
+Hiking groups already organize cause-hikes on Facebook: pay a small fee, join a hike, the money goes to a shelter or someone in need. Gabay gives that its own app: a list of upcoming hikes, who they benefit, what they cost, where to meet, and a way to join.
 
 ## What it does
 
-- Lists trails published in this repository, with distance, climb and region
-- Downloads one when you open it, and keeps it on the phone
-- Draws the route on the map with your position and which way you are facing
-- Tells you how far you are from the start
-- Imports any GPX file you already have, from Files, an email, or AirDrop
-- Deletes anything you no longer want
+- Sign in or create an account
+- Browse published cause-hike events: cause, date, fee, and a map of the meeting point, with directions
+- See an organizer's optional GPX route: distance, climb, estimated time, and the path itself, view-only
+- Join a hike, which opens the organizer's own payment/coordination link
+- See the hikes joined so far, in one list
+- Let organizer accounts post a new hike, with a pin-dropped meeting point and an optional GPX, reviewed before it goes public
 
-No sign up, no analytics, no server. Where you walk is not information this app sends anywhere.
+No account, no analytics, and nothing is uploaded that a hiker did not choose to send. Where somebody walks is not information this app sends anywhere.
 
-## What it does not do yet
+## Payment
 
-**The map goes grey with no signal.** MapKit downloads its basemap from Apple's servers and offers no way to keep it, so on a ridge with no bars the terrain disappears.
+Gabay never touches money. Joining a hike hands off to an external link the organizer controls (GCash, Messenger, a payment page, whatever they use). The app only remembers that a hiker tapped Join. This is a soft RSVP, not proof of payment: reconciling who actually paid is the organizer's job, off-app.
 
-What survives is the part that matters most: the route line and your position are drawn from data already on the phone, so the screen becomes a magenta line on grey with a dot on it. The question a lost hiker asks is "am I still on the trail", and a line with a dot on it answers that. What is lost is context.
+## Accounts
 
-Two sentences, and the app must not blur them: **the route works offline, the map does not.**
+Every account is either a hiker or an organizer. Organizer accounts are set by hand after vetting a shelter or cause partner. There is no self-service way to become one inside the app.
 
-A real offline basemap is the planned upgrade. See [the spec](docs/design/gabay.md).
+## The API
 
-## The trails
-
-Trails live in [`trails/`](trails) and are served over GitHub Pages. The app reads `catalog.json` on launch, shows what it lists, and fetches a GPX only when somebody taps one.
-
-```
-https://patrickechavez.github.io/gabay/trails/catalog.json
-```
-
-Adding a trail is a commit, not an App Store release. Upload the `.gpx` into `trails/`, add its block to `catalog.json`, and every phone picks it up on its next launch with a connection. The format is documented in [`trails/README.md`](trails/README.md).
-
-Three rules keep the refresh from eroding the offline promise:
-
-- **Silent.** It never blocks a screen, never spins, never raises an error.
-- **Cheap.** The app sends the ETag it holds and does nothing on a 304.
-- **Additive.** Nothing is ever deleted from under you. A trail dropped from the catalogue stays on the phone of anyone who already has it.
-
-The files are public on purpose. They are useful to somebody even if they never install this app.
-
-## Bringing your own GPX
-
-Tap `+` and pick a file. Anything with a `<trk>` or a `<rte>` works, including exports from Strava, Garmin, Komoot, Wikiloc and Gaia. The app measures it rather than trusting what the file claims, and once imported it is indistinguishable from a published trail.
-
-Parsing is `XMLParser` from Foundation. No dependency, and it keeps whatever it read from a truncated file rather than refusing the lot.
-
-## Where things live on the phone
-
-```
-Application Support/
-├── catalog.json   the last catalogue seen, so the list is there before the network is
-└── Trails/        one GPX per trail, downloaded and imported alike
-```
-
-Not `Caches`, which iOS empties without warning when storage runs low. The file system is the database: if the file is there, the trail is there.
+The app is built against a REST contract for a C# backend that does not exist yet. The contract (auth, events, joining, GPX upload) is documented in [`docs/superpowers/specs/2026-09-23-events-platform-design.md`](docs/superpowers/specs/2026-09-23-events-platform-design.md). The only value that reaches code from the xcconfigs is `API_BASE_URL`, which points at a placeholder for a local server in Development.
 
 ## Building
 
@@ -90,75 +43,68 @@ Nothing to configure. Clone, open, run.
 xcodebuild -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
-Three schemes, three configurations, one shared base in `Config/`. They install side by side, so a development build never replaces the one you hike with.
+Three schemes, three configurations, one shared base in `Config/`. They install side by side, so a development build never replaces the one on a real phone.
 
 | | Development | Staging | Production |
 |---|---|---|---|
 | Bundle ID | `.dev` | `.staging` | *(none)* |
 | Logging | on | off | off |
 
-The only value that reaches code from the xcconfigs is `CATALOG_URL`, so pointing a build at a different set of trails is a one line change.
-
-Location needs a real device to mean anything. The simulator has no magnetometer, so the heading cone stays hidden there.
+The meeting-point picker needs a real device to mean anything; the simulator has no useful location.
 
 ## Structure
 
 ```
 Gabay/
-├── App/           entry point, composition root
+├── App/            entry point, composition root
+├── Components/     form fields, alerts, the offline banner
 ├── Core/
-│   ├── Trails/    GPX parsing, the trail store, the catalogue client
-│   ├── UI/        LoadState, error states
-│   └── Observability/
-├── DesignSystem/  theme
+│   ├── Auth/       session, token refresh, Keychain token storage
+│   ├── Events/     event view models
+│   ├── Navigation/ router, app routes, gabay:// deep links
+│   ├── Networking/ shared API client, interceptors, retry, pinning
+│   ├── Observability/ analytics and crash-reporting seams
+│   ├── Route/      GPX parsing, distance/climb/time calculation
+│   ├── UI/         LoadState, ActionState, error states
+│   └── Validation/ email and input checks
+├── Data/           repositories over the API client
+├── DesignSystem/   theme
 ├── Features/
-│   └── Trail/     the list, the map, the walker
-└── Resources/     String Catalog
+│   ├── Auth/       sign-in, sign-up
+│   ├── Events/     the list, an event's detail, My Events, Post a Hike
+│   └── Route/      the read-only route map, the meeting-point pin picker
+├── Models/         Event, Account
+└── Resources/      String Catalog
 ```
 
-Views hold no logic. A view model owns the state, and everything below it sits behind a protocol, which is what lets the tests run without a network, a GPS or a disk of their own.
+Views hold no logic. A view model owns the state, and everything below it sits behind a protocol, which is what lets the tests run without a network or a Keychain of their own.
 
 ```bash
 xcodebuild test -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-Every push and pull request runs the same suite on CI, against whichever Xcode
-and simulator the runner happens to carry.
-
-## Not built yet
-
-Recording your own walk and exporting it as a GPX is designed and written, on the `recording` branch rather than here.
-
-```bash
-git checkout recording
-```
-
-Still to come after that: a real offline basemap through downloadable region packs, and an off route warning.
-
-## Attribution
-
-Maps and their attribution come from Apple, through MapKit. Trail data is recorded on foot and published here.
+Every push and pull request runs the same suite on CI, against whichever Xcode and simulator the runner happens to carry.
 
 ## Firebase
 
-Analytics and Crashlytics are wired but the SDK is not in the project yet, because adding a
-package means editing `Gabay.xcodeproj/project.pbxproj`. `Gabay/Core/Observability/FirebaseObservability.swift`
-is guarded by `#if canImport(FirebaseCore)`, so it compiles to no-ops today and the real
-implementation takes over once the package is there, with no other code change.
+Analytics and Crashlytics are wired but the SDK is not in the project yet, because adding a package means editing `Gabay.xcodeproj/project.pbxproj`. `Gabay/Core/Observability/FirebaseObservability.swift` is guarded by `#if canImport(FirebaseCore)`, so it compiles to no-ops today and the real implementation takes over once the package is there, with no other code change.
 
 To turn it on:
 
 1. Xcode, File > Add Package Dependencies, `https://github.com/firebase/firebase-ios-sdk`.
 2. Add `FirebaseAnalytics` and `FirebaseCrashlytics` to the Gabay target.
-3. Drop `GoogleService-Info.plist` into the target. Without it the code still no-ops, so a
-   checkout without the file behaves exactly as it does now.
-4. For readable crash reports, add a run script build phase that uploads dSYMs
-   (`${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run`), with
-   `${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}` and `$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)`
-   as input files.
+3. Drop `GoogleService-Info.plist` into the target. Without it the code still no-ops, so a checkout without the file behaves exactly as it does now.
+4. For readable crash reports, add a run script build phase that uploads dSYMs (`${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run`), with `${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}` and `$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)` as input files.
 
-Note that until step 1 is done, nothing compiles the Firebase branch of that file, so mistakes in
-it will only surface then.
+Note that until step 1 is done, nothing compiles the Firebase branch of that file, so mistakes in it will only surface then.
 
-To remove Firebase instead, delete `FirebaseObservability.swift`; `AppDependencies` already falls
-back to the no-op trackers.
+To remove Firebase instead, delete `FirebaseObservability.swift`; `AppDependencies` already falls back to the no-op trackers.
+
+## Not built yet
+
+- The events/auth backend itself: a separate project, built in C#.
+- In-app payment.
+- Partnership with local government and DSWD for solicitation permits, deliberately deferred since payment never moves through the app.
+- Actually following a route live (a walking GPS overlay). The route view is look-before-you-go, not navigation.
+- Sign in with Apple.
+- Push notifications. The Firebase SDK is present partly so this has a place to land, but no messaging, entitlement, or permission prompt exists yet.
