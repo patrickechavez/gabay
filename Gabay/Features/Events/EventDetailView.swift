@@ -111,7 +111,7 @@ struct EventDetailView: View {
 
     @ViewBuilder
     private var routeMap: some View {
-        switch routeViewModel.route {
+        switch routeViewModel.state {
         case .idle, .loading:
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 200)

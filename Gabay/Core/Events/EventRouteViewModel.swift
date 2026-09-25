@@ -10,13 +10,13 @@ import Foundation
 // they render whether or not this ever succeeds; a failure here costs the map and nothing else.
 @Observable
 @MainActor
-final class EventRouteViewModel {
+final class EventRouteViewModel: LoadableViewModel {
 
-    private(set) var route: LoadState<[TrackPoint]> = .idle
+    var state: LoadState<[TrackPoint]> = .idle
 
     // The same numbers the organizer's phone computed, recovered from the track itself. Used only
     // to fill what the event did not carry.
-    var stats: RouteStats? { route.value.map(RouteStats.init(points:)) }
+    var stats: RouteStats? { state.value.map(RouteStats.init(points:)) }
 
     @ObservationIgnored private let eventID: String
     @ObservationIgnored private let events: any EventBrowsingRepository
@@ -29,34 +29,24 @@ final class EventRouteViewModel {
     }
 
     func load() async {
-        guard route.needsLoad else { return }
+        guard state.needsLoad else { return }
         await fetch()
     }
 
     func retry() async {
-        route = .idle
+        state = .idle
         await fetch()
     }
 
     private func fetch() async {
-        route = .loading
-
-        do {
+        // Fewer than two points draws no line, so that is nothing to show rather than a route.
+        await perform(isEmpty: { $0.count < 2 }) { [eventID, events, parser] in
             let data = try await events.gpx(eventID: eventID)
-            let points = try parser.parse(data).points
-            try Task.checkCancellation()
 
-            // One point draws no line, so it is nothing to show rather than a route.
-            route = points.count > 1 ? .loaded(points) : .empty
-        } catch {
-            let apiError = APIError.classify(error)
-
-            // A cancelled load goes back to `.idle` so returning to the screen tries again.
-            if apiError == .cancelled {
-                route = .idle
-                return
-            }
-            route = .failed(apiError)
+            // Parsing a long track is not main-actor work.
+            return try await Task.detached(priority: .userInitiated) {
+                try parser.parse(data).points
+            }.value
         }
     }
 }
