@@ -21,7 +21,7 @@ Hiking groups already organize cause-hikes on Facebook: pay a small fee, join a 
 - See the hikes joined so far, in one list
 - Let organizer accounts post a new hike, with a pin-dropped meeting point and an optional GPX, reviewed before it goes public
 
-No account, no analytics, and nothing is uploaded that a hiker did not choose to send. Where somebody walks is not information this app sends anywhere.
+An account is required. What is not collected: there is no location tracking, no background updates, and no walking history. The only location read in the app is a single one-shot fix when an organizer drops a meeting-point pin, and a GPX is uploaded only when an organizer chooses to attach one to a hike they are posting. Analytics and crash reporting do nothing at all unless Firebase is both linked and configured, which it is not by default (see below).
 
 ## Payment
 
@@ -33,7 +33,23 @@ Every account is either a hiker or an organizer. Organizer accounts are set by h
 
 ## The API
 
-The app is built against a REST contract for a C# backend that does not exist yet. The contract (auth, events, joining, GPX upload) is documented in [`docs/superpowers/specs/2026-09-23-events-platform-design.md`](docs/superpowers/specs/2026-09-23-events-platform-design.md). The only value that reaches code from the xcconfigs is `API_BASE_URL`, which points at a placeholder for a local server in Development.
+The app is built against a REST contract for a C# backend that does not exist yet. The contract (auth, events, joining, GPX upload) is documented in [`docs/superpowers/specs/2026-09-23-events-platform-design.md`](docs/superpowers/specs/2026-09-23-events-platform-design.md). Eight values reach code from the xcconfigs through `Config/Info.plist`, all read by `APIConfig`: the base URL, request timeout, retry count, logging, certificate pinning and its pinned hashes, and the force-update flag and its URL. `API_BASE_URL` points at a placeholder for a local server in Development.
+
+## Deep links
+
+`gabay://` is registered, and `APIConfig.urlScheme` reads the scheme back out of
+`CFBundleURLTypes` so the parser and the registration cannot drift apart.
+
+| Link | Opens |
+|---|---|
+| `gabay://events` | the events list |
+| `gabay://events/<id>` | one hike's detail |
+| `gabay://my-events` | joined hikes |
+
+The route word is case-insensitive; the id is not, since it comes from the backend. Every
+destination is behind the sign-in wall, so a link that arrives while signed out is held for ten
+minutes and opened once there is a session, rather than dropped. Universal links are not supported:
+they need a registered domain and an associated-domains entitlement, and neither exists yet.
 
 ## Building
 
@@ -65,6 +81,7 @@ Gabay/
 │   ├── Networking/ shared API client, interceptors, retry, pinning
 │   ├── Observability/ analytics and crash-reporting seams
 │   ├── Route/      GPX parsing, distance/climb/time calculation
+│   ├── Security/   certificate pinning
 │   ├── UI/         LoadState, ActionState, error states
 │   └── Validation/ email and input checks
 ├── Data/           repositories over the API client
