@@ -32,13 +32,11 @@ enum RouteSummary {
             ))
     }
 
-    // Drops an empty leading hour, so a 45 minute hike reads "~45m" and not "~0h 45m".
+    // Duration.UnitsFormatStyle localizes the unit names and already drops an empty leading hour,
+    // so a 45 minute hike reads "45 min" and not "0 hr, 45 min". The hand-built "~2h 12m" it
+    // replaces hardcoded English in a file that localizes everything else.
     private static func duration(_ minutes: Int) -> String {
-        let hours = minutes / 60
-        let remainder = minutes % 60
-
-        if hours == 0 { return "~\(remainder)m" }
-        if remainder == 0 { return "~\(hours)h" }
-        return "~\(hours)h \(remainder)m"
+        Duration.seconds(minutes * 60)
+            .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
     }
 }
