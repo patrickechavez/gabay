@@ -25,7 +25,7 @@ protocol EventPublishingRepository: Sendable {
 
     func uploadGPX(
         eventID: String,
-        fileURL: URL,
+        data: Data,
         distanceM: Int,
         ascentM: Int?,
         estimatedMinutes: Int
@@ -67,7 +67,7 @@ struct LiveEventRepository: EventBrowsingRepository, EventPublishingRepository {
 
     func uploadGPX(
         eventID: String,
-        fileURL: URL,
+        data: Data,
         distanceM: Int,
         ascentM: Int?,
         estimatedMinutes: Int
@@ -83,7 +83,7 @@ struct LiveEventRepository: EventBrowsingRepository, EventPublishingRepository {
             "gpx",
             filename: "\(eventID).gpx",
             mimeType: "application/gpx+xml",
-            data: try Data(contentsOf: fileURL)
+            data: data
         )
 
         return try await api.upload(APIRoute.Events.gpx(eventID), form: form)

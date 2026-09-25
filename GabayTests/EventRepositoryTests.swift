@@ -149,7 +149,7 @@ struct EventRepositoryTests {
 
         let event = try await repository.uploadGPX(
             eventID: "hike-for-pawssion",
-            fileURL: fileURL,
+            data: try Data(contentsOf: fileURL),
             distanceM: 4761,
             ascentM: 386,
             estimatedMinutes: 132
@@ -176,7 +176,7 @@ struct EventRepositoryTests {
 
         _ = try await repository.uploadGPX(
             eventID: "hike-for-pawssion",
-            fileURL: fileURL,
+            data: try Data(contentsOf: fileURL),
             distanceM: 4761,
             ascentM: 386,
             estimatedMinutes: 132

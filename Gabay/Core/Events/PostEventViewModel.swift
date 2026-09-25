@@ -86,7 +86,7 @@ final class PostEventViewModel {
     // inline error, not the rest of the form.
     private(set) var route: RouteStats?
     private(set) var gpxError: APIError?
-    @ObservationIgnored private var gpxFileURL: URL?
+    @ObservationIgnored private var gpxData: Data?
 
     @ObservationIgnored private let events: any EventPublishingRepository
     @ObservationIgnored private let parser: GPXParser
@@ -185,54 +185,36 @@ final class PostEventViewModel {
 
         do {
             let imported = try await Self.importGPX(at: url, parser: parser)
-            discardCopiedGPX()
             route = imported.stats
-            gpxFileURL = imported.fileURL
+            gpxData = imported.data
         } catch {
             route = nil
-            discardCopiedGPX()
+            gpxData = nil
             gpxError = APIError.classify(error)
         }
     }
 
-    // Off the main actor. A picked file is security scoped and that scope ends with this work, but
-    // the upload reads the file later from `submit()`, so the bytes are copied into our own
-    // container and uploaded from there.
+    // Off the main actor: a picked file is security scoped, and an iCloud Drive file that is not
+    // materialized locally can block for seconds on the read alone.
     private static func importGPX(
         at url: URL,
         parser: GPXParser
-    ) async throws -> (stats: RouteStats, fileURL: URL) {
+    ) async throws -> (stats: RouteStats, data: Data) {
         try await Task.detached(priority: .userInitiated) {
             let isScoped = url.startAccessingSecurityScopedResource()
             defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
 
             let data = try Data(contentsOf: url)
             let points = try parser.parse(data).points
-
-            let local = FileManager.default.temporaryDirectory
-                .appending(path: "\(UUID().uuidString).gpx")
-            do {
-                try data.write(to: local)
-            } catch {
-                // A write that failed partway leaves a stub behind that nothing else tracks.
-                try? FileManager.default.removeItem(at: local)
-                throw error
-            }
-
-            return (RouteStats(points: points), local)
+            return (RouteStats(points: points), data)
         }.value
     }
 
     func removeGPX() {
         route = nil
-        discardCopiedGPX()
+        gpxData = nil
         gpxError = nil
         action.clear()
-    }
-
-    private func discardCopiedGPX() {
-        if let gpxFileURL { try? FileManager.default.removeItem(at: gpxFileURL) }
-        gpxFileURL = nil
     }
 
     func submit() async {
@@ -256,15 +238,15 @@ final class PostEventViewModel {
             photoURL: photoURLText.trimmed.isEmpty ? nil : URL(string: photoURLText.trimmed)
         )
         let route = self.route
-        let gpxFileURL = self.gpxFileURL
+        let gpxData = self.gpxData
 
         let created = await action.run { [events] in
             let created = try await events.create(draft)
 
-            if let route, let gpxFileURL {
+            if let route, let gpxData {
                 _ = try await events.uploadGPX(
                     eventID: created.id,
-                    fileURL: gpxFileURL,
+                    data: gpxData,
                     distanceM: Int(route.distanceM),
                     ascentM: route.ascentM.map(Int.init),
                     estimatedMinutes: route.estimatedMinutes
@@ -276,7 +258,6 @@ final class PostEventViewModel {
 
         guard created != nil else { return }
 
-        discardCopiedGPX()
         didSubmit = true
         alert = .notice(
             String(localized: "Submitted", comment: "Title confirming an event was submitted"),

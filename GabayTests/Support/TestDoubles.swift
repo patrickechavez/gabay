@@ -52,7 +52,7 @@ final class StubEventRepository: EventBrowsingRepository, EventPublishingReposit
 
     func uploadGPX(
         eventID: String,
-        fileURL: URL,
+        data: Data,
         distanceM: Int,
         ascentM: Int?,
         estimatedMinutes: Int
