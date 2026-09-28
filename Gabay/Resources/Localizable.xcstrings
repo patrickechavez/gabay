@@ -1,14 +1,11 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ far" : {
-      "comment" : "How long a trail is, shown under its name"
+    "" : {
+
     },
-    "%@ to the start" : {
-      "comment" : "How far the walker is from the beginning of the trail"
-    },
-    "%@ up" : {
-      "comment" : "How much a trail climbs, shown under its name"
+    "*" : {
+
     },
     "Account" : {
       "comment" : "Header of the account section on the profile screen",
@@ -34,6 +31,15 @@
         }
       }
     },
+    "Attach a GPX (Optional)" : {
+      "comment" : "Opens the file picker for an optional route"
+    },
+    "Basics" : {
+      "comment" : "Section header for an event's core details"
+    },
+    "Cancel" : {
+      "comment" : "Closes the picker without setting a pin\nCloses the sign-up screen without creating an account\nDismisses the date picker without choosing"
+    },
     "Cancelled." : {
       "comment" : "A request was cancelled",
       "extractionState" : "manual",
@@ -46,6 +52,12 @@
         }
       }
     },
+    "Capacity" : {
+      "comment" : "Label for the hiker capacity field\nPlaceholder for the hiker capacity field"
+    },
+    "Cause" : {
+      "comment" : "Label for the beneficiary/cause field\nPlaceholder for the beneficiary/cause field"
+    },
     "Change Photo" : {
       "comment" : "Button that opens the photo picker",
       "extractionState" : "manual",
@@ -57,6 +69,9 @@
           }
         }
       }
+    },
+    "Check back soon for the next hike for a cause." : {
+      "comment" : "Shown when the events list is empty"
     },
     "Check your email" : {
       "comment" : "Title shown after a password reset is requested",
@@ -93,6 +108,9 @@
           }
         }
       }
+    },
+    "Choose on Map" : {
+      "comment" : "Opens the meeting point pin-drop picker"
     },
     "Clear search" : {
       "comment" : "Accessibility label for the clear-search button",
@@ -154,11 +172,17 @@
         }
       }
     },
-    "Delete" : {
-      "comment" : "Removes a trail from the phone"
+    "Description" : {
+      "comment" : "Label for the event description field\nPlaceholder for the event description field\nSection header for the event description"
     },
-    "Download failed" : {
-      "comment" : "Title when a trail could not be fetched"
+    "Done" : {
+      "comment" : "Confirms the chosen date"
+    },
+    "Down for maintenance" : {
+
+    },
+    "Drop a pin" : {
+      "comment" : "Title of the meeting-point picker"
     },
     "Edit Profile" : {
       "comment" : "Title of the placeholder edit-profile screen",
@@ -184,6 +208,9 @@
         }
       }
     },
+    "Enter a full link, starting with https://" : {
+      "comment" : "Validation message shown for a link with no scheme"
+    },
     "Enter a valid email address." : {
       "comment" : "Validation message shown for a malformed email address",
       "extractionState" : "manual",
@@ -195,6 +222,9 @@
           }
         }
       }
+    },
+    "Enter how many hikers can join, at least 1." : {
+      "comment" : "Validation message shown for a capacity that is not a positive number"
     },
     "Enter the email address for your account and we'll send you a link to reset your password." : {
       "comment" : "Explanatory text on the forgot-password screen",
@@ -208,6 +238,21 @@
         }
       }
     },
+    "Enter the fee as a whole number of pesos, 0 or more." : {
+      "comment" : "Validation message shown for a fee that is not a whole non-negative number"
+    },
+    "Events" : {
+      "comment" : "Tab title for the list of cause-hike events\nTitle of the cause-hike events list"
+    },
+    "Events you join show up here." : {
+      "comment" : "Shown when My Events is empty"
+    },
+    "Fee" : {
+      "comment" : "Label for the registration fee field"
+    },
+    "Fee in pesos" : {
+      "comment" : "Placeholder for the registration fee field"
+    },
     "First name" : {
       "comment" : "Placeholder for the first name field",
       "extractionState" : "manual",
@@ -219,9 +264,6 @@
           }
         }
       }
-    },
-    "Follow my position" : {
-      "comment" : "Keeps the map centred on the walker"
     },
     "Forgot password?" : {
       "comment" : "Link to the password reset screen",
@@ -235,6 +277,12 @@
         }
       }
     },
+    "Gabay" : {
+      "comment" : "Title of the sign-in screen"
+    },
+    "Get Directions" : {
+      "comment" : "Opens the meeting point in Maps"
+    },
     "Hide password" : {
       "comment" : "Accessibility label for the password reveal toggle",
       "extractionState" : "manual",
@@ -246,6 +294,15 @@
           }
         }
       }
+    },
+    "Hike Details" : {
+      "comment" : "Title of an event's detail screen"
+    },
+    "https://" : {
+      "comment" : "Placeholder for the external join/payment link field"
+    },
+    "https:// (optional)" : {
+      "comment" : "Placeholder for the optional event photo link field"
     },
     "If an account exists for that address, we've sent a link to reset your password." : {
       "comment" : "Confirmation shown after requesting a password reset",
@@ -259,12 +316,6 @@
         }
       }
     },
-    "Import a GPX file" : {
-      "comment" : "Adds a trail from the user's own files"
-    },
-    "Import a GPX file to walk it." : {
-      "comment" : "What to do when the trail list is empty"
-    },
     "Items" : {
       "comment" : "Home tab title",
       "extractionState" : "manual",
@@ -277,6 +328,18 @@
         }
       }
     },
+    "Join link" : {
+      "comment" : "Label for the external join/payment link field"
+    },
+    "Join This Hike" : {
+      "comment" : "Button that opens the external payment/coordination link"
+    },
+    "Joined" : {
+      "comment" : "Marks an event the hiker has already joined"
+    },
+    "Joined. Open Link Again" : {
+      "comment" : "Button shown after the hiker has already joined"
+    },
     "Last name" : {
       "comment" : "Placeholder for the last name field",
       "extractionState" : "manual",
@@ -288,6 +351,9 @@
           }
         }
       }
+    },
+    "Link to a photo already hosted somewhere, such as one you've posted elsewhere." : {
+      "comment" : "Explains the photo link field, since there's no photo upload yet"
     },
     "Loading" : {
       "comment" : "Accessibility label for a loading spinner",
@@ -313,6 +379,18 @@
         }
       }
     },
+    "Meeting point" : {
+      "comment" : "Label for the meeting point label field\nPlaceholder for the meeting point label field"
+    },
+    "Meeting Point" : {
+      "comment" : "Section header for the meeting point label and pin"
+    },
+    "Meeting point pin" : {
+      "comment" : "Label for the meeting point pin picker"
+    },
+    "My Events" : {
+      "comment" : "Tab title for events the hiker has joined\nTitle of the joined-events list"
+    },
     "name@example.com" : {
       "comment" : "Placeholder for the email field",
       "extractionState" : "manual",
@@ -337,20 +415,11 @@
         }
       }
     },
-    "no elevation" : {
-      "comment" : "Shown when a trail's file carries no heights"
+    "No events joined yet" : {
+      "comment" : "Shown when the hiker hasn't joined any event"
     },
-    "No elevation in this file" : {
-      "comment" : "Shown when a GPX has no elevation to draw"
-    },
-    "No trails yet" : {
-      "comment" : "Shown when nothing has been downloaded or imported"
-    },
-    "Not available" : {
-
-    },
-    "Not downloaded yet" : {
-      "comment" : "Marks a trail that is still only in the catalogue"
+    "No events yet" : {
+      "comment" : "Shown when no cause-hikes are published"
     },
     "OK" : {
       "comment" : "Alert dismiss button",
@@ -388,6 +457,15 @@
         }
       }
     },
+    "Photo" : {
+      "comment" : "Section header for the optional event photo"
+    },
+    "Photo link" : {
+      "comment" : "Label for the optional event photo link field"
+    },
+    "Pin set" : {
+      "comment" : "Shown once a meeting point pin has been dropped"
+    },
     "Please check the highlighted fields." : {
       "comment" : "Error shown when form validation fails server-side",
       "extractionState" : "manual",
@@ -399,6 +477,9 @@
           }
         }
       }
+    },
+    "Post a Hike" : {
+      "comment" : "Tab title for the organizer event-creation form\nTitle of the organizer event-creation form"
     },
     "Profile" : {
       "comment" : "Profile tab title",
@@ -424,6 +505,12 @@
         }
       }
     },
+    "Registration" : {
+      "comment" : "Section header for fee, capacity, and join link"
+    },
+    "Remove Route" : {
+      "comment" : "Removes the attached GPX from the form"
+    },
     "Reset Password" : {
       "comment" : "Title of the forgot-password screen",
       "extractionState" : "manual",
@@ -435,6 +522,12 @@
           }
         }
       }
+    },
+    "Route" : {
+      "comment" : "Section header for the optional GPX route"
+    },
+    "Route attached" : {
+      "comment" : "Shown once a GPX has been parsed successfully"
     },
     "Search" : {
       "comment" : "Placeholder for a search field",
@@ -460,8 +553,8 @@
         }
       }
     },
-    "Search trails" : {
-      "comment" : "Placeholder in the trail list search field"
+    "Select" : {
+      "comment" : "Placeholder for a date field"
     },
     "Send Reset Link" : {
       "comment" : "Button that requests a password reset email",
@@ -474,6 +567,9 @@
           }
         }
       }
+    },
+    "Set" : {
+      "comment" : "Confirms the dropped pin as the meeting point"
     },
     "Set New Password" : {
       "comment" : "Button that submits a new password",
@@ -547,6 +643,9 @@
         }
       }
     },
+    "Sign Up" : {
+      "comment" : "Opens the account creation screen\nTitle of the account creation screen"
+    },
     "Something went wrong" : {
 
     },
@@ -586,6 +685,12 @@
         }
       }
     },
+    "Submit for Review" : {
+      "comment" : "Button that submits a new event for moderation"
+    },
+    "Submitted" : {
+      "comment" : "Title confirming an event was submitted"
+    },
     "That conflicts with something that already exists." : {
       "comment" : "Error shown on a 409 conflict",
       "extractionState" : "manual",
@@ -598,10 +703,10 @@
         }
       }
     },
-    "That took too long" : {
-
+    "That file could not be read. Try a different GPX, or leave the route out, it's optional." : {
+      "comment" : "Shown when an attached GPX cannot be parsed"
     },
-    "That trail is not where the catalogue said it was." : {
+    "That took too long" : {
 
     },
     "The request took too long. Please try again." : {
@@ -628,9 +733,6 @@
         }
       }
     },
-    "The trail did not finish downloading." : {
-
-    },
     "This version of the app is no longer supported. Please update." : {
       "comment" : "Error shown when the app build is too old for the API",
       "extractionState" : "manual",
@@ -655,6 +757,9 @@
         }
       }
     },
+    "Title" : {
+      "comment" : "Label for the event title field\nPlaceholder for the event title field"
+    },
     "Too many attempts. Please wait a moment and try again." : {
       "comment" : "Error shown when rate limited",
       "extractionState" : "manual",
@@ -666,12 +771,6 @@
           }
         }
       }
-    },
-    "Trails" : {
-      "comment" : "Title of the trail list"
-    },
-    "Trails already on your phone still work." : {
-      "comment" : "Shown when a download failed for want of a connection"
     },
     "Try Again" : {
       "comment" : "Button that retries a failed network request",
@@ -685,9 +784,6 @@
         }
       }
     },
-    "Try again in a moment." : {
-      "comment" : "Shown when a download failed for any other reason"
-    },
     "Update Now" : {
       "comment" : "Button that opens the App Store listing",
       "extractionState" : "manual",
@@ -699,6 +795,12 @@
           }
         }
       }
+    },
+    "Update required" : {
+
+    },
+    "Use at least %lld characters." : {
+      "comment" : "Validation message shown when a password is too short"
     },
     "User ID" : {
       "comment" : "Label for the user ID row on the profile screen",
@@ -723,6 +825,9 @@
           }
         }
       }
+    },
+    "We couldn't establish a secure connection. Please try again." : {
+      "comment" : "Error shown when the server's certificate fails trust validation"
     },
     "We couldn't find what you were looking for." : {
       "comment" : "Error shown when a resource does not exist",
@@ -822,6 +927,9 @@
     },
     "You're offline" : {
 
+    },
+    "Your event is pending review before it appears publicly." : {
+      "comment" : "Shown after an organizer submits a new event"
     },
     "Your session has expired. Please sign in again." : {
       "comment" : "Error shown when the session is no longer valid",
