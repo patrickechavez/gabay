@@ -65,7 +65,7 @@ struct DateField: View {
                     Spacer()
 
                     Image(systemName: format.components == .hourAndMinute ? "clock" : "calendar")
-                        .font(.footnote)
+                        .font(Theme.Font.caption)
                         .foregroundStyle(Theme.Color.secondaryText)
                 }
                 // Spacer() is not hit-testable, so give the whole row a shape to tap.
