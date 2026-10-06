@@ -47,6 +47,12 @@ enum Theme {
 
         static let accent = SwiftUI.Color.accentColor
 
+        // Identity colour for chrome. Distinct from `accent`, which tints controls.
+        static let brand = SwiftUI.Color("Brand")
+
+        // The GPX polyline. Warm on purpose: a green line vanishes into MapKit terrain.
+        static let routeLine = SwiftUI.Color("RouteLine")
+
         static let primaryText = SwiftUI.Color.primary
         static let secondaryText = SwiftUI.Color.secondary
         static let tertiaryText = SwiftUI.Color(uiColor: .tertiaryLabel)
@@ -59,7 +65,7 @@ enum Theme {
 
         static let danger = SwiftUI.Color.red
         static let warning = SwiftUI.Color.orange
-        static let success = SwiftUI.Color.green
+        static let success = SwiftUI.Color("Success")
 
         static let placeholder = SwiftUI.Color(uiColor: .tertiarySystemFill)
     }

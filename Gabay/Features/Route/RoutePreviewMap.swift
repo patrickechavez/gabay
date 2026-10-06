@@ -56,8 +56,8 @@ struct RoutePreviewMap: UIViewRepresentable {
             let renderer = MKPolylineRenderer(polyline: line)
             let isCasing = overlay is RouteLineCasing
 
-            // Named: converting Color.accentColor gives the system accent instead.
-            renderer.strokeColor = isCasing ? .white : UIColor(named: "AccentColor")
+            // Named: converting a SwiftUI Color gives the system accent instead.
+            renderer.strokeColor = isCasing ? .white : UIColor(named: "RouteLine")
             renderer.lineWidth = isCasing ? 9 : 5
             renderer.lineJoin = .round
             renderer.lineCap = .round
