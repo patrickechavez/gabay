@@ -14,6 +14,11 @@ struct BrandMark: View {
     // curves below are written on. Scaled here because a fixed width would not follow the frame.
     private static let strokeRatio: CGFloat = 0.09
 
+    // Defaults suit a light page. On the brand colour itself the trailing half would be invisible,
+    // so a screen painted in it passes its own pair.
+    var leadingColor: Color = Theme.Color.routeLine
+    var trailingColor: Color = Theme.Color.brand
+
     var body: some View {
         GeometryReader { proxy in
             let side = min(proxy.size.width, proxy.size.height)
@@ -24,8 +29,8 @@ struct BrandMark: View {
             )
 
             ZStack {
-                HeartHalf(isTrailing: false).stroke(Theme.Color.routeLine, style: style)
-                HeartHalf(isTrailing: true).stroke(Theme.Color.brand, style: style)
+                HeartHalf(isTrailing: false).stroke(leadingColor, style: style)
+                HeartHalf(isTrailing: true).stroke(trailingColor, style: style)
             }
         }
         .aspectRatio(1, contentMode: .fit)
@@ -42,8 +47,8 @@ private struct HeartHalf: Shape {
     func path(in rect: CGRect) -> Path {
         let scale = min(rect.width, rect.height) / 100
 
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-            CGPoint(x: (isTrailing ? 100 - x : x) * scale, y: y * scale)
+        func point(_ gridX: CGFloat, _ gridY: CGFloat) -> CGPoint {
+            CGPoint(x: (isTrailing ? 100 - gridX : gridX) * scale, y: gridY * scale)
         }
 
         var path = Path()

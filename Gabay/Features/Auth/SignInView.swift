@@ -71,18 +71,18 @@ struct SignInView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.lg) {
-                VStack(spacing: Theme.Spacing.sm) {
+                VStack(spacing: Theme.Spacing.md) {
                     BrandMark()
                         .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
 
                     Text(
                         "Gabay",
-                        comment: "The app's name, shown under the mark on the sign-in screen"
+                        comment: "The app's name, shown under the mark"
                     )
-                    .font(Theme.Font.sectionTitle)
+                    .font(Theme.Font.screenTitle)
                     .foregroundStyle(Theme.Color.brand)
                 }
-                .padding(.bottom, Theme.Spacing.md)
+                .padding(.bottom, Theme.Spacing.xl)
 
                 EmailField(text: $viewModel.email)
 

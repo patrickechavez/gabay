@@ -40,7 +40,7 @@ enum Theme {
         static let avatarLarge: CGFloat = 96
         static let thumbnail: CGFloat = 56
 
-        static let brandMark: CGFloat = 56
+        static let brandMark: CGFloat = 88
 
         static let minimumTapTarget: CGFloat = 44
 
@@ -57,6 +57,9 @@ enum Theme {
 
         // The GPX polyline. Warm on purpose: a green line vanishes into MapKit terrain.
         static let routeLine = SwiftUI.Color("RouteLine")
+
+        // Content sitting on `brand`, where the usual text colours would be unreadable.
+        static let onBrand = SwiftUI.Color("OnBrand")
 
         static let primaryText = SwiftUI.Color.primary
         static let secondaryText = SwiftUI.Color.secondary

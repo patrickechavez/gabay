@@ -13,6 +13,11 @@ final class Session {
 
     private(set) var account: Account?
 
+    // True until `restore()` has had its say. Without it `isSignedIn` reads false while the stored
+    // token is still being checked, which is indistinguishable from signed out, so a returning user
+    // is shown the sign-in screen for the length of a `me()` round trip before being let back in.
+    private(set) var isRestoring = true
+
     var isSignedIn: Bool { account != nil }
 
     @ObservationIgnored private let auth: any AuthRepository
@@ -26,6 +31,10 @@ final class Session {
     // Called once at launch; picks up a token already in the Keychain, or does nothing if there
     // isn't one.
     func restore() async {
+        // Deferred rather than assigned at the end, because the guard below returns early when
+        // there is no stored token and the flag has to clear on that path too.
+        defer { isRestoring = false }
+
         guard await tokenStore.load() != nil else { return }
 
         do {

@@ -12,7 +12,9 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if dependencies.session.isSignedIn {
+            if dependencies.session.isRestoring {
+                LaunchView()
+            } else if dependencies.session.isSignedIn {
                 SignedInView(dependencies: dependencies)
             } else {
                 SignInView(
@@ -83,8 +85,24 @@ struct LaunchView: View {
     var body: some View {
         ZStack {
             Color("LaunchBackground").ignoresSafeArea()
-            ProgressView()
-                .controlSize(.large)
+
+            VStack(spacing: Theme.Spacing.md) {
+                // Amber and cream, not the mark's usual pair: its trailing half defaults to the
+                // brand colour, which is what this screen is painted in.
+                BrandMark(
+                    leadingColor: Theme.Color.routeLine,
+                    trailingColor: Theme.Color.onBrand
+                )
+                .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
+
+                Text("Gabay", comment: "The app's name, shown under the mark")
+                    .font(Theme.Font.screenTitle)
+                    .foregroundStyle(Theme.Color.onBrand)
+
+                ProgressView()
+                    .tint(Theme.Color.onBrand)
+                    .padding(.top, Theme.Spacing.xl)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("Starting up", comment: "Accessibility label for the launch screen"))

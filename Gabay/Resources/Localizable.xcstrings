@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "*" : {
-
-    },
     "Account" : {
       "comment" : "Header of the account section on the profile screen",
       "extractionState" : "manual",
@@ -278,7 +275,7 @@
       }
     },
     "Gabay" : {
-      "comment" : "The app's name, shown under the mark on the sign-in screen"
+      "comment" : "The app's name, shown under the mark"
     },
     "Get Directions" : {
       "comment" : "Opens the meeting point in Maps"

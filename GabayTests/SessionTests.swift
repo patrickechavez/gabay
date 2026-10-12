@@ -17,6 +17,21 @@ struct SessionTests {
         #expect(session.isSignedIn == false)
     }
 
+    // Signed out and not yet known read the same through `isSignedIn`, so the root view needs this
+    // to tell them apart. Without it a returning user is shown sign-in while their token is checked.
+    @Test func startsRestoring() {
+        let session = Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore())
+        #expect(session.isRestoring)
+    }
+
+    // The no-token path returns early, so this fails if the flag is cleared at the end of `restore`
+    // rather than deferred, leaving the launch screen up forever for a first-time user.
+    @Test func stopsRestoringEvenWithoutAStoredToken() async {
+        let session = Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore())
+        await session.restore()
+        #expect(session.isRestoring == false)
+    }
+
     @Test func restoreDoesNothingWithoutAStoredToken() async {
         let session = Session(auth: StubAuthRepository(), tokenStore: InMemoryTokenStore())
         await session.restore()
