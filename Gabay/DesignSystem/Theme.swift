@@ -40,7 +40,12 @@ enum Theme {
         static let avatarLarge: CGFloat = 96
         static let thumbnail: CGFloat = 56
 
+        static let brandMark: CGFloat = 56
+
         static let minimumTapTarget: CGFloat = 44
+
+        // Keeps a form readable on iPad, where a full width field runs the width of the screen.
+        static let formMaxWidth: CGFloat = 420
     }
 
     enum Color {

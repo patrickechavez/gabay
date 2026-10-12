@@ -69,46 +69,67 @@ struct SignInView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Theme.Spacing.lg) {
-                    EmailField(
-                        text: $viewModel.email,
-                        isRequired: true
-                    )
+        ScrollView {
+            VStack(spacing: Theme.Spacing.lg) {
+                VStack(spacing: Theme.Spacing.sm) {
+                    BrandMark()
+                        .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
 
-                    PasswordField(
-                        text: $viewModel.password,
-                        isRequired: true
+                    Text(
+                        "Gabay",
+                        comment: "The app's name, shown under the mark on the sign-in screen"
                     )
-
-                    if let message = viewModel.signInErrorMessage {
-                        InlineErrorText(message)
-                    }
-
-                    AsyncButton(
-                        title: Text("Sign In", comment: "Button that submits the sign-in form"),
-                        isRunning: viewModel.action.isRunning,
-                        action: { await viewModel.signIn() }
-                    )
-                    .disabled(!viewModel.canSubmit)
+                    .font(Theme.Font.sectionTitle)
+                    .foregroundStyle(Theme.Color.brand)
                 }
-                .padding(Theme.Spacing.lg)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .navigationTitle(Text("Gabay", comment: "Title of the sign-in screen"))
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                .padding(.bottom, Theme.Spacing.md)
+
+                EmailField(
+                    text: $viewModel.email,
+                    isRequired: true
+                )
+
+                PasswordField(
+                    text: $viewModel.password,
+                    isRequired: true
+                )
+
+                if let message = viewModel.signInErrorMessage {
+                    InlineErrorText(message)
+                }
+
+                AsyncButton(
+                    title: Text("Sign In", comment: "Button that submits the sign-in form"),
+                    isRunning: viewModel.action.isRunning,
+                    action: { await viewModel.signIn() }
+                )
+                .disabled(!viewModel.canSubmit)
+
+                HStack(spacing: Theme.Spacing.xs) {
+                    Text(
+                        "New to Gabay?",
+                        comment: "Precedes the sign-up link on the sign-in screen"
+                    )
+                    .foregroundStyle(Theme.Color.secondaryText)
+
                     Button {
                         isShowingSignUp = true
                     } label: {
                         Text("Sign Up", comment: "Opens the account creation screen")
                     }
                 }
+                .font(Theme.Font.secondary)
             }
-            .sheet(isPresented: $isShowingSignUp) {
-                SignUpView(viewModel: makeSignUpViewModel())
-            }
+            .padding(Theme.Spacing.lg)
+            .frame(maxWidth: Theme.Size.formMaxWidth)
+            // The wider frame centres the clamped one; the container frame fills the scroll view's
+            // height so a short form sits in the middle instead of riding the top edge.
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical, alignment: .center)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .sheet(isPresented: $isShowingSignUp) {
+            SignUpView(viewModel: makeSignUpViewModel())
         }
     }
 }

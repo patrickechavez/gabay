@@ -278,7 +278,7 @@
       }
     },
     "Gabay" : {
-      "comment" : "Title of the sign-in screen"
+      "comment" : "The app's name, shown under the mark on the sign-in screen"
     },
     "Get Directions" : {
       "comment" : "Opens the meeting point in Maps"
@@ -414,6 +414,9 @@
           }
         }
       }
+    },
+    "New to Gabay?" : {
+      "comment" : "Precedes the sign-up link on the sign-in screen"
     },
     "No events joined yet" : {
       "comment" : "Shown when the hiker hasn't joined any event"
