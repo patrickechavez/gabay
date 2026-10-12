@@ -60,7 +60,6 @@ struct PostEventView: View {
             text: $viewModel.title,
             placeholder: String(localized: "Title", comment: "Placeholder for the event title field"),
             label: String(localized: "Title", comment: "Label for the event title field"),
-            isRequired: true,
             capitalization: .words
         )
 
@@ -68,15 +67,13 @@ struct PostEventView: View {
             text: $viewModel.cause,
             placeholder: String(localized: "Cause", comment: "Placeholder for the beneficiary/cause field"),
             label: String(localized: "Cause", comment: "Label for the beneficiary/cause field"),
-            isRequired: true,
             capitalization: .words
         )
 
         DateField(
             label: String(localized: "Date", comment: "Label for the event date and time field"),
             date: $viewModel.date,
-            format: .monthDayYearTime12,
-            isRequired: true
+            format: .monthDayYearTime12
         )
     }
 
@@ -88,13 +85,11 @@ struct PostEventView: View {
             text: $viewModel.meetingPoint,
             placeholder: String(localized: "Meeting point",
                                 comment: "Placeholder for the meeting point label field"),
-            label: String(localized: "Meeting point", comment: "Label for the meeting point label field"),
-            isRequired: true
+            label: String(localized: "Meeting point", comment: "Label for the meeting point label field")
         )
 
         FieldContainer(
             label: String(localized: "Meeting point pin", comment: "Label for the meeting point pin picker"),
-            isRequired: true,
             error: nil
         ) {
             Button {
@@ -124,7 +119,6 @@ struct PostEventView: View {
                                 comment: "Placeholder for the registration fee field"),
             label: String(localized: "Fee", comment: "Label for the registration fee field"),
             error: viewModel.feeError,
-            isRequired: true,
             keyboard: .numberPad
         )
 
@@ -133,7 +127,6 @@ struct PostEventView: View {
             placeholder: String(localized: "Capacity", comment: "Placeholder for the hiker capacity field"),
             label: String(localized: "Capacity", comment: "Label for the hiker capacity field"),
             error: viewModel.capacityError,
-            isRequired: true,
             keyboard: .numberPad
         )
 
@@ -143,7 +136,6 @@ struct PostEventView: View {
                                 comment: "Placeholder for the external join/payment link field"),
             label: String(localized: "Join link", comment: "Label for the external join/payment link field"),
             error: viewModel.joinURLError,
-            isRequired: true,
             keyboard: .URL,
             capitalization: .never,
             contentType: .URL,
@@ -220,7 +212,6 @@ struct PostEventView: View {
 
         FieldContainer(
             label: String(localized: "Description", comment: "Label for the event description field"),
-            isRequired: true,
             error: nil
         ) {
             TextField(

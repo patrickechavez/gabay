@@ -106,14 +106,12 @@ struct SignUpView: View {
                 VStack(spacing: Theme.Spacing.lg) {
                     EmailField(
                         text: $viewModel.email,
-                        error: viewModel.emailError,
-                        isRequired: true
+                        error: viewModel.emailError
                     )
 
                     PasswordField(
                         text: $viewModel.password,
                         error: viewModel.passwordError,
-                        isRequired: true,
                         isNewPassword: true
                     )
 

@@ -84,15 +84,9 @@ struct SignInView: View {
                 }
                 .padding(.bottom, Theme.Spacing.md)
 
-                EmailField(
-                    text: $viewModel.email,
-                    isRequired: true
-                )
+                EmailField(text: $viewModel.email)
 
-                PasswordField(
-                    text: $viewModel.password,
-                    isRequired: true
-                )
+                PasswordField(text: $viewModel.password)
 
                 if let message = viewModel.signInErrorMessage {
                     InlineErrorText(message)

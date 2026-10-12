@@ -8,7 +8,6 @@ import SwiftUI
 // The label, box and error message every text field sits inside.
 struct FieldContainer<Content: View>: View {
     let label: String?
-    let isRequired: Bool
     let error: String?
     @ViewBuilder let content: () -> Content
 
@@ -17,19 +16,13 @@ struct FieldContainer<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             if let label {
-                HStack(spacing: Theme.Spacing.xs) {
-                    Text(label)
-                    if isRequired { Text("*").foregroundStyle(Theme.Color.danger) }
-                }
-                .font(Theme.Font.fieldLabel)
-                .foregroundStyle(Theme.Color.secondaryText)
+                Text(label)
+                    .font(Theme.Font.fieldLabel)
+                    .foregroundStyle(Theme.Color.secondaryText)
             }
 
             HStack(spacing: Theme.Spacing.sm) {
                 content()
-                if isRequired && label == nil {
-                    Text("*").foregroundStyle(Theme.Color.danger)
-                }
             }
             .padding(.horizontal, Theme.Spacing.lg)
             .padding(.vertical, Theme.Spacing.md)

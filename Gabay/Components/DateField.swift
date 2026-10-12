@@ -14,7 +14,6 @@ struct DateField: View {
 
     var placeholder: String
     var error: String?
-    var isRequired: Bool = false
     var isEnabled: Bool = true
 
     // Limits the selectable dates when set.
@@ -31,7 +30,6 @@ struct DateField: View {
         format: DateFormat = .monthDayYear,
         placeholder: String = String(localized: "Select", comment: "Placeholder for a date field"),
         error: String? = nil,
-        isRequired: Bool = false,
         isEnabled: Bool = true,
         range: ClosedRange<Date>? = nil
     ) {
@@ -40,7 +38,6 @@ struct DateField: View {
         self.format = format
         self.placeholder = placeholder
         self.error = error
-        self.isRequired = isRequired
         self.isEnabled = isEnabled
         self.range = range
 
@@ -52,7 +49,7 @@ struct DateField: View {
     }
 
     var body: some View {
-        FieldContainer(label: label, isRequired: isRequired, error: error) {
+        FieldContainer(label: label, error: error) {
             Button {
                 isPresented = true
             } label: {

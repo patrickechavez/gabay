@@ -13,7 +13,6 @@ struct AppTextField: View {
     var placeholder: String = ""
     var label: String?
     var error: String?
-    var isRequired: Bool = false
 
     var keyboard: UIKeyboardType = .default
     var capitalization: TextInputAutocapitalization = .sentences
@@ -22,7 +21,7 @@ struct AppTextField: View {
     var submitLabel: SubmitLabel = .return
 
     var body: some View {
-        FieldContainer(label: label, isRequired: isRequired, error: error) {
+        FieldContainer(label: label, error: error) {
             TextField(placeholder, text: $text)
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(capitalization)

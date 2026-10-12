@@ -13,13 +13,12 @@ struct PasswordField: View {
 
     var label: String? = String(localized: "Password", comment: "Label for the password field")
     var error: String?
-    var isRequired: Bool = false
     var isNewPassword: Bool = false
     @State private var isRevealed = false
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        FieldContainer(label: label, isRequired: isRequired, error: error) {
+        FieldContainer(label: label, error: error) {
             Group {
                 if isRevealed {
                     TextField(placeholder, text: $text)
