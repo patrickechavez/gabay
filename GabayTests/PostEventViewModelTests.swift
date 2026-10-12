@@ -24,9 +24,9 @@ struct PostEventViewModelTests {
         return viewModel
     }
 
-    private func gpxFixture(_ xml: String = "<gpx><trk><trkseg><trkpt lat=\"9.8\" lon=\"123.3\"/><trkpt lat=\"9.9\" lon=\"123.3\"/></trkseg></trk></gpx>") -> URL {
+    private func gpxFixture(_ xml: String = "<gpx><trk><trkseg><trkpt lat=\"9.8\" lon=\"123.3\"/><trkpt lat=\"9.9\" lon=\"123.3\"/></trkseg></trk></gpx>") throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).gpx")
-        try! Data(xml.utf8).write(to: url)
+        try Data(xml.utf8).write(to: url)
         return url
     }
 
@@ -75,7 +75,7 @@ struct PostEventViewModelTests {
 
     @Test func pickingAValidGPXComputesRouteStats() async throws {
         let viewModel = makeValidViewModel()
-        let file = gpxFixture()
+        let file = try gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
 
         await viewModel.pickGPX(at: file)
@@ -91,7 +91,7 @@ struct PostEventViewModelTests {
 
     @Test func pickingAnUnreadableGPXReportsAnErrorAndClearsAnyRoute() async throws {
         let viewModel = makeValidViewModel()
-        let badFile = gpxFixture("not gpx at all")
+        let badFile = try gpxFixture("not gpx at all")
         defer { try? FileManager.default.removeItem(at: badFile) }
 
         await viewModel.pickGPX(at: badFile)
@@ -102,7 +102,7 @@ struct PostEventViewModelTests {
 
     @Test func removeGPXClearsTheRoute() async throws {
         let viewModel = makeValidViewModel()
-        let file = gpxFixture()
+        let file = try gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
         await viewModel.pickGPX(at: file)
 
@@ -126,7 +126,7 @@ struct PostEventViewModelTests {
         events.createResult = .success(.fixture(status: .pending))
         events.uploadGPXResult = .success(.fixture(gpxURL: URL(string: "https://example.test/r.gpx"), status: .pending))
         let viewModel = makeValidViewModel(events: events)
-        let file = gpxFixture()
+        let file = try gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
         await viewModel.pickGPX(at: file)
 
@@ -324,7 +324,7 @@ struct PostEventViewModelTests {
         let events = StubEventRepository()
         events.createResult = .failure(APIError.server(status: 500))
         let viewModel = makeValidViewModel(events: events)
-        let file = gpxFixture()
+        let file = try gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
 
         await viewModel.submit()
@@ -338,7 +338,7 @@ struct PostEventViewModelTests {
     @Test func removingAGPXAfterAFailedSubmitClearsTheStaleMessage() async throws {
         let events = StubEventRepository()
         let viewModel = makeValidViewModel(events: events)
-        let file = gpxFixture()
+        let file = try gpxFixture()
         defer { try? FileManager.default.removeItem(at: file) }
         await viewModel.pickGPX(at: file)
 
