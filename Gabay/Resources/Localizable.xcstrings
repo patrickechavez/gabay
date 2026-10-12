@@ -295,6 +295,9 @@
     "Hike Details" : {
       "comment" : "Title of an event's detail screen"
     },
+    "Hike not available" : {
+      "comment" : "Shown when a linked event is missing from the list"
+    },
     "https://" : {
       "comment" : "Placeholder for the external join/payment link field"
     },
@@ -312,6 +315,9 @@
           }
         }
       }
+    },
+    "It may have been removed, or it is still awaiting review." : {
+      "comment" : "Explains why a linked event cannot be shown"
     },
     "Items" : {
       "comment" : "Home tab title",
@@ -420,6 +426,9 @@
     },
     "No events yet" : {
       "comment" : "Shown when no cause-hikes are published"
+    },
+    "No internet connection" : {
+      "comment" : "Banner shown while the device is offline"
     },
     "OK" : {
       "comment" : "Alert dismiss button",
@@ -720,6 +729,9 @@
           }
         }
       }
+    },
+    "The route map could not be loaded." : {
+      "comment" : "Shown when an event's GPX route fails to download"
     },
     "The service is temporarily unavailable for maintenance." : {
       "comment" : "Error shown when the backend is in maintenance mode",
