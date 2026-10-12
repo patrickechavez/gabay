@@ -58,8 +58,13 @@ enum Theme {
         // The GPX polyline. Warm on purpose: a green line vanishes into MapKit terrain.
         static let routeLine = SwiftUI.Color("RouteLine")
 
-        // Content sitting on `brand`, where the usual text colours would be unreadable.
+        // Content sitting on `brandSurface`, where the usual text colours would be unreadable.
         static let onBrand = SwiftUI.Color("OnBrand")
+
+        // Pine in both appearances, unlike `brand`, which lightens so it stays legible as a
+        // foreground. The asset keeps its old name because the launch screen build setting
+        // resolves it by that name.
+        static let brandSurface = SwiftUI.Color("LaunchBackground")
 
         static let primaryText = SwiftUI.Color.primary
         static let secondaryText = SwiftUI.Color.secondary

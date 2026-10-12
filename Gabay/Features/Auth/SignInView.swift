@@ -72,7 +72,7 @@ struct SignInView: View {
         ScrollView {
             VStack(spacing: Theme.Spacing.lg) {
                 VStack(spacing: Theme.Spacing.md) {
-                    BrandMark()
+                    BrandTile()
                         .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
 
                     Text(

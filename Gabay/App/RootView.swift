@@ -87,13 +87,10 @@ struct LaunchView: View {
             Color("LaunchBackground").ignoresSafeArea()
 
             VStack(spacing: Theme.Spacing.md) {
-                // Amber and cream, not the mark's usual pair: its trailing half defaults to the
-                // brand colour, which is what this screen is painted in.
-                BrandMark(
-                    leadingColor: Theme.Color.routeLine,
-                    trailingColor: Theme.Color.onBrand
-                )
-                .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
+                // The same tile the sign-in screen shows. Here it is invisible against the
+                // background it matches, which is the point: one mark, never recoloured.
+                BrandTile()
+                    .frame(width: Theme.Size.brandMark, height: Theme.Size.brandMark)
 
                 Text("Gabay", comment: "The app's name, shown under the mark")
                     .font(Theme.Font.screenTitle)
