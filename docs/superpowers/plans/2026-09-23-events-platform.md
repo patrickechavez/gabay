@@ -16,7 +16,6 @@
 - Views hold no logic. State and side effects live in an `@Observable` `@MainActor` view model; the view model depends on protocols (`Authenticating`, `TokenStoring`, `EventFetching`), never concrete network types, so tests can substitute stubs.
 - The Xcode project uses `PBXFileSystemSynchronizedRootGroup` for both the `Gabay` and `GabayTests` targets: any file created, moved, or deleted under `Gabay/` or `GabayTests/` on disk is automatically added to or removed from the build. **Never edit `Gabay.xcodeproj/project.pbxproj` to add or remove a source file** - only `git mv`/`git rm`/`Write` the file itself. The one exception in this plan is removing three build-setting lines (`INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription`) in Task 12, which are build settings, not file references.
 - Location use is a one-shot "where am I right now" read for centering the meeting-point picker, never background tracking. Only `NSLocationWhenInUseUsageDescription` belongs in Info.plist; the free-trail app's `NSLocationAlwaysAndWhenInUseUsageDescription` does not come back.
-- Commit messages carry no attribution line of any kind (no `Co-Authored-By`, no "Generated with"), per this project's CLAUDE.md. Do not add one.
 - Test command for any single suite:
   `xcodebuild test -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:GabayTests/<SuiteName>`
 - Test command for the whole suite: `xcodebuild test -scheme Development -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`

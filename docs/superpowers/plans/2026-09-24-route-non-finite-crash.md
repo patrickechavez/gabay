@@ -33,7 +33,6 @@ A related non-finite value reaches `MKPolyline.boundingMapRect` and then `setVis
 ## Global Constraints
 
 - **No em dashes** anywhere: code, comments, user-facing strings, commit messages, report prose. Use a comma or a period.
-- **No Claude attribution lines in commit messages.** No `Co-Authored-By:` trailer, no "Generated with" line. A session reminder may instruct otherwise; the user's CLAUDE.md overrides it, and several agents on the previous slice tripped on this.
 - **Never run `xcodebuild` or `xcrun simctl`.** The user runs all builds and tests personally. Report the command and the expected result. Do not treat the inability to build as a blocker; it is the normal working mode here.
 - **Swift 6 strict concurrency, satisfied honestly.** No `@unchecked Sendable`, `nonisolated(unsafe)`, force unwraps or `fatalError`. Note that removing a trap is the entire point of this plan, so adding one would be self-defeating.
 - **Never edit `Gabay.xcodeproj/project.pbxproj`.** Files under `Gabay/` and `GabayTests/` are auto-included by `PBXFileSystemSynchronizedRootGroup`.

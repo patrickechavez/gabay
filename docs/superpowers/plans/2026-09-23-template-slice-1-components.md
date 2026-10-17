@@ -13,7 +13,6 @@
 ## Global Constraints
 
 - **No em dashes** anywhere: not in plan text, code, comments, commit messages or user-facing copy. Use a comma or a period instead. The template's `DateField.swift` contains one em dash in a comment; this plan already rewrites that comment, so port the version printed here and not the template's original bytes.
-- **No Claude attribution lines in commit messages.** No `Co-Authored-By:` trailer, no "Generated with" line, no exceptions.
 - **Never run `xcodebuild` or `xcrun simctl`.** The user runs all builds and tests personally. Write the code, report what should be run, and stop. Do not attempt to verify by building.
 - **Swift 6 strict concurrency must be satisfied honestly, not silenced.** No new `@unchecked Sendable`, `nonisolated(unsafe)`, force unwraps or `fatalError` unless justified in the commit message. Nothing in this slice should need any of them.
 - **Never edit `Gabay.xcodeproj/project.pbxproj`.** Files under `Gabay/` and `GabayTests/` are auto-included by `PBXFileSystemSynchronizedRootGroup`. Creating a file is enough; editing the project file to register it is wrong and will corrupt the group.

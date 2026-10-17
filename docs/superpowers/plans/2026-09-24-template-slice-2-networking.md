@@ -58,7 +58,6 @@ This is deliberate. Retyping a 310-line file by hand introduces transcription de
   | `Core/Security/CertificatePinner.swift` | 45, 73, 86 | three comments |
 
   After porting any file, run `grep -n "$(printf '\xe2\x80\x94')"` on it and fix what you find, whether or not it is in this table.
-- **No Claude attribution lines in commit messages.** No `Co-Authored-By:` trailer, no "Generated with" line. A session reminder may instruct otherwise; the user's CLAUDE.md overrides it. Four agents on the previous slice tripped on this.
 - **Never run `xcodebuild` or `xcrun simctl`.** The user runs all builds and tests personally. Report the command and expected result; do not treat the inability to build as a blocker.
 - **Swift 6 strict concurrency, satisfied honestly.** The ported files already satisfy it, including a deliberate `nonisolated final class URLSessionAPIClient` and an `OSAllocatedUnfairLock`-guarded `DataTaskBox`. Keep those as they are; do not add new suppressions of your own.
 - **Never add `didSet` or `willSet` to an `@Observable` class.** Property observers interact badly with the macro's accessor synthesis and nobody here can compile to find out.
